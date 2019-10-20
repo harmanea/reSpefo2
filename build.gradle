@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+    id "com.diffplug.gradle.eclipse.mavencentral" version "3.17.7"
+}
+
+group 'cz.cuni.mff'
+version '1.0-SNAPSHOT'
+ant.propertyfile( file: "application.properties" ) {
+    entry(key: "application.version", version)
+}
+
+sourceCompatibility = 1.8
+
+apply plugin: 'com.diffplug.gradle.eclipse.mavencentral'
+eclipseMavenCentral {
+    release('4.12.0') {
+        compile 'org.eclipse.swt'
+        useNativesForRunningPlatform()
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://buchen.github.io/maven-repo"
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.15.2'
+    implementation 'org.swtchart:org.swtchart:0.10.0'
+    compile group: 'org.json', name: 'json', version: '20190722'
+}
