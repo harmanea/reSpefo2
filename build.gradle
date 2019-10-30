@@ -1,13 +1,11 @@
 plugins {
     id 'java'
-    id "com.diffplug.gradle.eclipse.mavencentral" version "3.17.7"
+    id 'com.diffplug.gradle.eclipse.mavencentral' version '3.17.7' // for swt
+    id 'com.palantir.git-version' version '0.12.2' // for git version plugin
 }
 
 group 'cz.cuni.mff'
-version '1.0-SNAPSHOT'
-ant.propertyfile( file: "application.properties" ) {
-    entry(key: "application.version", version)
-}
+version gitVersion()
 
 sourceCompatibility = 1.8
 
@@ -22,7 +20,7 @@ eclipseMavenCentral {
 repositories {
     mavenCentral()
     maven {
-        url "http://buchen.github.io/maven-repo"
+        url 'http://buchen.github.io/maven-repo' // for swtchart
     }
 }
 
@@ -30,5 +28,25 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.15.2'
     implementation 'org.swtchart:org.swtchart:0.10.0'
-    compile group: 'org.json', name: 'json', version: '20190722'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.4.1'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
+    compile 'org.reflections:reflections:0.9.11'
+}
+
+task fatJar(type: Jar) {
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+
+    manifest {
+        attributes(
+                'Main-Class': 'cz.cuni.mff.respefo.ReSpefo',
+                'Implementation-Version': version
+        )
+    }
+
+    // archiveAppendix = os and bitness
+    // destinationDirectory = some/other/dir
+
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
