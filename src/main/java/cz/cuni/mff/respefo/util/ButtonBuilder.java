@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Listener;
 
 public class ButtonBuilder extends ControlBuilder<Button, ButtonBuilder> {
     private ButtonBuilder(Composite parent, int style) {
@@ -36,6 +37,12 @@ public class ButtonBuilder extends ControlBuilder<Button, ButtonBuilder> {
 
     public ButtonBuilder image(Image image) {
         control.setImage(image);
+
+        return this;
+    }
+
+    public ButtonBuilder onSelection(Listener listener) {
+        control.addListener(SWT.Selection, listener);
 
         return this;
     }
