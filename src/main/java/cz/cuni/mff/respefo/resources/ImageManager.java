@@ -4,11 +4,8 @@ import cz.cuni.mff.respefo.util.UtilityClass;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 
-import java.io.File;
-import java.nio.file.Paths;
 import java.util.EnumMap;
 
-import static cz.cuni.mff.respefo.resources.ImageResource.*;
 import static java.io.File.separator;
 
 public class ImageManager extends UtilityClass {
