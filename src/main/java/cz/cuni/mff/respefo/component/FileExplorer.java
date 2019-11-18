@@ -1,13 +1,19 @@
 package cz.cuni.mff.respefo.component;
 
+import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.function.FunctionInfo;
+import cz.cuni.mff.respefo.function.FunctionManager;
+import cz.cuni.mff.respefo.function.MultiFileFunction;
+import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.resources.ImageManager;
+import cz.cuni.mff.respefo.util.Message;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,6 +30,8 @@ public class FileExplorer {
 
         addExpandListener();
         addCollapseListener();
+
+        new FileExplorerMenu(tree);
     }
 
     public Menu getMenu() {
@@ -38,8 +46,14 @@ public class FileExplorer {
         tree.setLayoutData(layoutData);
     }
 
-    public void setRootDirectory(File file) {
-        // assert file is non null and a directory?
+    public void setRootDirectory(File file) throws SpefoException {
+        if (file == null) {
+            throw new SpefoException("File is null.");
+        } else if (!file.isDirectory()) {
+            throw new SpefoException("File is not a directory.");
+        } else if (!file.exists()) {
+            throw new SpefoException("File doesn't exist.");
+        }
 
         clearTree();
         for (File child : file.listFiles()) {
@@ -71,6 +85,7 @@ public class FileExplorer {
         }
 
         tree.setRedraw(true);
+        tree.redraw();
     }
 
     private void clearTree() {
@@ -126,6 +141,96 @@ public class FileExplorer {
             return ImageManager.getImage(FOLDER);
         } else {
             return ImageManager.getImage(FILE); // TODO: do this better
+        }
+    }
+
+    public class FileExplorerMenu {
+        private final Menu menu;
+
+        private List<MenuItem> contextOptions = new ArrayList<>();
+
+        FileExplorerMenu(Tree tree) {
+            menu = new Menu(tree);
+            tree.setMenu(menu);
+
+            createAlwaysVisibleMenuItems();
+
+            menu.addMenuListener(new MenuAdapter() {
+                @Override
+                public void menuShown(MenuEvent e) {
+                    super.menuShown(e);
+
+                    List<File> selection = getSelection();
+
+                    contextOptions.forEach(Widget::dispose);
+                    contextOptions.clear();
+
+                    if (selection.size() == 1) {
+                        createSingleSelectionMenuItems(selection.get(0));
+                    } else if (selection.size() > 1) {
+                        createMultiSelectionMenuItems(selection);
+                    }
+
+                    if (contextOptions.isEmpty()) {
+                        MenuItem item = new MenuItem(menu, 0);
+                        item.setText("No actions available");
+                        item.setEnabled(false);
+                        contextOptions.add(item);
+                    }
+                }
+            });
+        }
+
+        private void createAlwaysVisibleMenuItems() {
+            MenuItem item = new MenuItem(menu, 0);
+            item.setText("Change Directory");
+            item.addListener(Selection, event -> {
+                DirectoryDialog dialog = new DirectoryDialog(menu.getShell());
+
+                dialog.setText("Choose directory");
+                dialog.setFilterPath(getRootDirectory().getPath());
+
+                String directoryName = dialog.open();
+
+                if (directoryName != null) {
+                    try {
+                        setRootDirectory(new File(directoryName));
+                    } catch (Exception exception) {
+                        Message.error("Couldn't change directory.", exception);
+                    }
+                }
+            });
+
+            item = new MenuItem(menu, 0);
+            item.setText("Collapse All");
+            item.addListener(Selection, event -> collapseAll());
+
+            new MenuItem(menu, SEPARATOR);
+        }
+
+        private void createSingleSelectionMenuItems(File selection) {
+            for (FunctionInfo<SingleFileFunction> functionInfo : FunctionManager.getSingleFileFunctions()) {
+                if (functionInfo.getFileFilter().accept(selection)) {
+
+                    MenuItem item = new MenuItem(menu, 0);
+                    item.setText(functionInfo.getName());
+                    item.addListener(Selection, event -> functionInfo.getInstance().execute(selection));
+
+                    contextOptions.add(item);
+                }
+            }
+        }
+
+        private void createMultiSelectionMenuItems(List<File> selection) {
+            for (FunctionInfo<MultiFileFunction> functionInfo : FunctionManager.getMultiFileFunctions()) {
+                if (selection.stream().allMatch(file -> functionInfo.getFileFilter().accept(file))) {
+                    MenuItem item = new MenuItem(menu, 0);
+                    item.setText(functionInfo.getName());
+                    item.addListener(Selection, event -> functionInfo.getInstance().execute(getSelection()));
+
+                    contextOptions.add(item);
+                }
+            }
         }
     }
 }
