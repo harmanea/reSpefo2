@@ -2,16 +2,18 @@ package cz.cuni.mff.respefo.format;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import cz.cuni.mff.respefo.util.VersionInfo;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class SpectrumFile {
+    private static final int CURRENT_FORMAT = 1;
+
     private int format;
     private String version;
     // TODO: add origin information
 
-    @JsonDeserialize(using = DataDeserializer.class)
-    @JsonSerialize(using = DataSerializer.class)
     private Data data;
 
     @JsonDeserialize(using = FunctionAssetsDeserializer.class)
@@ -22,6 +24,14 @@ public class SpectrumFile {
 
     public SpectrumFile() {
         // default empty constructor
+    }
+
+    public SpectrumFile(Data data) {
+        format = CURRENT_FORMAT;
+        version = VersionInfo.getVersion();
+        functionAssets = new HashMap<>();
+
+        this.data = data;
     }
 
     public int getFormat() {

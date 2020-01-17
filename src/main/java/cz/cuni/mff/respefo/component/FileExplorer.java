@@ -1,23 +1,26 @@
 package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
-import cz.cuni.mff.respefo.resources.ImageManager;
+import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.Message;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntFunction;
 
+import static cz.cuni.mff.respefo.resources.ImageManager.getImage;
 import static cz.cuni.mff.respefo.resources.ImageResource.*;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.getFileExtension;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
@@ -34,14 +37,6 @@ public class FileExplorer {
         new FileExplorerMenu(tree);
     }
 
-    public Menu getMenu() {
-        if (tree.getMenu() == null) {
-            tree.setMenu(new Menu(tree));
-        }
-
-        return tree.getMenu();
-    }
-
     public void setLayoutData(Object layoutData) {
         tree.setLayoutData(layoutData);
     }
@@ -56,7 +51,10 @@ public class FileExplorer {
         }
 
         clearTree();
-        for (File child : file.listFiles()) {
+
+        File[] children = file.listFiles();
+        Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        for (File child : children) {
             TreeItem item = new TreeItem(tree, 0);
             setUpChildItem(item, child);
         }
@@ -66,6 +64,90 @@ public class FileExplorer {
 
     public File getRootDirectory() {
         return rootDirectory;
+    }
+
+    public void refresh() {
+        TreeItem[] items = tree.getItems();
+
+        refreshItems(items, rootDirectory, index -> new TreeItem(tree, 0, index));
+    }
+
+    private void refreshNested(TreeItem item, File file) {
+        if (file.isDirectory()) {
+            int nestedFileCount = file.list().length;
+
+            if (nestedFileCount == 0 && item.getItemCount() > 0) {
+                if (item.getExpanded()) {
+                    item.setImage(getImage(FOLDER));
+                }
+
+                for (TreeItem treeItem : item.getItems()) {
+                    treeItem.dispose();
+                }
+
+            } else if (item.getExpanded()) {
+                refreshItems(item.getItems(), file, index -> new TreeItem(item, 0, index));
+
+            } else if (nestedFileCount > 0 && item.getItemCount() == 0) {
+                new TreeItem(item, 0);
+            }
+        }
+    }
+
+    private void refreshItems(TreeItem[] items, File file, IntFunction<TreeItem> itemFactory) {
+        File[] checkFiles = file.listFiles();
+
+        Arrays.sort(checkFiles, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+
+        int itemsIndex = 0;
+        int filesIndex = 0;
+
+        while (itemsIndex < items.length && filesIndex < checkFiles.length) {
+            final TreeItem treeItem = items[itemsIndex];
+
+            final File itemFile = (File) treeItem.getData();
+            final File checkFile = checkFiles[filesIndex];
+
+            int comparison = checkFile.getName().compareToIgnoreCase(itemFile.getName());
+            if (comparison == 0) {
+                // same file -> recursively refresh as well
+
+                refreshNested(treeItem, checkFile);
+
+                itemsIndex++;
+                filesIndex++;
+
+            } else if (comparison < 0) {
+                // new file found that should appear before the current file -> insert it
+
+                TreeItem newTreeItem = itemFactory.apply(filesIndex);
+                setUpChildItem(newTreeItem, checkFile);
+
+                filesIndex++;
+
+            } else /* (comparison > 0) */ {
+                // new file should appear after current file, it is stale -> delete it
+
+                treeItem.dispose();
+
+                itemsIndex++;
+            }
+        }
+        while (itemsIndex < items.length) {
+            // dispose extra stale files at the end
+
+            items[itemsIndex].dispose();
+
+            itemsIndex++;
+        }
+        while (filesIndex < checkFiles.length) {
+            // add extra files add the end
+
+            TreeItem newTreeItem = itemFactory.apply(filesIndex);
+            setUpChildItem(newTreeItem, checkFiles[filesIndex]);
+
+            filesIndex++;
+        }
     }
 
     public List<File> getSelection() {
@@ -80,7 +162,7 @@ public class FileExplorer {
         for (TreeItem item : tree.getItems()) {
             if (((File) item.getData()).isDirectory()) {
                 item.setExpanded(false);
-                item.setImage(ImageManager.getImage(FOLDER));
+                item.setImage(getImage(FOLDER));
             }
         }
 
@@ -111,12 +193,14 @@ public class FileExplorer {
 
         File file = (File) item.getData();
 
-        for (File child : file.listFiles()) {
+        File[] children = file.listFiles();
+        Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        for (File child : children) {
             TreeItem childItem = new TreeItem(item, 0);
             setUpChildItem(childItem, child);
         }
 
-        item.setImage(ImageManager.getImage(OPENED_FOLDER));
+        item.setImage(getImage(OPENED_FOLDER));
 
         tree.setRedraw(true);
     }
@@ -129,18 +213,28 @@ public class FileExplorer {
             new TreeItem(item, 0);
         }
 
-        item.setImage(getImageForFile(file));
+        item.setImage(getImage(getImageResourceForFile(file)));
     }
 
     private static void collapseTreeItem(TreeItem item) {
-        item.setImage(ImageManager.getImage(FOLDER));
+        item.setImage(getImage(FOLDER));
     }
 
-    private static Image getImageForFile(File file) {
+    private static ImageResource getImageResourceForFile(File file) {
         if (file.isDirectory()) {
-            return ImageManager.getImage(FOLDER);
+            return FOLDER;
         } else {
-            return ImageManager.getImage(FILE); // TODO: do this better
+            String fileExtension = getFileExtension(file);
+
+            if (fileExtension.equals("spf")) {
+                return SPECTRUM_FILE;
+            } else if (FormatManager.getKnownFileExtensions().contains(fileExtension)) {
+                return IMPORTABLE_FILE;
+            } else if (fileExtension.equals("stl") || fileExtension.equals("lst")) {
+                return SUPPORT_FILE;
+            } else {
+                return FILE; // TODO: add more custom icons
+            }
         }
     }
 
@@ -200,6 +294,10 @@ public class FileExplorer {
                     }
                 }
             });
+
+            item = new MenuItem(menu, 0);
+            item.setText("Refresh");
+            item.addListener(Selection, event -> refresh());
 
             item = new MenuItem(menu, 0);
             item.setText("Collapse All");

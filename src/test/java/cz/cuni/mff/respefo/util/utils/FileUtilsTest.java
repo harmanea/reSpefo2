@@ -1,10 +1,10 @@
-package cz.cuni.mff.respefo.util;
+package cz.cuni.mff.respefo.util.utils;
 
 import org.junit.Test;
 
 import java.io.File;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class FileUtilsTest {
     @Test

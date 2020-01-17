@@ -24,6 +24,11 @@ public class Spectrum {
         this.file = file;
     }
 
+    public Spectrum(SpectrumFile spectrumFile, File file) {
+        this.spectrumFile = spectrumFile;
+        this.file = file;
+    }
+
     public void save() throws SpefoException {
         saveAs(file);
     }
@@ -35,6 +40,8 @@ public class Spectrum {
     public File getFile() {
         return file;
     }
+
+    public SpectrumFile getSpectrumFile() { return spectrumFile; }
 
     public Data getRawData() {
         return spectrumFile.getData();

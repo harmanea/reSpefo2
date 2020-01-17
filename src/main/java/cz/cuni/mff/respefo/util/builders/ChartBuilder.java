@@ -1,10 +1,12 @@
-package cz.cuni.mff.respefo.util;
+package cz.cuni.mff.respefo.util.builders;
 
 import cz.cuni.mff.respefo.format.Data;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
+import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.swtchart.*;
 import org.swtchart.ILineSeries.PlotSymbolType;
@@ -15,6 +17,8 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     //TODO: Maybe change this to ColorResource instead
     private static Color primaryColor = ColorManager.getColor(ColorResource.YELLOW);
     private static Color secondaryColor = ColorManager.getColor(ColorResource.BLACK);
+
+    private boolean adjustRange = true;
 
     private ChartBuilder(Chart chart) {
         chart.getTitle().setForeground(primaryColor);
@@ -89,8 +93,32 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         return this;
     }
 
+    public ChartBuilder makeAllSeriesEqualRange() {
+        ChartUtils.makeAllSeriesEqualRange(control);
+        adjustRange = false;
+        return this;
+    }
+
+    public ChartBuilder centerAroundSeries(String name) {
+        ChartUtils.centerAroundSeries(control, name);
+        adjustRange = false;
+        return this;
+    }
+
+    @Override
+    public Chart build() {
+        setTheme();
+        setLayoutData(new GridData(GridData.FILL_BOTH)); // TODO: maybe make this optional?
+
+        if (adjustRange) {
+            control.getAxisSet().adjustRange();
+        }
+
+        return super.build();
+    }
+
     private void adjustExtraSeries(ILineSeries lineSeries) {
-        if (control.getSeriesSet().getSeries().length > 0) {
+        if (control.getSeriesSet().getSeries().length > 1) {
             int yAxisId = control.getAxisSet().createYAxis();
             IAxis yAxis = control.getAxisSet().getYAxis(yAxisId);
 
@@ -130,11 +158,9 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         control.getLegend().setVisible(false);
     }
 
-    @Override
-    public Chart build() {
-        setTheme();
-
-        return super.build();
+    private void setLayoutData(Object layoutData) {
+        control.setLayoutData(layoutData);
+        control.getParent().layout();
     }
 
     @SuppressWarnings("unchecked")
@@ -145,7 +171,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         int symbolSize = 1;
         int lineWidth = 1;
         String name = "series";
-        Color color = primaryColor;
+        Color color = ColorManager.getColor(ColorResource.GREEN);
         double[] xSeries = {};
         double[] ySeries = {};
 

@@ -8,6 +8,11 @@ public class Data {
         // default empty constructor
     }
 
+    public Data(double[] x, double[] y) {
+        this.x = x;
+        this.y = y;
+    }
+
     public double[] getX() {
         return x;
     }

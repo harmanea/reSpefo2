@@ -1,7 +1,8 @@
 package cz.cuni.mff.respefo.function;
 
 import java.io.File;
+import java.util.List;
 
 public interface MultiFileFunction {
-    void execute(File spectrumFileA, File spectrumFileB, File ... spectrumFiles);
+    void execute(List<File> files);
 }

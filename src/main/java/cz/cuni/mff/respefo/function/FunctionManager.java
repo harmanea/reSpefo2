@@ -6,68 +6,82 @@ import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import org.reflections.Reflections;
 
+import java.io.FileFilter;
 import java.util.*;
 
 public class FunctionManager extends UtilityClass {
-    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.function";
+    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.function.scan";
 
-    private static List<SingleFileFunction> singleFileFunctions;
-    private static List<MultiFileFunction> multiFileFunctions;
-    private static Map<String, FunctionInfo> functionInfos;
+    private static List<FunctionInfo<SingleFileFunction>> singleFileFunctions;
+    private static List<FunctionInfo<MultiFileFunction>> multiFileFunctions;
+
+    private static Map<String, FunctionAssetSerializer> serializers;
+    private static Map<String, FunctionAssetDeserializer> deserializers;
 
     public static void scan() {
         Reflections reflections = new Reflections(PACKAGE_TO_SCAN);
-
-        Set<Class<?>> functions = reflections.getTypesAnnotatedWith(Fun.class);
+        Set<Class<?>> functionClasses = reflections.getTypesAnnotatedWith(Fun.class);
 
         singleFileFunctions = new ArrayList<>();
         multiFileFunctions = new ArrayList<>();
-        functionInfos = new HashMap<>();
+        serializers = new HashMap<>();
+        deserializers = new HashMap<>();
 
-        for (Class<?> cls : functions) {
+        for (Class<?> functionClass : functionClasses) {
             try {
-                Fun annotation = cls.getAnnotation(Fun.class);
-                String key = annotation.key();
+                Fun annotation = functionClass.getAnnotation(Fun.class);
+
                 String name = annotation.name();
-                FunctionAssetSerializer serializer = annotation.serializer().getDeclaredConstructor().newInstance();
-                FunctionAssetDeserializer deserializer = annotation.deserializer().getDeclaredConstructor().newInstance();
+                FileFilter fileFilter = annotation.fileFilter().getDeclaredConstructor().newInstance();
 
-                functionInfos.put(key, new FunctionInfo(name, serializer, deserializer));
-
-                Object instance = cls.getDeclaredConstructor().newInstance();
+                Object instance = functionClass.getDeclaredConstructor().newInstance();
 
                 if (instance instanceof SingleFileFunction) {
-                    singleFileFunctions.add((SingleFileFunction) instance);
+                    singleFileFunctions.add(new FunctionInfo<>((SingleFileFunction) instance, name, fileFilter));
                 }
                 if (instance instanceof MultiFileFunction) {
-                    multiFileFunctions.add((MultiFileFunction) instance);
+                    multiFileFunctions.add(new FunctionInfo<>((MultiFileFunction) instance, name, fileFilter));
+                }
+
+                Serialize serializeInfo = functionClass.getAnnotation(Serialize.class);
+                if (serializeInfo != null) {
+                    String key = serializeInfo.key();
+                    FunctionAssetSerializer serializer = serializeInfo.serializer().getDeclaredConstructor().newInstance();
+                    FunctionAssetDeserializer deserializer = serializeInfo.deserializer().getDeclaredConstructor().newInstance();
+
+                    serializers.put(key, serializer);
+                    deserializers.put(key, deserializer);
                 }
 
             } catch (Exception exception) {
-                Log.error("Error while loading function class [%s].", exception, cls);
+                Log.error("Error while loading function class [%s].", exception, functionClass);
             }
+        }
+
+        if (serializers.isEmpty()) {
+            Log.warning("No functions were loaded.");
         }
     }
 
-    public static List<SingleFileFunction> getSingleFileFunctions() {
+    public static List<FunctionInfo<SingleFileFunction>> getSingleFileFunctions() {
         return singleFileFunctions;
     }
 
-    public static List<MultiFileFunction> getMultiFileFunctions() {
+    public static List<FunctionInfo<MultiFileFunction>> getMultiFileFunctions() {
         return multiFileFunctions;
     }
 
     public static FunctionAssetSerializer getSerializer(String key) {
-        if (functionInfos.containsKey(key)) {
-            return functionInfos.get(key).getSerializer();
+        if (serializers.containsKey(key)) {
+            return serializers.get(key);
         }
 
         throw new IllegalArgumentException("There is no function with the key [" + key + "].");
     }
 
     public static FunctionAssetDeserializer getDeserializer(String key) {
-        if (functionInfos.containsKey(key)) {
-            return functionInfos.get(key).getDeserializer();
+        if (deserializers.containsKey(key)) {
+            return deserializers.get(key);
         }
 
         throw new IllegalArgumentException("There is no function with the key [" + key + "].");
@@ -75,29 +89,5 @@ public class FunctionManager extends UtilityClass {
 
     protected FunctionManager() throws IllegalAccessException {
         super();
-    }
-}
-
-class FunctionInfo {
-    private String name;
-    private FunctionAssetSerializer serializer;
-    private FunctionAssetDeserializer deserializer;
-
-    FunctionInfo(String name, FunctionAssetSerializer serializer, FunctionAssetDeserializer deserializer) {
-        this.name = name;
-        this.serializer = serializer;
-        this.deserializer = deserializer;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    FunctionAssetSerializer getSerializer() {
-        return serializer;
-    }
-
-    FunctionAssetDeserializer getDeserializer() {
-        return deserializer;
     }
 }

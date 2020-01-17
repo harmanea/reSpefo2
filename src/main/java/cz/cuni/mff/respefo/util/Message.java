@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.util;
 
-import cz.cuni.mff.respefo.ReSpefo;
+import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.logging.Log;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
@@ -10,7 +10,7 @@ import static org.eclipse.swt.SWT.*;
 public class Message extends UtilityClass {
 
     public static void info(String message) {
-        info(ReSpefo.getShell(), message);
+        info(ComponentManager.getShell(), message);
     }
 
     public static void info(Shell shell, String message) {
@@ -19,7 +19,7 @@ public class Message extends UtilityClass {
     }
 
     public static void warning(String message) {
-        warning(ReSpefo.getShell(), message);
+        warning(ComponentManager.getShell(), message);
     }
 
     public static void warning(Shell shell, String message) {
@@ -28,7 +28,7 @@ public class Message extends UtilityClass {
     }
 
     public static void error(String message, Throwable cause) {
-        error(ReSpefo.getShell(), message, cause);
+        error(ComponentManager.getShell(), message, cause);
     }
 
     public static void error(Shell shell, String message, Throwable cause) {
@@ -38,7 +38,7 @@ public class Message extends UtilityClass {
     }
 
     public static boolean question(String message) {
-        return question(ReSpefo.getShell(), message);
+        return question(ComponentManager.getShell(), message);
     }
 
     public static boolean question(Shell shell, String message) {

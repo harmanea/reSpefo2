@@ -12,11 +12,13 @@ import java.util.Map;
 public class FunctionAssetsSerializer extends JsonSerializer<Map<String, FunctionAsset>> {
     @Override
     public void serialize(Map<String, FunctionAsset> value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+        jgen.writeStartObject();
         for (Map.Entry<String, FunctionAsset> entry : value.entrySet()){
             String key = entry.getKey();
 
             FunctionAssetSerializer serializer = FunctionManager.getSerializer(key);
             serializer.serialize(entry.getValue(), jgen);
         }
+        jgen.writeEndObject();
     }
 }

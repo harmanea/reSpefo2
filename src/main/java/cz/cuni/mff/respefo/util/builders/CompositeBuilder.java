@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.util;
+package cz.cuni.mff.respefo.util.builders;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;

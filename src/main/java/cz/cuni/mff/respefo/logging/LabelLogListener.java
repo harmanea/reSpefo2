@@ -11,7 +11,7 @@ public class LabelLogListener implements LogListener {
 
     private Label label;
     private DateTimeFormatter formatter;
-    private Runnable clearLabel = () -> label.setText("");
+    private Runnable clearLabel = () -> setTextAndRequestLayout("");
 
     public LabelLogListener(Label label) {
         this.label = label;
@@ -21,9 +21,14 @@ public class LabelLogListener implements LogListener {
     @Override
     public void notify(LogEntry entry) {
         if (entry.getLevel().isMoreImportantOrEqualTo(LogLevel.INFO)) {
-            label.setText(entry.getDateTime().format(formatter) + " " + entry.getMessage());
+            setTextAndRequestLayout(entry.getDateTime().format(formatter) + " " + entry.getMessage());
 
             label.getDisplay().timerExec(DECAY_TIME_IN_MILLISECONDS, clearLabel);
         }
+    }
+
+    private void setTextAndRequestLayout(String text) {
+        label.setText(text.replaceAll("\n", " "));
+        label.requestLayout();
     }
 }
