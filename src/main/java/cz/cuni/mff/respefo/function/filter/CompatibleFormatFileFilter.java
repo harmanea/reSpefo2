@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function;
+package cz.cuni.mff.respefo.function.filter;
 
 import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.util.utils.FileUtils;

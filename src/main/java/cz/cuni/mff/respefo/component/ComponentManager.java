@@ -1,12 +1,13 @@
 package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
-import cz.cuni.mff.respefo.logging.ListLogListener;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import cz.cuni.mff.respefo.util.VersionInfo;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
@@ -61,7 +62,7 @@ public class ComponentManager extends UtilityClass {
 
         componentWithBottomBar = new ComponentWithBottomBar(shell);
         componentWithBottomBar.setLayoutData(new GridData(FILL, FILL, true, true));
-        componentWithBottomBar.getScene().setLayout(new FillLayout()); // TEMPORARY
+        componentWithBottomBar.getScene().setLayout(fillLayout().margins(0).spacing(0).build()); // TEMPORARY
         componentWithBottomBar.getBottomBar().setLayout(new FillLayout()); // TEMPORARY
         componentWithBottomBar.maximizeScene();
 
@@ -77,7 +78,7 @@ public class ComponentManager extends UtilityClass {
         final Composite bottomBar = composite(shell, BORDER)
                 .layoutData(new GridData(FILL, BOTTOM, true, false, 3, 1))
                 .layout(
-                        gridLayout(2, false)
+                        gridLayout(4, false)
                                 .margins(3)
                                 .spacings(3)
                                 .build()
@@ -89,7 +90,7 @@ public class ComponentManager extends UtilityClass {
         componentWithSidebars = new ComponentWithSidebars(componentWithBottomBar.getScene());
         componentWithSidebars.getLeftBar().setLayout(new FillLayout()); // TEMPORARY
         componentWithSidebars.getScene().setLayout(new GridLayout(1, false));
-        componentWithSidebars.getRightBar().setLayout(fillLayout().margins(3).build());
+        componentWithSidebars.getRightBar().setLayout(fillLayout(VERTICAL).margins(3).build());
 
         fileExplorer = new FileExplorer(componentWithSidebars.getLeftBar());
         fileExplorer.setRootDirectory(FileUtils.getUserDirectory());
@@ -105,12 +106,27 @@ public class ComponentManager extends UtilityClass {
                 .onSelection(event -> Log.info("This is a test log " + System.currentTimeMillis()))
                 .build();
 
+        pushButton(componentWithSidebars.getRightBar())
+                .text("Log warning")
+                .onSelection(event -> Log.warning("This is a warning test log " + System.currentTimeMillis()))
+                .build();
+
+        pushButton(componentWithSidebars.getRightBar())
+                .text("Throw exception")
+                .onSelection(event -> {
+                    throw new RuntimeException("This is a test exception");
+                })
+                .build();
+
+        pushButton(componentWithSidebars.getRightBar())
+                .text("Clear scene")
+                .onSelection(event -> clearScene())
+                .build();
 
         // componentWithBottomBar -> bottom bar
 
-        // TEMPORARY
-        final List logList = new List(componentWithBottomBar.getBottomBar(), SINGLE | V_SCROLL);
-        Log.registerListener(new ListLogListener(logList));
+        final FancyLogListener fancyLogListener = new FancyLogListener(componentWithBottomBar.getBottomBar());
+        Log.registerListener(fancyLogListener);
 
 
         // Fill main sidebars
@@ -158,6 +174,20 @@ public class ComponentManager extends UtilityClass {
 
         Log.registerListener(new LabelLogListener(bottomLogLabel));
 
+        final Label progressLabel = label(bottomBar, RIGHT)
+                .layoutData(new GridData(RIGHT, CENTER, true, true))
+                .visible(false)
+                .build();
+
+        final Composite progressBarComposite = composite(bottomBar)
+                .layoutData(new GridData(RIGHT, CENTER, false, true))
+                .layout(fillLayout().marginWidth(10).marginHeight(0).build())
+                .build();
+
+        final ProgressBar progressBar = new ProgressBar(progressBarComposite, SMOOTH);
+        progressBar.setVisible(false);
+
+        Progress.init(progressBar, progressLabel);
 
         // Final stuff
 
@@ -180,7 +210,7 @@ public class ComponentManager extends UtilityClass {
     }
 
     private static void handleException(Exception exception) {
-        Message.error("An error occurred in one of the components.", exception);
+        Message.errorWithDetails("An error occured in one of the components", exception);
     }
 
     public static Display getDisplay() {
@@ -199,6 +229,11 @@ public class ComponentManager extends UtilityClass {
         for (Control control : getScene().getChildren()) {
             control.dispose();
         }
+    }
+
+    public static Composite clearAndGetScene() {
+        clearScene();
+        return getScene();
     }
 
     public static FileExplorer getFileExplorer() {

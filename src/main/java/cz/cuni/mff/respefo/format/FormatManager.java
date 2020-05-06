@@ -13,19 +13,19 @@ import java.util.Set;
 public class FormatManager extends UtilityClass {
     private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.format.scan";
 
-    private static Map<String, FileFormat> fileFormats;
+    private static Map<String, FileFormat> fileFormatsWithExtensions;
 
     public static void scan() {
         Reflections reflections = new Reflections(PACKAGE_TO_SCAN);
         Set<Class<? extends FileFormat>> formatClasses = reflections.getSubTypesOf(FileFormat.class);
 
-        fileFormats = new HashMap<>();
+        fileFormatsWithExtensions = new HashMap<>();
 
         for (Class<? extends FileFormat> formatClass : formatClasses) {
             processFormatClass(formatClass);
         }
 
-        if (fileFormats.isEmpty()) {
+        if (fileFormatsWithExtensions.isEmpty()) {
             Log.warning("No file formats were loaded.");
         }
     }
@@ -35,7 +35,7 @@ public class FormatManager extends UtilityClass {
             FileFormat instance = formatClass.getDeclaredConstructor().newInstance();
 
             for (String fileExtension : instance.fileExtensions()) {
-                fileFormats.put(fileExtension, instance);
+                fileFormatsWithExtensions.put(fileExtension, instance);
             }
 
         } catch (Exception exception) {
@@ -44,25 +44,25 @@ public class FormatManager extends UtilityClass {
     }
 
     public static Set<String> getKnownFileExtensions() {
-        return fileFormats.keySet();
+        return fileFormatsWithExtensions.keySet();
     }
 
     public static SpectrumFile importFrom(String fileName) throws SpefoException {
         String fileExtension = extractFileExtensionAndThrowIfKeyNotPresent(fileName);
 
-        return fileFormats.get(fileExtension).importFrom(fileName);
+        return fileFormatsWithExtensions.get(fileExtension).importFrom(fileName);
     }
 
     public static void exportTo(SpectrumFile spectrumFile, String fileName) throws SpefoException {
         String fileExtension = extractFileExtensionAndThrowIfKeyNotPresent(fileName);
 
-        fileFormats.get(fileExtension).exportTo(spectrumFile, fileName);
+        fileFormatsWithExtensions.get(fileExtension).exportTo(spectrumFile, fileName);
     }
 
     private static String extractFileExtensionAndThrowIfKeyNotPresent(String fileName) throws UnknownFileFormatException {
         String fileExtension = FileUtils.getFileExtension(fileName);
 
-        if (!fileFormats.containsKey(fileExtension)) {
+        if (!fileFormatsWithExtensions.containsKey(fileExtension)) {
             throw new UnknownFileFormatException("Unknown file extension [" + fileExtension + "].");
         }
 

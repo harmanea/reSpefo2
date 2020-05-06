@@ -1,7 +1,6 @@
 package cz.cuni.mff.respefo.function;
 
-import cz.cuni.mff.respefo.format.FunctionAssetDeserializer;
-import cz.cuni.mff.respefo.format.FunctionAssetSerializer;
+import cz.cuni.mff.respefo.format.FunctionAsset;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,6 +8,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Serialize {
     String key();
-    Class<? extends FunctionAssetSerializer> serializer();
-    Class<? extends FunctionAssetDeserializer> deserializer();
+    Class<? extends FunctionAsset> assetClass();
 }

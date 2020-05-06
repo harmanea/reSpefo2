@@ -4,6 +4,7 @@ import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.Data;
 import cz.cuni.mff.respefo.format.FileFormat;
 import cz.cuni.mff.respefo.format.SpectrumFile;
+import cz.cuni.mff.respefo.format.origin.scan.AsciiOrigin;
 import cz.cuni.mff.respefo.logging.Log;
 
 import java.io.*;
@@ -38,7 +39,9 @@ public class AsciiFormat implements FileFormat {
 
             Data data = new Data(xSeries, ySeries);
 
-            return new SpectrumFile(data);
+            SpectrumFile spectrumFile = new SpectrumFile(data);
+            spectrumFile.setOrigin(new AsciiOrigin(fileName)); // TODO: save more data into the Origin object
+            return spectrumFile;
 
         } catch (IOException exception) {
             throw new SpefoException("Error while importing file [" + fileName + "].", exception);
@@ -59,6 +62,8 @@ public class AsciiFormat implements FileFormat {
 
     @Override
     public void exportTo(SpectrumFile spectrumFile, String fileName) throws SpefoException {
+        Log.warning("Exporting to ASCII is not fully implemented yet!");
+
         Data data = spectrumFile.getData();
         double[] x = data.getX();
         double[] y = data.getY();

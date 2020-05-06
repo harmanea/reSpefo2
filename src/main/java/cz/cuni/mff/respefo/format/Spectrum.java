@@ -9,9 +9,6 @@ import cz.cuni.mff.respefo.SpefoException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-
-import static java.util.stream.Collectors.toList;
 
 public class Spectrum {
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -50,13 +47,7 @@ public class Spectrum {
     public Data getProcessedData() {
         Data data = spectrumFile.getData();
 
-        Collection<DataAlteringFunctionAsset> dataAlteringFunctionAssets = spectrumFile.getFunctionAssets().values()
-                .stream()
-                .filter(asset -> asset instanceof DataAlteringFunctionAsset)
-                .map(asset -> (DataAlteringFunctionAsset) asset)
-                .collect(toList());
-
-        for (DataAlteringFunctionAsset asset : dataAlteringFunctionAssets) {
+        for (FunctionAsset asset : spectrumFile.getFunctionAssets().values()) {
             data = asset.process(data);
         }
 

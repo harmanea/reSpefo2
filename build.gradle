@@ -13,16 +13,14 @@ apply plugin: 'com.diffplug.gradle.eclipse.mavencentral'
 eclipseMavenCentral {
     release('4.12.0') {
         compile 'org.eclipse.swt'
+        compile 'org.eclipse.jface'
         useNativesForRunningPlatform()
     }
 }
 
 repositories {
     mavenCentral()
-    maven {
-        url 'http://buchen.github.io/maven-repo' // for swtchart
-    }
-    // maven { url 'https://jitpack.io' } // for tproll
+    maven { url 'http://buchen.github.io/maven-repo' } // for swtchart
 }
 
 dependencies {
@@ -33,7 +31,6 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
     compile 'org.reflections:reflections:0.9.11'
-    // implementation 'com.darkyen:tproll:v1.3.1'
 }
 
 task fatJar(type: Jar) {

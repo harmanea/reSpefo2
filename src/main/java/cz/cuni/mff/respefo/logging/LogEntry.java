@@ -7,12 +7,14 @@ public class LogEntry {
     private LogLevel level;
     private String message;
     private Throwable cause;
+    private Runnable action;
 
-    public LogEntry(LocalDateTime dateTime, LogLevel level, String message, Throwable cause) {
+    public LogEntry(LocalDateTime dateTime, LogLevel level, String message, Throwable cause, Runnable action) {
         this.dateTime = dateTime;
         this.level = level;
         this.message = message;
         this.cause = cause;
+        this.action = action;
     }
 
     public LocalDateTime getDateTime() {
@@ -31,6 +33,10 @@ public class LogEntry {
         return cause;
     }
 
+    public Runnable getAction() {
+        return action;
+    }
+
     @Override
     public String toString() {
         return "LogEntry{" +
@@ -38,6 +44,7 @@ public class LogEntry {
                 ", level=" + level +
                 ", message='" + message + '\'' +
                 ", cause=" + cause +
+                ", action=" + action +
                 '}';
     }
 }

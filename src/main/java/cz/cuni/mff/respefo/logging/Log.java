@@ -11,12 +11,16 @@ public class Log {
         listeners.add(listener);
     }
 
+    public static void error(String message) {
+        notifyListeners(LogLevel.ERROR, message, null);
+    }
+
     public static void error(String message, Throwable cause) {
         notifyListeners(LogLevel.ERROR, message, cause);
     }
 
     public static void error(String message, Throwable cause, Object... params) {
-        error(String.format(message, params), cause);
+        notifyListeners(LogLevel.ERROR, String.format(message, params), cause);
     }
 
     public static void warning(String message) {
@@ -24,7 +28,7 @@ public class Log {
     }
 
     public static void warning(String message, Object... params) {
-        warning(String.format(message, params));
+        notifyListeners(LogLevel.WARNING, String.format(message, params), null);
     }
 
     public static void info(String message) {
@@ -32,7 +36,7 @@ public class Log {
     }
 
     public static void info(String message, Object... params) {
-        info(String.format(message, params));
+        notifyListeners(LogLevel.INFO, String.format(message, params), null);
     }
 
     public static void debug(String message) {
@@ -40,7 +44,7 @@ public class Log {
     }
 
     public static void debug(String message, Object... params) {
-        debug(String.format(message, params));
+        notifyListeners(LogLevel.DEBUG, String.format(message, params), null);
     }
 
     public static void trace(String message) {
@@ -48,13 +52,19 @@ public class Log {
     }
 
     public static void trace(String message, Object... params) {
-        trace(String.format(message, params));
+        notifyListeners(LogLevel.TRACE, String.format(message, params), null);
     }
 
     private static void notifyListeners(LogLevel level, String message, Throwable cause) {
-        LogEntry logEntry = new LogEntry(LocalDateTime.now(), level, message, cause);
+        notifyListeners(level, message, cause, null);
+    }
 
-        listeners.forEach(listener -> listener.notify(logEntry));
+    private static void notifyListeners(LogLevel level, String message, Throwable cause, Runnable action) {
+        LogEntry logEntry = new LogEntry(LocalDateTime.now(), level, message, cause, action);
+
+        for (LogListener listener : listeners) {
+            listener.notify(logEntry);
+        }
     }
 
     private Log() {}

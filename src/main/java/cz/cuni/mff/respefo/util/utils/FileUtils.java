@@ -56,10 +56,12 @@ public class FileUtils extends UtilityClass {
         dialog.setText("Select file");
         dialog.setFilterNames(new String[] {fileType.getFilterNames(), "All Files"});
         dialog.setFilterExtensions(new String[] {fileType.getFilterExtensions(), "*"});
-        dialog.setFilterPath(getFilterPath());
 
         if (fileName != null) {
-            dialog.setFileName(fileName);
+            dialog.setFileName(stripParent(fileName));
+            dialog.setFilterPath(getParentDirectory(fileName));
+        } else {
+            dialog.setFilterPath(getFilterPath());
         }
 
         String filePath = dialog.open();
@@ -138,6 +140,14 @@ public class FileUtils extends UtilityClass {
 
     public static String stripParent(String fileName) {
         return Paths.get(fileName).getFileName().toString();
+    }
+
+    public static Path getRelativePath(File file) {
+        return getRelativePath(file.toPath());
+    }
+
+    public static Path getRelativePath(Path path) {
+        return ComponentManager.getFileExplorer().getRootDirectory().toPath().relativize(path);
     }
 
     protected FileUtils() throws IllegalAccessException {

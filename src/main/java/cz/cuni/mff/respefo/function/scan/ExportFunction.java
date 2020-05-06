@@ -6,7 +6,7 @@ import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
-import cz.cuni.mff.respefo.function.SpefoFormatFileFilter;
+import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 

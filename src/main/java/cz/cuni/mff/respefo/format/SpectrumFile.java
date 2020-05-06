@@ -2,9 +2,11 @@ package cz.cuni.mff.respefo.format;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import cz.cuni.mff.respefo.format.origin.OriginDeserializer;
+import cz.cuni.mff.respefo.format.origin.OriginSerializer;
 import cz.cuni.mff.respefo.util.VersionInfo;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SpectrumFile {
@@ -12,13 +14,15 @@ public class SpectrumFile {
 
     private int format;
     private String version;
-    // TODO: add origin information
+
+    @JsonDeserialize(using = OriginDeserializer.class)
+    @JsonSerialize(using = OriginSerializer.class)
+    private Object origin;
 
     private Data data;
 
     @JsonDeserialize(using = FunctionAssetsDeserializer.class)
-    @JsonSerialize(using = FunctionAssetsSerializer.class)
-    private Map<String, FunctionAsset> functionAssets;
+    private LinkedHashMap<String, FunctionAsset> functionAssets;
 
     // TODO: add history ?
 
@@ -29,7 +33,7 @@ public class SpectrumFile {
     public SpectrumFile(Data data) {
         format = CURRENT_FORMAT;
         version = VersionInfo.getVersion();
-        functionAssets = new HashMap<>();
+        functionAssets = new LinkedHashMap<>();
 
         this.data = data;
     }
@@ -50,6 +54,14 @@ public class SpectrumFile {
         this.version = version;
     }
 
+    public Object getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Object origin) {
+        this.origin = origin;
+    }
+
     public Data getData() {
         return data;
     }
@@ -62,7 +74,7 @@ public class SpectrumFile {
         return functionAssets;
     }
 
-    public void setFunctionAssets(Map<String, FunctionAsset> functionAssets) {
+    public void setFunctionAssets(LinkedHashMap<String, FunctionAsset> functionAssets) {
         this.functionAssets = functionAssets;
     }
 }

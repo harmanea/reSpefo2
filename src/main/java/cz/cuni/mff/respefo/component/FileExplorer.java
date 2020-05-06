@@ -141,7 +141,7 @@ public class FileExplorer {
             itemsIndex++;
         }
         while (filesIndex < checkFiles.length) {
-            // add extra files add the end
+            // add extra files at the end
 
             TreeItem newTreeItem = itemFactory.apply(filesIndex);
             setUpChildItem(newTreeItem, checkFiles[filesIndex]);
@@ -241,7 +241,7 @@ public class FileExplorer {
     public class FileExplorerMenu {
         private final Menu menu;
 
-        private List<MenuItem> contextOptions = new ArrayList<>();
+        private final List<MenuItem> contextOptions = new ArrayList<>();
 
         FileExplorerMenu(Tree tree) {
             menu = new Menu(tree);
@@ -309,7 +309,6 @@ public class FileExplorer {
         private void createSingleSelectionMenuItems(File selection) {
             for (FunctionInfo<SingleFileFunction> functionInfo : FunctionManager.getSingleFileFunctions()) {
                 if (functionInfo.getFileFilter().accept(selection)) {
-
                     MenuItem item = new MenuItem(menu, 0);
                     item.setText(functionInfo.getName());
                     item.addListener(Selection, event -> functionInfo.getInstance().execute(selection));
@@ -324,7 +323,7 @@ public class FileExplorer {
                 if (selection.stream().allMatch(file -> functionInfo.getFileFilter().accept(file))) {
                     MenuItem item = new MenuItem(menu, 0);
                     item.setText(functionInfo.getName());
-                    item.addListener(Selection, event -> functionInfo.getInstance().execute(getSelection()));
+                    item.addListener(Selection, event -> functionInfo.getInstance().execute(selection));
 
                     contextOptions.add(item);
                 }

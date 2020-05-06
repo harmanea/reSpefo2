@@ -5,10 +5,11 @@ import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
-import cz.cuni.mff.respefo.function.SpefoFormatFileFilter;
+import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.builders.ChartBuilder;
 
 import java.io.File;
@@ -29,17 +30,27 @@ public class CompareFunction implements MultiFileFunction {
             return;
         }
 
+        Progress.withProgressTracking(progress -> loadSpectra(progress, files), this::displaySpectra);
+    }
+
+    private List<Spectrum> loadSpectra(Progress progress, List<File> files) {
+        progress.refresh("Loading files", files.size() - 1);
+
         List<Spectrum> spectra = new ArrayList<>();
-        try {
-            for (File file : files) {
+        for (File file : files) {
+            try {
                 Spectrum spectrum = new Spectrum(file);
                 spectra.add(spectrum);
+            } catch (SpefoException exception) {
+                progress.asyncExec(() -> Message.error("Couldn't open file", exception));
+            } finally {
+                progress.step();
             }
-        } catch (SpefoException exception) {
-            Message.error("Couldn't open file.", exception);
-            return;
         }
+        return spectra;
+    }
 
+    private void displaySpectra(List<Spectrum> spectra) {
         ComponentManager.clearScene();
 
         ChartBuilder chartBuilder = ChartBuilder.chart(ComponentManager.getScene())
@@ -56,6 +67,7 @@ public class CompareFunction implements MultiFileFunction {
                             .data(spectrum.getProcessedData())
             );
         }
+
         chartBuilder.makeAllSeriesEqualRange().build();
 
         ComponentManager.getScene().layout();

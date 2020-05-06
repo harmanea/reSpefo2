@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function;
+package cz.cuni.mff.respefo.function.filter;
 
 import java.io.File;
 import java.io.FileFilter;

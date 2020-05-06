@@ -1,7 +1,6 @@
 package cz.cuni.mff.respefo.function;
 
-import cz.cuni.mff.respefo.format.FunctionAssetDeserializer;
-import cz.cuni.mff.respefo.format.FunctionAssetSerializer;
+import cz.cuni.mff.respefo.format.FunctionAsset;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import org.reflections.Reflections;
@@ -15,8 +14,7 @@ public class FunctionManager extends UtilityClass {
     private static List<FunctionInfo<SingleFileFunction>> singleFileFunctions;
     private static List<FunctionInfo<MultiFileFunction>> multiFileFunctions;
 
-    private static Map<String, FunctionAssetSerializer> serializers;
-    private static Map<String, FunctionAssetDeserializer> deserializers;
+    private static Map<String, Class<? extends FunctionAsset>> assetClasses;
 
     public static void scan() {
         Reflections reflections = new Reflections(PACKAGE_TO_SCAN);
@@ -24,15 +22,14 @@ public class FunctionManager extends UtilityClass {
 
         singleFileFunctions = new ArrayList<>();
         multiFileFunctions = new ArrayList<>();
-        serializers = new HashMap<>();
-        deserializers = new HashMap<>();
+        assetClasses = new HashMap<>();
 
         for (Class<?> functionClass : functionClasses) {
             try {
-                Fun annotation = functionClass.getAnnotation(Fun.class);
+                Fun funAnnotation = functionClass.getAnnotation(Fun.class);
 
-                String name = annotation.name();
-                FileFilter fileFilter = annotation.fileFilter().getDeclaredConstructor().newInstance();
+                String name = funAnnotation.name();
+                FileFilter fileFilter = funAnnotation.fileFilter().getDeclaredConstructor().newInstance();
 
                 Object instance = functionClass.getDeclaredConstructor().newInstance();
 
@@ -43,14 +40,9 @@ public class FunctionManager extends UtilityClass {
                     multiFileFunctions.add(new FunctionInfo<>((MultiFileFunction) instance, name, fileFilter));
                 }
 
-                Serialize serializeInfo = functionClass.getAnnotation(Serialize.class);
-                if (serializeInfo != null) {
-                    String key = serializeInfo.key();
-                    FunctionAssetSerializer serializer = serializeInfo.serializer().getDeclaredConstructor().newInstance();
-                    FunctionAssetDeserializer deserializer = serializeInfo.deserializer().getDeclaredConstructor().newInstance();
-
-                    serializers.put(key, serializer);
-                    deserializers.put(key, deserializer);
+                Serialize serializeAnnotation = functionClass.getAnnotation(Serialize.class);
+                if (serializeAnnotation != null) {
+                    assetClasses.put(serializeAnnotation.key(), serializeAnnotation.assetClass());
                 }
 
             } catch (Exception exception) {
@@ -58,7 +50,7 @@ public class FunctionManager extends UtilityClass {
             }
         }
 
-        if (serializers.isEmpty()) {
+        if (singleFileFunctions.isEmpty() && multiFileFunctions.isEmpty()) {
             Log.warning("No functions were loaded.");
         }
     }
@@ -71,20 +63,12 @@ public class FunctionManager extends UtilityClass {
         return multiFileFunctions;
     }
 
-    public static FunctionAssetSerializer getSerializer(String key) {
-        if (serializers.containsKey(key)) {
-            return serializers.get(key);
+    public static Class<? extends FunctionAsset> getAssetClass(String key) {
+        if (assetClasses.containsKey(key)) {
+            return assetClasses.get(key);
         }
 
-        throw new IllegalArgumentException("There is no function with the key [" + key + "].");
-    }
-
-    public static FunctionAssetDeserializer getDeserializer(String key) {
-        if (deserializers.containsKey(key)) {
-            return deserializers.get(key);
-        }
-
-        throw new IllegalArgumentException("There is no function with the key [" + key + "].");
+        throw new IllegalArgumentException("There is no function asset class with the key [" + key + "].");
     }
 
     protected FunctionManager() throws IllegalAccessException {

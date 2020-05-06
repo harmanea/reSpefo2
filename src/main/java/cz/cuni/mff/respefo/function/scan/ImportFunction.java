@@ -5,9 +5,9 @@ import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.SpectrumFile;
-import cz.cuni.mff.respefo.function.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
+import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
@@ -31,7 +31,7 @@ public class ImportFunction implements SingleOrMultiFileFunction {
             return;
         }
 
-        String fileName = FileUtils.saveFileDialog(FileType.SPECTRUM, FileUtils.stripFileExtension(file.getName()) + ".spf");
+        String fileName = FileUtils.saveFileDialog(FileType.SPECTRUM, FileUtils.stripFileExtension(file.getPath()) + ".spf");
 
         if (fileName != null) {
             try {

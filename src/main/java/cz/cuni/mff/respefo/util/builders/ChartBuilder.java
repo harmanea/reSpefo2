@@ -21,23 +21,6 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     private boolean adjustRange = true;
 
     private ChartBuilder(Chart chart) {
-        chart.getTitle().setForeground(primaryColor);
-
-        chart.setBackground(secondaryColor);
-        chart.setBackgroundInPlotArea(secondaryColor);
-
-        IAxisSet axisset = chart.getAxisSet();
-
-        axisset.getXAxis(0).getGrid().setForeground(secondaryColor);
-        axisset.getYAxis(0).getGrid().setForeground(secondaryColor);
-
-        axisset.getXAxis(0).getTick().setForeground(primaryColor);
-        axisset.getYAxis(0).getTick().setForeground(primaryColor);
-        axisset.getXAxis(0).getTitle().setForeground(primaryColor);
-        axisset.getYAxis(0).getTitle().setForeground(primaryColor);
-
-        chart.getLegend().setVisible(false);
-
         control = chart;
     }
 
