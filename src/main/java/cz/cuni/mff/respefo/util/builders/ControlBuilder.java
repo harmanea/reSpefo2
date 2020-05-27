@@ -5,7 +5,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Control;
 
 @SuppressWarnings("unchecked")
-public abstract class ControlBuilder<C extends Control, B extends ControlBuilder> {
+public abstract class ControlBuilder<C extends Control, B extends ControlBuilder<C, B>> {
     protected C control;
 
     public B background(Color color) {

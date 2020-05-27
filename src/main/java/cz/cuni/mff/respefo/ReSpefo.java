@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.FormatManager;
+import cz.cuni.mff.respefo.format.origin.OriginManager;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ImageManager;
@@ -15,6 +16,7 @@ public class ReSpefo {
         // Scan for annotations -> fill function managers
         FunctionManager.scan();
         FormatManager.scan();
+        OriginManager.scan();
 
         // Create Display & Shell -> init resource managers
         ComponentManager.init();

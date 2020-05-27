@@ -5,14 +5,18 @@ import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.swtchart.*;
 import org.swtchart.ILineSeries.PlotSymbolType;
 
-// TODO: Adding series could be improved and simplified
-// Maybe create a Theme class?
+import java.util.function.Function;
+
+// TODO: Maybe create a Theme class?
 public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     //TODO: Maybe change this to ColorResource instead
     private static Color primaryColor = ColorManager.getColor(ColorResource.YELLOW);
@@ -76,6 +80,24 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         return this;
     }
 
+    public ChartBuilder keyListener(Function<Chart, KeyListener> keyListenerProvider) {
+        control.addKeyListener(keyListenerProvider.apply(control));
+
+        return this;
+    }
+
+    public ChartBuilder mouseListener(Function<Chart, MouseListener> mouseListenerProvider) {
+        control.getPlotArea().addMouseListener(mouseListenerProvider.apply(control));
+
+        return this;
+    }
+
+    public ChartBuilder mouseMoveListener(Function<Chart, MouseMoveListener> mouseMoveListenerProvider) {
+        control.getPlotArea().addMouseMoveListener(mouseMoveListenerProvider.apply(control));
+
+        return this;
+    }
+
     public ChartBuilder makeAllSeriesEqualRange() {
         ChartUtils.makeAllSeriesEqualRange(control);
         adjustRange = false;
@@ -85,6 +107,12 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     public ChartBuilder centerAroundSeries(String name) {
         ChartUtils.centerAroundSeries(control, name);
         adjustRange = false;
+        return this;
+    }
+
+    public ChartBuilder forceFocus() {
+        control.forceFocus();
+
         return this;
     }
 
@@ -147,7 +175,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     }
 
     @SuppressWarnings("unchecked")
-    public abstract static class SeriesBuilder<B extends SeriesBuilder> {
+    public abstract static class SeriesBuilder<B extends SeriesBuilder<B>> {
         final ISeries.SeriesType seriesType;
         LineStyle lineStyle = LineStyle.NONE;
         PlotSymbolType symbolType = PlotSymbolType.NONE;
@@ -170,6 +198,12 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
 
         public B color(Color color) {
             this.color = color;
+
+            return (B) this;
+        }
+
+        public B color(ColorResource colorResource) {
+            this.color = ColorManager.getColor(colorResource);
 
             return (B) this;
         }
@@ -219,6 +253,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
             super(ISeries.SeriesType.LINE);
 
             lineStyle = LineStyle.NONE;
+            symbolType = PlotSymbolType.CIRCLE;
         }
 
         public static ScatterSeriesBuilder scatterSeries() {

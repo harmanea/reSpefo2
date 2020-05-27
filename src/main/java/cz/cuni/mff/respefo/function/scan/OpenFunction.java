@@ -20,9 +20,7 @@ public class OpenFunction implements SingleFileFunction {
         try {
             Spectrum spectrum = new Spectrum(file);
 
-            ComponentManager.clearScene();
-
-            chart(ComponentManager.getScene())
+            chart(ComponentManager.clearAndGetScene())
                     .title(file.getName())
                     .xAxisLabel("x axis")
                     .yAxisLabel("y axis")

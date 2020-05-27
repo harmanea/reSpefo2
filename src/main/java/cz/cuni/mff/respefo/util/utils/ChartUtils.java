@@ -1,6 +1,8 @@
 package cz.cuni.mff.respefo.util.utils;
 
+import cz.cuni.mff.respefo.util.Point;
 import cz.cuni.mff.respefo.util.UtilityClass;
+import org.eclipse.swt.graphics.Rectangle;
 import org.swtchart.Chart;
 import org.swtchart.IAxis;
 import org.swtchart.ISeries;
@@ -72,6 +74,18 @@ public class ChartUtils extends UtilityClass {
         for (IAxis yAxis : chart.getAxisSet().getYAxes()) {
             yAxis.setRange(yRange);
         }
+    }
+
+    public static Point getRealValuesFromEventPosition(Chart chart, int x, int y) {
+        Range yRange = chart.getAxisSet().getYAxis(0).getRange();
+        Range xRange = chart.getAxisSet().getXAxis(0).getRange();
+
+        Rectangle bounds = chart.getPlotArea().getBounds();
+
+        double realX = xRange.lower + ((xRange.upper - xRange.lower) * ((double) x / bounds.width));
+        double realY = yRange.lower + ((yRange.upper - yRange.lower) * ((double) (bounds.height - y) / bounds.height));
+
+        return new Point(realX, realY);
     }
 
     protected ChartUtils() throws IllegalAccessException {

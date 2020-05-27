@@ -12,7 +12,7 @@ public class OriginDeserializer extends JsonDeserializer<Object> {
     public Object deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        String originKey = node.get("origin").asText();
+        String originKey = node.get("key").asText();
 
         return jp.getCodec().treeToValue(node.get("data"), OriginManager.getOriginClass(originKey));
     }

@@ -54,6 +54,20 @@ public class Spectrum {
         return data;
     }
 
+    public Data getProcessedDataBefore(FunctionAsset finalAsset) {
+        Data data = spectrumFile.getData();
+
+        for (FunctionAsset asset : spectrumFile.getFunctionAssets().values()) {
+            if (asset == finalAsset) {
+                break;
+            }
+
+            data = asset.process(data);
+        }
+
+        return data;
+    }
+
     private static SpectrumFile readFile(File file) throws SpefoException {
         try {
             return mapper.readValue(file, SpectrumFile.class);

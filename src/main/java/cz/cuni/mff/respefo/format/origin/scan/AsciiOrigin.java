@@ -6,6 +6,8 @@ import cz.cuni.mff.respefo.format.origin.Origin;
 public class AsciiOrigin {
     private String fileName;
 
+    public AsciiOrigin() {}
+
     public AsciiOrigin(String fileName) {
         this.fileName = fileName;
     }
