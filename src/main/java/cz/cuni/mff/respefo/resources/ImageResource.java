@@ -8,11 +8,14 @@ public enum ImageResource {
     SPECTRUM_FILE("test2/spectrum_file.png"),
     IMPORTABLE_FILE("test2/importable_file.png"),
     SUPPORT_FILE("test2/support_file.png"),
+    REFRESH("sync.png"),
+    MINIMIZE("test2/minimize.png"),
+    COLLAPSE("test2/collapse.png"),
     FOLDER_LARGE("folder_large.png"),
     WRENCH_LARGE("wrench_large.png"),
     SCROLL_LARGE("scroll_large.png");
 
-    private String fileName;
+    private final String fileName;
 
     ImageResource(String fileName) {
         this.fileName = fileName;

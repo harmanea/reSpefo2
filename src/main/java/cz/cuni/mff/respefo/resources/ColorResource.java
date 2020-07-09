@@ -16,10 +16,10 @@ public enum ColorResource {
     YELLOW(255, 255, 0),
     WHITE(255, 255, 255);
 
-    private int red;
-    private int green;
-    private int blue;
-    private int alpha;
+    private final int red;
+    private final int green;
+    private final int blue;
+    private final int alpha;
 
     ColorResource(int red, int green, int blue) {
         this(red, green, blue, 255);

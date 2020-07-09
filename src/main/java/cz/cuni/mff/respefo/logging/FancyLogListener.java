@@ -25,8 +25,14 @@ public class FancyLogListener implements LogListener {
         textField = new StyledText(parent, BORDER | READ_ONLY | H_SCROLL | V_SCROLL);
         actionsMap = new TreeMap<>();
 
+        textField.setLeftMargin(5);
+
         // Handle clicks on actions
         textField.addListener(MouseDown, this::handleMouseDownEvent);
+    }
+
+    public void setLayoutData(Object layoutData) {
+        textField.setLayoutData(layoutData);
     }
 
     private void handleMouseDownEvent(Event event) {

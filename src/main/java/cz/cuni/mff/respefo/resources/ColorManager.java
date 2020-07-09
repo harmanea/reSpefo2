@@ -13,11 +13,11 @@ public class ColorManager extends UtilityClass {
         colorMap = new EnumMap<>(ColorResource.class);
 
         for (ColorResource c : ColorResource.values()) {
-            addImage(device, c);
+            addColor(device, c);
         }
     }
 
-    private static void addImage(Device device, ColorResource resource) {
+    private static void addColor(Device device, ColorResource resource) {
         try {
             colorMap.put(resource, resource.toColor(device));
 

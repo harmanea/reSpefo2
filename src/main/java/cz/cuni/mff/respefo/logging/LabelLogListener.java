@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.logging;
 
+import cz.cuni.mff.respefo.util.utils.StringUtils;
 import org.eclipse.swt.widgets.Label;
 
 import java.time.format.DateTimeFormatter;
@@ -9,9 +10,9 @@ public class LabelLogListener implements LogListener {
     private static final int DECAY_TIME_IN_MILLISECONDS = 60 * 1000;
     private static final String DATE_TIME_PATTERN = "HH:mm:ss";
 
-    private Label label;
-    private DateTimeFormatter formatter;
-    private Runnable clearLabel = () -> setTextAndRequestLayout("");
+    private final Label label;
+    private final DateTimeFormatter formatter;
+    private final Runnable clearLabel = () -> setTextAndRequestLayout("");
 
     public LabelLogListener(Label label) {
         this.label = label;
@@ -21,7 +22,7 @@ public class LabelLogListener implements LogListener {
     @Override
     public void notify(LogEntry entry) {
         if (entry.getLevel().isMoreImportantOrEqualTo(LogLevel.INFO)) {
-            setTextAndRequestLayout(entry.getDateTime().format(formatter) + " " + entry.getMessage());
+            setTextAndRequestLayout(entry.getDateTime().format(formatter) + " " + StringUtils.substringBefore(entry.getMessage(), '\n'));
 
             label.getDisplay().timerExec(DECAY_TIME_IN_MILLISECONDS, clearLabel);
         }
