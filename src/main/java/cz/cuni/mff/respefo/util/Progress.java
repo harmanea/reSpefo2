@@ -43,8 +43,7 @@ public class Progress {
 
             if (inProgress > 1) {
                 display.asyncExec(() -> {
-                    progressLabel.setText("(" + inProgress + ") processes are running");
-                    progressLabel.requestLayout();
+                    updateLabel("(" + inProgress + ") processes are running");
                     progressBar.setSelection(progressBar.getMaximum());
                 });
             }
@@ -62,16 +61,10 @@ public class Progress {
                 });
 
             } else if (inProgress == 1) {
-                display.asyncExec(() -> {
-                    progressLabel.setText("(1) process is running");
-                    progressLabel.requestLayout();
-                });
+                display.asyncExec(() -> updateLabel("(1) process is running"));
 
             } else if (inProgress > 1) {
-                display.asyncExec(() -> {
-                    progressLabel.setText("(" + inProgress + ") processes are running");
-                    progressLabel.requestLayout();
-                });
+                display.asyncExec(() -> updateLabel("(" + inProgress + ") processes are running"));
             }
         }
     }
@@ -88,9 +81,8 @@ public class Progress {
         synchronized (Progress.class) {
             if (inProgress == 1) {
                 asyncExec(() -> {
-                    progressLabel.setText(label);
                     progressLabel.setVisible(true);
-                    progressLabel.requestLayout();
+                    updateLabel(label);
 
                     progressBar.setMaximum(range);
                     progressBar.setSelection(0);
@@ -115,11 +107,15 @@ public class Progress {
                     if (!progressLabel.getText().equals(label)) {
                         progressBar.setMaximum(range);
 
-                        progressLabel.setText(label);
-                        progressLabel.requestLayout();
+                        updateLabel(label);
                     }
                 });
             }
         }
+    }
+
+    private static void updateLabel(String text) {
+        progressLabel.setText(text);
+        progressLabel.requestLayout();
     }
 }

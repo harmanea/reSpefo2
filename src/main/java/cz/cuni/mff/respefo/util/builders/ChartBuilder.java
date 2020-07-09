@@ -63,7 +63,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         return this;
     }
 
-    public ChartBuilder series(SeriesBuilder seriesBuilder) {
+    public ChartBuilder series(SeriesBuilder<?> seriesBuilder) {
         ILineSeries lineSeries = (ILineSeries) control.getSeriesSet().createSeries(seriesBuilder.seriesType, seriesBuilder.name);
         lineSeries.setXSeries(seriesBuilder.xSeries);
         lineSeries.setYSeries(seriesBuilder.ySeries);
@@ -101,12 +101,14 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     public ChartBuilder makeAllSeriesEqualRange() {
         ChartUtils.makeAllSeriesEqualRange(control);
         adjustRange = false;
+
         return this;
     }
 
     public ChartBuilder centerAroundSeries(String name) {
         ChartUtils.centerAroundSeries(control, name);
         adjustRange = false;
+
         return this;
     }
 
