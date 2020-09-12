@@ -8,6 +8,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -63,6 +64,12 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         return this;
     }
 
+    public ChartBuilder hideYAxis() {
+        control.getAxisSet().getYAxis(0).getTick().setVisible(false);
+        control.getAxisSet().getYAxis(0).getTitle().setVisible(false);
+        return this;
+    }
+
     public ChartBuilder series(SeriesBuilder<?> seriesBuilder) {
         ILineSeries lineSeries = (ILineSeries) control.getSeriesSet().createSeries(seriesBuilder.seriesType, seriesBuilder.name);
         lineSeries.setXSeries(seriesBuilder.xSeries);
@@ -94,6 +101,21 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
 
     public ChartBuilder mouseMoveListener(Function<Chart, MouseMoveListener> mouseMoveListenerProvider) {
         control.getPlotArea().addMouseMoveListener(mouseMoveListenerProvider.apply(control));
+
+        return this;
+    }
+
+    public <T extends MouseListener & MouseMoveListener> ChartBuilder mouseAndMouseMoveListener(Function<Chart, T> listenerProvider) {
+        T listener = listenerProvider.apply(control);
+
+        control.getPlotArea().addMouseListener(listener);
+        control.getPlotArea().addMouseMoveListener(listener);
+
+        return this;
+    }
+
+    public ChartBuilder mouseWheelListener(Function<Chart, MouseWheelListener> mouseWheelListenerProvider) {
+        control.getPlotArea().addMouseWheelListener(mouseWheelListenerProvider.apply(control));
 
         return this;
     }

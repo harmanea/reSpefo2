@@ -3,6 +3,7 @@ package cz.cuni.mff.respefo.util.utils;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 public class StringUtils extends UtilityClass {
+    public static final String EMPTY_STRING = "";
 
     public static String substringBefore(String str, int ch) {
         int index = str.indexOf(ch);

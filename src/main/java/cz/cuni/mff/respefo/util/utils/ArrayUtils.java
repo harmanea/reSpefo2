@@ -3,7 +3,7 @@ package cz.cuni.mff.respefo.util.utils;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.util.Arrays;
-import java.util.stream.IntStream;
+import java.util.function.IntToDoubleFunction;
 
 public class ArrayUtils extends UtilityClass {
 
@@ -33,7 +33,27 @@ public class ArrayUtils extends UtilityClass {
             throw new IllegalArgumentException("Arrays must be of equal length");
         }
 
-        return IntStream.range(0, numerators.length).mapToDouble(i -> numerators[i] / denominators[i]).toArray();
+        return createArray(numerators.length, i -> numerators[i] / denominators[i]);
+    }
+
+    /**
+     * Divide all array entries by a given value
+     * @param numerators array to be divided
+     * @param denominator value to divide with
+     * @return adjusted array
+     */
+    public static double[] divideArrayValues(double[] numerators, double denominator) {
+        return Arrays.stream(numerators).map(numerator -> numerator / denominator).toArray();
+    }
+
+    /**
+     * Add a value to all array entries
+     * @param array
+     * @param value to add
+     * @return adjusted array
+     */
+    public static double[] addValueToArrayElements(double[] array, double value) {
+        return Arrays.stream(array).map(num -> num + value).toArray();
     }
 
     public static double[] fillArray(int size, double start, double step) {
@@ -51,6 +71,31 @@ public class ArrayUtils extends UtilityClass {
         return result;
     }
 
+    public static double[] fillArray(int size, double value) {
+        if (size < 1) {
+            throw new IllegalArgumentException("Size must be a positive integer");
+        }
+
+        double[] result = new double[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = value;
+        }
+
+        return result;
+    }
+
+    public static double[] createArray(int size, IntToDoubleFunction creator) {
+        if (size < 1) {
+            throw new IllegalArgumentException("Size must be a positive integer");
+        }
+
+        double[] result = new double[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = creator.applyAsDouble(i);
+        }
+        return result;
+    }
+
     public static double[] applyBScale(double[] array, double bZero, double bScale) {
         for (int i = 0; i < array.length; i++) {
             array[i] = array[i] * bScale + bZero;
@@ -61,6 +106,32 @@ public class ArrayUtils extends UtilityClass {
 
     public static int nDims(Object data) {
         return 1 + data.getClass().getName().lastIndexOf('[');
+    }
+
+    public static boolean valuesHaveSameDifference(double[] values) {
+        if (values.length < 2) {
+            throw new IllegalArgumentException("Values must contain at least two values");
+        } else if (values.length == 2) {
+            return true;
+        }
+
+        double diff = values[1] - values[0];
+        for (int i = 2; i < values.length; i++) {
+            if (!MathUtils.doublesEqual(diff, values[i] - values[i - 1])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static double[] reverseArray(double[] array) {
+        double[] newArray = new double[array.length];
+        for(int i = 0; i < newArray.length; i++)
+        {
+            newArray[i] = array[array.length - i - 1];
+        }
+
+        return newArray;
     }
 
     protected ArrayUtils() throws IllegalAccessException {

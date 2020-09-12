@@ -129,6 +129,10 @@ public class FileUtils extends UtilityClass {
         }
     }
 
+    public static String replaceFileExtension(String fileName, String newExtension) {
+        return stripFileExtension(fileName) + "." + newExtension;
+    }
+
     public static String getParentDirectory(String fileName) {
         Path parent = Paths.get(fileName).getParent();
         if (parent != null) {

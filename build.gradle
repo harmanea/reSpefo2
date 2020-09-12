@@ -21,7 +21,7 @@ eclipseMavenCentral {
 repositories {
     mavenCentral()
     maven { url 'http://buchen.github.io/maven-repo' } // for swtchart
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } // for nom-tam-fits snapshot
 }
 
 dependencies {
@@ -32,6 +32,10 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
     compile 'org.reflections:reflections:0.9.11'
+}
+
+tasks.withType(JavaExec) {
+    systemProperty "respefo.version", version
 }
 
 task fatJar(type: Jar) {

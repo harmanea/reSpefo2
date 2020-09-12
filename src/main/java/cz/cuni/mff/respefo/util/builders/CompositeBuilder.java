@@ -22,4 +22,10 @@ public class CompositeBuilder extends ControlBuilder<Composite, CompositeBuilder
 
         return this;
     }
+
+    public CompositeBuilder layout(LayoutBuilder<?> layoutBuilder) {
+        control.setLayout(layoutBuilder.build());
+
+        return this;
+    }
 }

@@ -88,6 +88,11 @@ public class ChartUtils extends UtilityClass {
         return new Point(realX, realY);
     }
 
+    public static double getRelativeHorizontalStep(Chart chart) {
+        Range range = chart.getAxisSet().getXAxis(0).getRange();
+        return (range.upper - range.lower) / 1000;
+    }
+
     protected ChartUtils() throws IllegalAccessException {
         super();
     }

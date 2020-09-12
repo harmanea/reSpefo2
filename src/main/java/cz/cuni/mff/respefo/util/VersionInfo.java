@@ -8,7 +8,7 @@ public class VersionInfo extends UtilityClass {
     static {
         String implementationVersion = ReSpefo.class.getPackage().getImplementationVersion();
         if (implementationVersion == null) {
-            VERSION = "development";
+            VERSION = System.getProperty("respefo.version");
         } else {
             VERSION = implementationVersion;
         }

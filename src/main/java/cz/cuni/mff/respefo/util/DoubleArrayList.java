@@ -1,9 +1,11 @@
 package cz.cuni.mff.respefo.util;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
-public class DoubleArrayList {
+public class DoubleArrayList implements Iterable<Double> {
     private static final int DEFAULT_INITIAL_CAPACITY = 10;
 
     private int size;
@@ -129,5 +131,26 @@ public class DoubleArrayList {
         if (index >= size || index < 0) {
             throw new IndexOutOfBoundsException("Tried to access element with index [" + index + "] in a list with size [" + size + "]");
         }
+    }
+
+    @Override
+    public Iterator<Double> iterator() {
+        return new Iterator<Double>() {
+            int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return i < size;
+            }
+
+            @Override
+            public Double next() {
+                if (i >= size) {
+                    throw new NoSuchElementException();
+                }
+
+                return elements[i++];
+            }
+        };
     }
 }

@@ -12,10 +12,12 @@ public class FileUtilsTest {
         String fileName = "foo" + File.separator + "bar" + File.separator + "expected.extension";
         assertEquals("extension", FileUtils.getFileExtension(fileName));
         assertEquals("foo" + File.separator + "bar" + File.separator + "expected", FileUtils.stripFileExtension(fileName));
+        assertEquals("foo" + File.separator + "bar" + File.separator + "expected.newextension", FileUtils.replaceFileExtension(fileName, "newextension"));
 
         fileName = "noExtension";
         assertEquals("", FileUtils.getFileExtension(fileName));
         assertEquals(fileName, FileUtils.stripFileExtension(fileName));
+        assertEquals(fileName + ".newextension", FileUtils.replaceFileExtension(fileName, "newextension"));
 
         fileName = "more.than.one.extension";
         assertEquals("extension", FileUtils.getFileExtension(fileName));

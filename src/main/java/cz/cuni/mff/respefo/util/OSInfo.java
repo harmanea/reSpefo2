@@ -28,6 +28,10 @@ public class OSInfo extends UtilityClass {
         return BITNESS;
     }
 
+    public static String asString() {
+        return OS.toString() + BITNESS;
+    }
+
     protected OSInfo() throws IllegalAccessException {
         super();
     }
