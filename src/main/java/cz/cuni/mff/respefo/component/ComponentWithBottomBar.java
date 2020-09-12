@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.component;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 
@@ -13,6 +14,7 @@ public class ComponentWithBottomBar {
 
     public ComponentWithBottomBar(Composite parent) {
         sash = new SashForm(parent, VERTICAL);
+        sash.setBackground(sash.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
 
         scene = new Composite(sash, NONE);
         bottomBar = new Composite(sash, NONE);

@@ -33,6 +33,7 @@ public class FileExplorer {
 
         addExpandListener();
         addCollapseListener();
+        addDoubleClickListener();
 
         new FileExplorerMenu(tree);
     }
@@ -43,11 +44,11 @@ public class FileExplorer {
 
     public void setRootDirectory(File file) throws SpefoException {
         if (file == null) {
-            throw new SpefoException("File is null.");
+            throw new SpefoException("File is null");
         } else if (!file.isDirectory()) {
-            throw new SpefoException("File is not a directory.");
+            throw new SpefoException("File is not a directory");
         } else if (!file.exists()) {
-            throw new SpefoException("File doesn't exist.");
+            throw new SpefoException("File doesn't exist");
         }
 
         clearTree();
@@ -64,6 +65,23 @@ public class FileExplorer {
 
     public File getRootDirectory() {
         return rootDirectory;
+    }
+
+    public void changeDirectory() {
+        DirectoryDialog dialog = new DirectoryDialog(tree.getShell());
+
+        dialog.setText("Choose directory");
+        dialog.setFilterPath(getRootDirectory().getPath());
+
+        String directoryName = dialog.open();
+
+        if (directoryName != null) {
+            try {
+                setRootDirectory(new File(directoryName));
+            } catch (Exception exception) {
+                Message.error("Couldn't change directory.", exception);
+            }
+        }
     }
 
     public void refresh() {
@@ -96,7 +114,6 @@ public class FileExplorer {
 
     private void refreshItems(TreeItem[] items, File file, IntFunction<TreeItem> itemFactory) {
         File[] checkFiles = file.listFiles();
-
         Arrays.sort(checkFiles, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
 
         int itemsIndex = 0;
@@ -184,6 +201,25 @@ public class FileExplorer {
         tree.addListener(Collapse, event -> collapseTreeItem((TreeItem) event.item));
     }
 
+    private void addDoubleClickListener() {
+        tree.addListener(MouseDoubleClick, event -> {
+            if (tree.getSelectionCount() == 1) {
+                TreeItem item = tree.getSelection()[0];
+
+                File file = (File) item.getData();
+                if (file.isDirectory()) {
+                    if (item.getExpanded()) {
+                        item.setExpanded(false);
+                        collapseTreeItem(item);
+                    } else {
+                        item.setExpanded(true);
+                        expandTreeItem(item);
+                    }
+                }
+            }
+        });
+    }
+
     private void expandTreeItem(TreeItem item) {
         tree.setRedraw(false);
 
@@ -228,7 +264,7 @@ public class FileExplorer {
 
             if (fileExtension.equals("spf")) {
                 return SPECTRUM_FILE;
-            } else if (FormatManager.getKnownFileExtensions().contains(fileExtension)) {
+            } else if (FormatManager.getImportableFileExtensions().contains(fileExtension)) {
                 return IMPORTABLE_FILE;
             } else if (fileExtension.equals("stl") || fileExtension.equals("lst")) {
                 return SUPPORT_FILE;
@@ -278,22 +314,7 @@ public class FileExplorer {
         private void createAlwaysVisibleMenuItems() {
             MenuItem item = new MenuItem(menu, 0);
             item.setText("Change Directory");
-            item.addListener(Selection, event -> {
-                DirectoryDialog dialog = new DirectoryDialog(menu.getShell());
-
-                dialog.setText("Choose directory");
-                dialog.setFilterPath(getRootDirectory().getPath());
-
-                String directoryName = dialog.open();
-
-                if (directoryName != null) {
-                    try {
-                        setRootDirectory(new File(directoryName));
-                    } catch (Exception exception) {
-                        Message.error("Couldn't change directory.", exception);
-                    }
-                }
-            });
+            item.addListener(Selection, event -> changeDirectory());
 
             item = new MenuItem(menu, 0);
             item.setText("Refresh");

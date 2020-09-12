@@ -13,7 +13,7 @@ import cz.cuni.mff.respefo.util.VersionInfo;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.*;
 
 import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
@@ -48,7 +48,6 @@ public class ComponentManager extends UtilityClass {
                         .build()
         );
 
-
         // Top level
 
         final Composite leftBar = composite(shell, BORDER)
@@ -63,7 +62,7 @@ public class ComponentManager extends UtilityClass {
         componentWithBottomBar = new ComponentWithBottomBar(shell);
         componentWithBottomBar.setLayoutData(new GridData(FILL, FILL, true, true));
         componentWithBottomBar.getScene().setLayout(fillLayout().margins(0).spacing(0).build()); // TEMPORARY
-        componentWithBottomBar.getBottomBar().setLayout(new FillLayout()); // TEMPORARY
+        componentWithBottomBar.getBottomBar().setLayout(gridLayout().margins(0).spacings(0).build()); // TEMPORARY
         componentWithBottomBar.maximizeScene();
 
         final Composite rightBar = composite(shell, BORDER)
@@ -88,11 +87,15 @@ public class ComponentManager extends UtilityClass {
         // componentWithBottomBar -> scene
 
         componentWithSidebars = new ComponentWithSidebars(componentWithBottomBar.getScene());
-        componentWithSidebars.getLeftBar().setLayout(new FillLayout()); // TEMPORARY
-        componentWithSidebars.getScene().setLayout(new GridLayout(1, false));
-        componentWithSidebars.getRightBar().setLayout(fillLayout(VERTICAL).margins(3).build());
+        componentWithSidebars.getLeftBar().setLayout(gridLayout().margins(0).spacings(0).build());
+        componentWithSidebars.getScene().setLayout(gridLayout().margins(0).build());
+        componentWithSidebars.getRightBar().setLayout(gridLayout().margins(0).spacings(0).build());
+        componentWithSidebars.minimizeRightBar();
+
+        TopBar leftTopBar = new TopBar(componentWithSidebars.getLeftBar(), "Project");
 
         fileExplorer = new FileExplorer(componentWithSidebars.getLeftBar());
+        fileExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));
         fileExplorer.setRootDirectory(FileUtils.getUserDirectory());
 
         label(componentWithSidebars.getScene(), CENTER)
@@ -100,32 +103,41 @@ public class ComponentManager extends UtilityClass {
                 .layoutData(new GridData(CENTER, CENTER, true, true))
                 .build();
 
+        TopBar rightTopBar = new TopBar(componentWithSidebars.getRightBar(), "Tools");
+
+        Composite rightBarComposite = new Composite(componentWithSidebars.getRightBar(), BORDER);
+        rightBarComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        rightBarComposite.setLayout(new FillLayout(VERTICAL));
+
         // TEMPORARY
-        pushButton(componentWithSidebars.getRightBar())
+        pushButton(rightBarComposite)
                 .text("Log")
                 .onSelection(event -> Log.info("This is a test log " + System.currentTimeMillis()))
                 .build();
 
-        pushButton(componentWithSidebars.getRightBar())
+        pushButton(rightBarComposite)
                 .text("Log warning")
                 .onSelection(event -> Log.warning("This is a warning test log " + System.currentTimeMillis()))
                 .build();
 
-        pushButton(componentWithSidebars.getRightBar())
+        pushButton(rightBarComposite)
                 .text("Throw exception")
                 .onSelection(event -> {
                     throw new RuntimeException("This is a test exception");
                 })
                 .build();
 
-        pushButton(componentWithSidebars.getRightBar())
+        pushButton(rightBarComposite)
                 .text("Clear scene")
                 .onSelection(event -> clearScene())
                 .build();
 
         // componentWithBottomBar -> bottom bar
 
+        TopBar bottomTopBar = new TopBar(componentWithBottomBar.getBottomBar(), "Event Log");
+
         final FancyLogListener fancyLogListener = new FancyLogListener(componentWithBottomBar.getBottomBar());
+        fancyLogListener.setLayoutData(new GridData(GridData.FILL_BOTH));
         Log.registerListener(fancyLogListener);
 
 
@@ -140,7 +152,7 @@ public class ComponentManager extends UtilityClass {
         leftToggle.setToggled(true);
         leftToggle.setImage(ImageManager.getImage(ImageResource.FOLDER_LARGE));
         leftToggle.setLayoutData(new GridData(FILL, TOP, true, false));
-
+        leftToggle.setTooltipText("Project");
 
         final Toggle rightToggle = new Toggle(rightBar, NONE) {
             @Override
@@ -148,9 +160,10 @@ public class ComponentManager extends UtilityClass {
                 componentWithSidebars.toggleRightBar();
             }
         };
-        rightToggle.setToggled(true);
+        rightToggle.setToggled(false);
         rightToggle.setImage(ImageManager.getImage(ImageResource.WRENCH_LARGE));
         rightToggle.setLayoutData(new GridData(FILL, TOP, true, false));
+        rightToggle.setTooltipText("Tools");
 
         final Toggle bottomToggle = new Toggle(bottomBar, NONE) {
             @Override
@@ -161,6 +174,7 @@ public class ComponentManager extends UtilityClass {
         bottomToggle.setToggled(false);
         bottomToggle.setImage(ImageManager.getImage(ImageResource.SCROLL_LARGE));
         bottomToggle.setLayoutData(new GridData(LEFT, FILL, false, true));
+        bottomToggle.setTooltipText("Event Log");
 
         final Label bottomLogLabel = label(bottomBar, NONE)
                 .text("")
@@ -189,6 +203,48 @@ public class ComponentManager extends UtilityClass {
 
         Progress.init(progressBar, progressLabel);
 
+        // Top bars
+
+        // left
+
+        LabelButton leftMinimize = new LabelButton(leftTopBar.getToolbox(), NONE);
+        leftMinimize.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
+        leftMinimize.onClick(leftToggle::toggle);
+        leftMinimize.setToolTipText("Minimize");
+
+        label(leftTopBar.getToolbox(), VERTICAL | SEPARATOR)
+                .layoutData(new RowData(DEFAULT, leftMinimize.computeSize(DEFAULT, DEFAULT).y))
+                .build();
+
+        LabelButton collapse = new LabelButton(leftTopBar.getToolbox(), NONE);
+        collapse.setImage(ImageManager.getImage(ImageResource.COLLAPSE));
+        collapse.onClick(fileExplorer::collapseAll);
+        collapse.setToolTipText("Collapse All");
+
+        LabelButton refresh = new LabelButton(leftTopBar.getToolbox(), NONE);
+        refresh.setImage(ImageManager.getImage(ImageResource.REFRESH));
+        refresh.onClick(fileExplorer::refresh);
+        refresh.setToolTipText("Refresh");
+
+        LabelButton changeDirectory = new LabelButton(leftTopBar.getToolbox(), NONE);
+        changeDirectory.setImage(ImageManager.getImage(ImageResource.OPENED_FOLDER));
+        changeDirectory.onClick(fileExplorer::changeDirectory);
+        changeDirectory.setToolTipText("Change Directory");
+
+        // right
+
+        LabelButton rightMinimize = new LabelButton(rightTopBar.getToolbox(), NONE);
+        rightMinimize.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
+        rightMinimize.onClick(rightToggle::toggle);
+        rightMinimize.setToolTipText("Minimize");
+
+        // bottom
+
+        LabelButton bottomMinimize = new LabelButton(bottomTopBar.getToolbox(), NONE);
+        bottomMinimize.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
+        bottomMinimize.onClick(bottomToggle::toggle);
+        bottomMinimize.setToolTipText("Minimize");
+
         // Final stuff
 
         componentWithBottomBar.setWeights(new int[]{70, 30});
@@ -210,7 +266,7 @@ public class ComponentManager extends UtilityClass {
     }
 
     private static void handleException(Exception exception) {
-        Message.errorWithDetails("An error occured in one of the components", exception);
+        Message.errorWithDetails("An error occurred in one of the components", exception);
     }
 
     public static Display getDisplay() {

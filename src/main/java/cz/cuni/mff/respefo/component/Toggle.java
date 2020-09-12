@@ -3,8 +3,9 @@ package cz.cuni.mff.respefo.component;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+
+import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 
 public abstract class Toggle extends Composite {
 
@@ -14,11 +15,7 @@ public abstract class Toggle extends Composite {
 
     protected Toggle(Composite parent, int style, int margin) {
         super(parent, style);
-
-        FillLayout layout = new FillLayout();
-        layout.marginHeight = margin;
-        layout.marginWidth = margin;
-        setLayout(layout);
+        setLayout(fillLayout().margins(margin).build());
 
         toggled = false;
         label = new CLabel(this, style);
