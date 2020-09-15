@@ -1,72 +1,75 @@
 package cz.cuni.mff.respefo.format;
 
-import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.format.formats.ExportFileFormat;
+import cz.cuni.mff.respefo.format.formats.FileFormat;
+import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.reflections.Reflections;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class FormatManager extends UtilityClass {
-    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.format.scan";
-
-    private static Map<String, FileFormat> fileFormatsWithExtensions;
+    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.format.formats";
+    private static Map<String, List<ImportFileFormat>> importFileFormats;
+    private static Map<String, List<ExportFileFormat>> exportFileFormats;
 
     public static void scan() {
         Reflections reflections = new Reflections(PACKAGE_TO_SCAN);
-        Set<Class<? extends FileFormat>> formatClasses = reflections.getSubTypesOf(FileFormat.class);
 
-        fileFormatsWithExtensions = new HashMap<>();
-
-        for (Class<? extends FileFormat> formatClass : formatClasses) {
-            processFormatClass(formatClass);
-        }
-
-        if (fileFormatsWithExtensions.isEmpty()) {
-            Log.warning("No file formats were loaded.");
-        }
+        importFileFormats = scanForFileFormats(reflections, ImportFileFormat.class);
+        exportFileFormats = scanForFileFormats(reflections, ExportFileFormat.class);
     }
 
-    private static void processFormatClass(Class<? extends FileFormat> formatClass) {
-        try {
-            FileFormat instance = formatClass.getDeclaredConstructor().newInstance();
+    public static <T extends FileFormat> Map<String, List<T>> scanForFileFormats(Reflections reflections, Class<T> cls) {
+        Map<String, List<T>> fileFormatsMap = new HashMap<>();
+        Set<Class<? extends T>> fileFormatClasses = reflections.getSubTypesOf(cls);
 
-            for (String fileExtension : instance.fileExtensions()) {
-                fileFormatsWithExtensions.put(fileExtension, instance);
+        for (Class<? extends T> fileFormatClass : fileFormatClasses) {
+            try {
+                T instance = fileFormatClass.getDeclaredConstructor().newInstance();
+                for (String fileExtension : instance.fileExtensions()) {
+                    if (!fileFormatsMap.containsKey(fileExtension)) {
+                        fileFormatsMap.put(fileExtension, new ArrayList<>());
+                    }
+                    fileFormatsMap.get(fileExtension).add(instance);
+                }
+
+            } catch (Exception exception) {
+                Log.error("Error while loading file format class [%s].", exception, fileFormatClass);
             }
-
-        } catch (Exception exception) {
-            Log.error("Error while loading file format [%s].", exception, formatClass);
         }
+
+        if (fileFormatsMap.isEmpty()) {
+            Log.warning("No formats of type " + cls.getSimpleName() + " were loaded");
+        }
+
+        return fileFormatsMap;
     }
 
-    public static Set<String> getKnownFileExtensions() {
-        return fileFormatsWithExtensions.keySet();
+    public static Set<String> getImportableFileExtensions() {
+        return importFileFormats.keySet();
     }
 
-    public static SpectrumFile importFrom(String fileName) throws SpefoException {
-        String fileExtension = extractFileExtensionAndThrowIfKeyNotPresent(fileName);
-
-        return fileFormatsWithExtensions.get(fileExtension).importFrom(fileName);
-    }
-
-    public static void exportTo(SpectrumFile spectrumFile, String fileName) throws SpefoException {
-        String fileExtension = extractFileExtensionAndThrowIfKeyNotPresent(fileName);
-
-        fileFormatsWithExtensions.get(fileExtension).exportTo(spectrumFile, fileName);
-    }
-
-    private static String extractFileExtensionAndThrowIfKeyNotPresent(String fileName) throws UnknownFileFormatException {
+    public static List<ImportFileFormat> getImportFileFormats(String fileName) throws UnknownFileFormatException {
         String fileExtension = FileUtils.getFileExtension(fileName);
 
-        if (!fileFormatsWithExtensions.containsKey(fileExtension)) {
+        if (!importFileFormats.containsKey(fileExtension)) {
             throw new UnknownFileFormatException("Unknown file extension [" + fileExtension + "].");
         }
 
-        return fileExtension;
+        return importFileFormats.get(fileExtension);
+    }
+
+    public static List<ExportFileFormat> getExportFileFormats(String fileName) throws UnknownFileFormatException {
+        String fileExtension = FileUtils.getFileExtension(fileName);
+
+        if (!exportFileFormats.containsKey(fileExtension)) {
+            throw new UnknownFileFormatException("Unknown file extension [" + fileExtension + "].");
+        }
+
+        return exportFileFormats.get(fileExtension);
     }
 
     protected FormatManager() throws IllegalAccessException {

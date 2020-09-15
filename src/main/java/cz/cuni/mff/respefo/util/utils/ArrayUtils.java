@@ -134,6 +134,26 @@ public class ArrayUtils extends UtilityClass {
         return newArray;
     }
 
+    public static int findClosest(double[] array, double target) {
+        int index = Arrays.binarySearch(array, target);
+        if (index >= 0) {
+            return index;
+
+        } else {
+            int insertionPoint = -1 * (index + 1);
+            if (insertionPoint == 0) {
+                return insertionPoint;
+            } else if (insertionPoint == array.length) {
+                return insertionPoint - 1;
+            } else {
+                double lowDiff = target - array[insertionPoint - 1];
+                double topDiff = array[insertionPoint] - target;
+
+                return lowDiff > topDiff ? insertionPoint : insertionPoint - 1;
+            }
+        }
+    }
+
     protected ArrayUtils() throws IllegalAccessException {
         super();
     }

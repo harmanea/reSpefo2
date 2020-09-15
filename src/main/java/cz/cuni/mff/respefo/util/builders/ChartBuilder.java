@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.util.builders;
 
-import cz.cuni.mff.respefo.format.Data;
+import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
@@ -244,9 +244,9 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
             return (B) this;
         }
 
-        public B data(Data data) {
-            this.xSeries = data.getX();
-            this.ySeries = data.getY();
+        public B series(XYSeries data) {
+            this.xSeries = data.getXSeries();
+            this.ySeries = data.getYSeries();
 
             return (B) this;
         }

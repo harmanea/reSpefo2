@@ -1,29 +1,73 @@
 package cz.cuni.mff.respefo.format;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.format.asset.FunctionAsset;
+import cz.cuni.mff.respefo.format.asset.FunctionAssetsDeserializer;
+import cz.cuni.mff.respefo.format.origin.OriginDeserializer;
+import cz.cuni.mff.respefo.format.origin.OriginSerializer;
+import cz.cuni.mff.respefo.util.JulianDate;
+import cz.cuni.mff.respefo.util.VersionInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Spectrum {
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-    private final SpectrumFile spectrumFile;
-    private final File file;
-
-    public Spectrum(File file) throws SpefoException {
-        spectrumFile = readFile(file);
-        this.file = file;
+    private static final int CURRENT_FORMAT = 1;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    static {
+        MAPPER.disable(MapperFeature.AUTO_DETECT_CREATORS,
+                MapperFeature.AUTO_DETECT_GETTERS,
+                MapperFeature.AUTO_DETECT_IS_GETTERS,
+                MapperFeature.AUTO_DETECT_SETTERS);
+        MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
 
-    public Spectrum(SpectrumFile spectrumFile, File file) {
-        this.spectrumFile = spectrumFile;
-        this.file = file;
+    private transient File file;
+
+    private int format;
+    private String version;
+
+    @JsonDeserialize(using = OriginDeserializer.class)
+    @JsonSerialize(using = OriginSerializer.class)
+    private Object origin;
+
+    private JulianDate dateOfObservation;
+    private double rvCorrection; // Maybe add support for different types in the future
+
+    @JsonDeserialize(using = FunctionAssetsDeserializer.class)
+    private LinkedHashMap<String, FunctionAsset> functionAssets;
+
+    private XYSeries series;
+
+    // TODO: add history ?
+
+    public static Spectrum open(File file) throws SpefoException {
+        Spectrum spectrum = readFile(file);
+        spectrum.setFile(file);
+        return spectrum;
+    }
+
+    private static Spectrum readFile(File file) throws SpefoException {
+        try {
+            return MAPPER.readValue(file, Spectrum.class);
+
+        } catch (JsonParseException | JsonMappingException exception) {
+            throw new SpefoException("An error occurred while processing JSON", exception);
+        } catch (IOException exception) {
+            throw new SpefoException("An error occurred while reading file", exception);
+        }
     }
 
     public void save() throws SpefoException {
@@ -31,63 +75,120 @@ public class Spectrum {
     }
 
     public void saveAs(File file) throws SpefoException {
-        saveFile(file, spectrumFile);
+        saveToFile(file);
+    }
+
+    private void saveToFile(File destinationFile) throws SpefoException {
+        try {
+            ObjectWriter writer = MAPPER.writer();
+            writer.writeValue(destinationFile, this);
+
+        } catch (JsonGenerationException | JsonMappingException exception) {
+            throw new SpefoException("An error occurred while processing JSON", exception);
+        } catch (IOException exception) {
+            throw new SpefoException("An error occurred while writing to file", exception);
+        }
+    }
+
+    public Spectrum() {
+        // default empty constructor
+    }
+
+    public Spectrum(XYSeries series) {
+        format = CURRENT_FORMAT;
+        version = VersionInfo.getVersion();
+        functionAssets = new LinkedHashMap<>();
+
+        rvCorrection = Double.NaN;
+
+        this.series = series;
     }
 
     public File getFile() {
         return file;
     }
 
-    public SpectrumFile getSpectrumFile() { return spectrumFile; }
-
-    public Data getRawData() {
-        return spectrumFile.getData();
+    public void setFile(File file) {
+        this.file = file;
     }
 
-    public Data getProcessedData() {
-        Data data = spectrumFile.getData();
+    public int getFormat() {
+        return format;
+    }
 
-        for (FunctionAsset asset : spectrumFile.getFunctionAssets().values()) {
-            data = asset.process(data);
+    public void setFormat(int format) {
+        this.format = format;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public Object getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Object origin) {
+        this.origin = origin;
+    }
+
+    public JulianDate getDateOfObservation() {
+        return dateOfObservation;
+    }
+
+    public void setDateOfObservation(JulianDate dateOfObservation) {
+        this.dateOfObservation = dateOfObservation;
+    }
+
+    public double getRvCorrection() {
+        return rvCorrection;
+    }
+
+    public void setRvCorrection(double rvCorrection) {
+        this.rvCorrection = rvCorrection;
+    }
+
+    public XYSeries getSeries() {
+        return series;
+    }
+
+    public void setSeries(XYSeries series) {
+        this.series = series;
+    }
+
+    public XYSeries getProcessedSeries() {
+        XYSeries processedSeries = series;
+
+        for (FunctionAsset asset : functionAssets.values()) {
+            processedSeries = asset.process(processedSeries);
         }
 
-        return data;
+        return processedSeries;
     }
 
-    public Data getProcessedDataBefore(FunctionAsset finalAsset) {
-        Data data = spectrumFile.getData();
+    public XYSeries getProcessedSeriesBefore(FunctionAsset finalAsset) {
+        XYSeries processedSeries = this.series;
 
-        for (FunctionAsset asset : spectrumFile.getFunctionAssets().values()) {
+        for (FunctionAsset asset : functionAssets.values()) {
             if (asset == finalAsset) {
                 break;
             }
 
-            data = asset.process(data);
+            processedSeries = asset.process(processedSeries);
         }
 
-        return data;
+        return processedSeries;
     }
 
-    private static SpectrumFile readFile(File file) throws SpefoException {
-        try {
-            return mapper.readValue(file, SpectrumFile.class);
-
-        } catch (JsonParseException | JsonMappingException exception) {
-            throw new SpefoException("An error occurred while processing JSON.", exception);
-        } catch (IOException exception) {
-            throw new SpefoException("An error occurred while reading file.", exception);
-        }
+    public Map<String, FunctionAsset> getFunctionAssets() {
+        return functionAssets;
     }
 
-    private static void saveFile(File destinationFile, SpectrumFile spectrumFile) throws SpefoException {
-        try {
-            ObjectWriter writer = mapper.writer();
-            writer.writeValue(destinationFile, spectrumFile);
-
-        } catch (JsonGenerationException | JsonMappingException exception) {
-            throw new SpefoException("An error occurred while processing JSON.", exception);
-        } catch (IOException exception) {
-            throw new SpefoException("An error occurred while writing to file.", exception);
-        }
+    public void setFunctionAssets(LinkedHashMap<String, FunctionAsset> functionAssets) {
+        this.functionAssets = functionAssets;
     }
 }

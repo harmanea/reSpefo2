@@ -4,7 +4,8 @@ public enum FileType {
     COMPATIBLE_SPECTRUM_FILES("Compatible Spectrum Files", "*.fits;*.fit;*.fts;*.txt;*.asc;*.ascii;*;*.rui;*.uui;*.rci;*.rfi"),
     SPECTRUM("Spectrum Files", "*.spf"),
     FITS("FITS Files", "*.fits;*.fit;*.fts"),
-    CMP("CMP Files", "*.cmp");
+    CMP("CMP Files", "*.cmp"),
+    STL("STL Files", "*.stl");
 
     private final String filterNames;
     private final String filterExtensions;

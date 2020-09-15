@@ -1,10 +1,16 @@
 package cz.cuni.mff.respefo.util;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import cz.cuni.mff.respefo.util.utils.DoubleArrayListDeserializer;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+@JsonSerialize(using = DoubleArrayListSerializer.class)
+@JsonDeserialize(using = DoubleArrayListDeserializer.class)
 public class DoubleArrayList implements Iterable<Double> {
     private static final int DEFAULT_INITIAL_CAPACITY = 10;
 

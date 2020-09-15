@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class OriginManager {
-    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.format.origin.scan";
+    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.format.formats";
 
     private static Map<String, Class<?>> origins;
 
