@@ -5,6 +5,9 @@ import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
+import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
+import cz.cuni.mff.respefo.function.asset.common.DragMouseListener;
+import cz.cuni.mff.respefo.function.asset.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
@@ -39,7 +42,7 @@ public class CompareFunction implements MultiFileFunction {
         List<Spectrum> spectra = new ArrayList<>();
         for (File file : files) {
             try {
-                Spectrum spectrum = new Spectrum(file);
+                Spectrum spectrum = Spectrum.open(file);
                 spectra.add(spectrum);
             } catch (SpefoException exception) {
                 progress.asyncExec(() -> Message.error("Couldn't open file", exception));
@@ -51,9 +54,7 @@ public class CompareFunction implements MultiFileFunction {
     }
 
     private void displaySpectra(List<Spectrum> spectra) {
-        ComponentManager.clearScene();
-
-        ChartBuilder chartBuilder = ChartBuilder.chart(ComponentManager.getScene())
+        ChartBuilder chartBuilder = ChartBuilder.chart(ComponentManager.clearAndGetScene())
                 .title("Compare")
                 .xAxisLabel("X Axis")
                 .yAxisLabel("Y Axis");
@@ -64,12 +65,15 @@ public class CompareFunction implements MultiFileFunction {
                     lineSeries()
                             .name(String.valueOf(i))
                             .color(ColorManager.getColor(COLORS[i]))
-                            .data(spectrum.getProcessedData())
+                            .series(spectrum.getProcessedSeries())
             );
         }
 
-        chartBuilder.makeAllSeriesEqualRange().build();
-
-        ComponentManager.getScene().layout();
+        chartBuilder
+                .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
+                .mouseAndMouseMoveListener(DragMouseListener::new)
+                .mouseWheelListener(ZoomMouseWheelListener::new)
+                .makeAllSeriesEqualRange()
+                .build();
     }
 }

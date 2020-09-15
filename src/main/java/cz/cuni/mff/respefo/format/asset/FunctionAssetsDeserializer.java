@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.format;
+package cz.cuni.mff.respefo.format.asset;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

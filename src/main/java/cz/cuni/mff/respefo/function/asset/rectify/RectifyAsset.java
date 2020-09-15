@@ -1,39 +1,33 @@
 package cz.cuni.mff.respefo.function.asset.rectify;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import cz.cuni.mff.respefo.format.Data;
-import cz.cuni.mff.respefo.format.FunctionAsset;
-import cz.cuni.mff.respefo.util.JsonNoAutoDetect;
+import cz.cuni.mff.respefo.format.XYSeries;
+import cz.cuni.mff.respefo.format.asset.FunctionAsset;
+import cz.cuni.mff.respefo.util.DoubleArrayList;
 import cz.cuni.mff.respefo.util.Point;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-@JsonNoAutoDetect
 public class RectifyAsset implements FunctionAsset {
-    @JsonProperty
-    private List<Double> xCoordinates;
-    @JsonProperty
-    private List<Double> yCoordinates;
-    private int activeIndex = 0;
+    private final DoubleArrayList xCoordinates;
+    private final DoubleArrayList yCoordinates;
+    private transient int activeIndex = 0;
 
-    public List<Double> getxCoordinates() {
-        return xCoordinates;
+    public RectifyAsset() {
+        this.xCoordinates = new DoubleArrayList();
+        this.yCoordinates = new DoubleArrayList();
     }
 
-    public void setxCoordinates(List<Double> xCoordinates) {
+    public RectifyAsset(DoubleArrayList xCoordinates, DoubleArrayList yCoordinates) {
         this.xCoordinates = xCoordinates;
-    }
-
-    public List<Double> getyCoordinates() {
-        return yCoordinates;
-    }
-
-    public void setyCoordinates(List<Double> yCoordinates) {
         this.yCoordinates = yCoordinates;
+    }
+
+    @Override
+    public XYSeries process(XYSeries series) {
+        double[] continuum = getIntepData(series.getXSeries());
+        double[] newYSeries = ArrayUtils.divideArrayValues(series.getYSeries(), continuum);
+
+        return new XYSeries(series.getXSeries(), newYSeries);
     }
 
     public int getActiveIndex() {
@@ -45,11 +39,11 @@ public class RectifyAsset implements FunctionAsset {
     }
 
     public double[] getXCoordinatesArray() {
-        return xCoordinates.stream().mapToDouble(Double::doubleValue).toArray();
+        return xCoordinates.toArray();
     }
 
     public double[] getYCoordinatesArray() {
-        return yCoordinates.stream().mapToDouble(Double::doubleValue).toArray();
+        return yCoordinates.toArray();
     }
 
     public void addPoint(Point point) {
@@ -59,39 +53,18 @@ public class RectifyAsset implements FunctionAsset {
     public void addPoint(double x, double y) {
         int index = ArrayUtils.findFirstGreaterThen(getXCoordinatesArray(), x);
 
-        xCoordinates.add(index, x);
-        yCoordinates.add(index, y);
+        xCoordinates.add(x, index);
+        yCoordinates.add(y, index);
+
+        activeIndex = index;
     }
 
-    public RectifyAsset() {
-        xCoordinates = new ArrayList<>();
-        yCoordinates = new ArrayList<>();
-    }
-
-    @Override
-    public Data process(Data data) {
-        double[] continuum = getIntepData(data.getX());
-        double[] newYSeries = ArrayUtils.divideArrayValues(data.getY(), continuum);
-
-        data.setY(newYSeries);
-
-        return data;
+    public boolean isEmpty() {
+        return xCoordinates.isEmpty() && yCoordinates.isEmpty();
     }
 
     public double[] getIntepData(double[] xinter) {
         return MathUtils.intep(getXCoordinatesArray(), getYCoordinatesArray(), xinter);
-    }
-
-    public static RectifyAsset withDefaultPoints(double x1, double y1, double x2, double y2) {
-        RectifyAsset rectifyAsset = new RectifyAsset();
-
-        List<Double> xCoordinates = new ArrayList<>(Arrays.asList(x1, x2));
-        List<Double> yCoordinates = new ArrayList<>(Arrays.asList(y1, y2));
-
-        rectifyAsset.setxCoordinates(xCoordinates);
-        rectifyAsset.setyCoordinates(yCoordinates);
-
-        return rectifyAsset;
     }
 
     public void deleteActivePoint() {
@@ -105,7 +78,29 @@ public class RectifyAsset implements FunctionAsset {
         }
     }
 
-    public Data getActivePoint() {
-        return new Data(new double[] {xCoordinates.get(activeIndex)}, new double[] {yCoordinates.get(activeIndex)});
+    public XYSeries getActivePoint() {
+        return new XYSeries(new double[]{xCoordinates.get(activeIndex)}, new double[]{yCoordinates.get(activeIndex)});
+    }
+
+    public double getActiveX() {
+        return xCoordinates.get(activeIndex);
+    }
+
+    public double getActiveY() {
+        return yCoordinates.get(activeIndex);
+    }
+
+    public int getCount() {
+        return xCoordinates.size();
+    }
+
+    public static RectifyAsset withDefaultPoints(XYSeries data) {
+        double[] xSeries = data.getXSeries();
+        double[] ySeries = data.getYSeries();
+
+        DoubleArrayList xCoordinates = new DoubleArrayList(new double[]{xSeries[0], xSeries[xSeries.length - 1]});
+        DoubleArrayList yCoordinates = new DoubleArrayList(new double[]{ySeries[0], ySeries[ySeries.length - 1]});
+
+        return new RectifyAsset(xCoordinates, yCoordinates);
     }
 }

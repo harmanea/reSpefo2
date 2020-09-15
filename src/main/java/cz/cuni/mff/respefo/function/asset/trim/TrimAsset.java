@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function.asset.trim;
 
-import cz.cuni.mff.respefo.format.Data;
-import cz.cuni.mff.respefo.format.FunctionAsset;
+import cz.cuni.mff.respefo.format.XYSeries;
+import cz.cuni.mff.respefo.format.asset.FunctionAsset;
 
 import static java.util.Arrays.binarySearch;
 import static java.util.Arrays.copyOfRange;
@@ -27,8 +27,8 @@ public class TrimAsset implements FunctionAsset {
     }
 
     @Override
-    public Data process(Data data) {
-        double[] xSeries = data.getX();
+    public XYSeries process(XYSeries series) {
+        double[] xSeries = series.getXSeries();
 
         int lowerIndex = binarySearch(xSeries, min);
         int upperIndex = binarySearch(xSeries, max);
@@ -45,6 +45,6 @@ public class TrimAsset implements FunctionAsset {
             upperIndex = xSeries.length - 1;
         }
 
-        return new Data(copyOfRange(xSeries, lowerIndex, upperIndex), copyOfRange(data.getY(), lowerIndex, upperIndex));
+        return new XYSeries(copyOfRange(xSeries, lowerIndex, upperIndex), copyOfRange(series.getYSeries(), lowerIndex, upperIndex));
     }
 }

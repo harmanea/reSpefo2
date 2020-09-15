@@ -1,0 +1,133 @@
+package cz.cuni.mff.respefo.function.asset.dispersion;
+
+import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.format.XYSeries;
+import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
+import cz.cuni.mff.respefo.function.asset.common.HorizontalDragMouseListener;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.swtchart.Chart;
+import org.swtchart.ILineSeries;
+
+import java.util.Arrays;
+import java.util.function.DoubleConsumer;
+
+import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
+import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
+import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
+
+public class MeasurementController {
+    public static final String MIRRORED_SERIES_NAME = "mirrored";
+
+    private final XYSeries seriesA;
+    private final XYSeries seriesB;
+
+    private double value;
+    private int radius;
+
+    public MeasurementController(XYSeries seriesA, XYSeries seriesB) {
+        this.seriesA = seriesA;
+        this.seriesB = seriesB;
+    }
+
+    public void measure(ComparisonLineMeasurement measurement, double hint, Runnable callback) {
+        measureSingle(seriesA, "A", measurement, hint, xUp ->
+            measureSingle(seriesB, "B", measurement, hint, xDown -> {
+                measurement.setxUp(xUp);
+                measurement.setxDown(xDown);
+                ComponentManager.getDisplay().asyncExec(callback);
+            }));
+    }
+
+    private void measureSingle(XYSeries series, String label, ComparisonLineMeasurement measurement, double hint, DoubleConsumer callback) {
+        value = hint;
+        radius = 10;
+
+        Chart chart = chart(ComponentManager.clearAndGetScene())
+                .title(label + " " + measurement.getLaboratoryValue())
+                .xAxisLabel("pixels")
+                .yAxisLabel("relative flux I(λ)")
+                .series(lineSeries()
+                        .name("original")
+                        .series(series)
+                        .color(GREEN))
+                .series(lineSeries()
+                        .name(MIRRORED_SERIES_NAME)
+                        .series(computeSeries(series))
+                        .color(BLUE))
+                .keyListener(ch -> ChartKeyListener.centerAroundSeries(ch, MIRRORED_SERIES_NAME))
+                .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, shift -> applyShift(ch, shift)))
+                .centerAroundSeries(MIRRORED_SERIES_NAME)
+                .forceFocus()
+                .build();
+
+        chart.getAxisSet().zoomOut();
+
+        chart.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                switch (e.keyCode) {
+                    case SWT.CR:
+                        callback.accept(value);
+                        break;
+
+                    case SWT.ESC:
+                        callback.accept(Double.NaN);
+                        break;
+
+                    case SWT.TAB:
+                        if (e.stateMask == SWT.CTRL) {
+                            radius = Math.max(1, radius / 2);
+                        } else {
+                            radius *= 2;
+                        }
+
+                        XYSeries newSeries = computeSeries(series);
+                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(newSeries.getXSeries());
+                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
+                        chart.redraw();
+                        break;
+
+                    case 'n':
+                        applyShift(chart, -getRelativeHorizontalStep(chart));
+                        break;
+
+                    case 'm':
+                        applyShift(chart, getRelativeHorizontalStep(chart));
+                        break;
+
+                }
+            }
+        });
+
+        chart.redraw();
+        chart.forceFocus();
+    }
+
+    private XYSeries computeSeries(XYSeries series) {
+        double[] xSeries = series.getXSeries();
+        double[] ySeries = series.getYSeries();
+
+        int from = Math.max((int) Math.rint(value) - radius, 0);
+        int to = Math.min((int) Math.rint(value) + radius, ySeries.length - 1);
+
+        double[] mirroredYSeries = ArrayUtils.reverseArray(Arrays.copyOfRange(ySeries, from, to));
+        double[] mirroredXSeries = ArrayUtils.createArray(mirroredYSeries.length, i -> 2 * value - xSeries[to - i - 1]);
+
+        return new XYSeries(mirroredXSeries, mirroredYSeries);
+    }
+
+    private void applyShift(Chart chart, double shift) {
+        value += shift / 2;
+
+        ILineSeries series = (ILineSeries) chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME);
+        series.setXSeries(ArrayUtils.addValueToArrayElements(series.getXSeries(), shift));
+
+        chart.redraw();
+        chart.forceFocus();
+    }
+}

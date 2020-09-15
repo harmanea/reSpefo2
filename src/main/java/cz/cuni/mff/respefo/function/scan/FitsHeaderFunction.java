@@ -43,12 +43,10 @@ public class FitsHeaderFunction implements SingleFileFunction {
             table.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
-                    if (e.stateMask == SWT.CTRL && (e.keyCode == 'c' || e.keyCode == 'C')) {
-                        if (table.getSelectionCount() > 0) {
-                            Clipboard clipboard = new Clipboard(ComponentManager.getDisplay());
-                            clipboard.setContents(new Object[]{ getTextFromSelectedRow(table) }, new Transfer[]{TextTransfer.getInstance()});
-                            clipboard.dispose();
-                        }
+                    if (e.stateMask == SWT.CTRL && (e.keyCode == 'c' || e.keyCode == 'C') && table.getSelectionCount() > 0) {
+                        Clipboard clipboard = new Clipboard(ComponentManager.getDisplay());
+                        clipboard.setContents(new Object[]{getTextFromSelectedRow(table)}, new Transfer[]{TextTransfer.getInstance()});
+                        clipboard.dispose();
                     }
                 }
             });

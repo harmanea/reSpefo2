@@ -4,13 +4,15 @@ import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.SpectrumFile;
+import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
+import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
+import org.eclipse.swt.SWT;
 
 import java.io.File;
 import java.util.List;
@@ -22,20 +24,29 @@ public class ImportFunction implements SingleOrMultiFileFunction {
     // TODO: message on success
     @Override
     public void execute(File file) {
-        SpectrumFile spectrumFile;
+        Spectrum spectrum;
         try {
-            spectrumFile = FormatManager.importFrom(file.getPath());
+            List<ImportFileFormat> fileFormats = FormatManager.getImportFileFormats(file.getPath());
+
+            FileFormatSelectionDialog<ImportFileFormat> dialog = new FileFormatSelectionDialog<>(fileFormats, "Import");
+            if (dialog.open() == SWT.OK) {
+                spectrum = dialog.getFileFormat().importFrom(file.getPath());
+            } else {
+                return;
+            }
 
         } catch (SpefoException exception) {
             Message.error("An error occurred while importing file.", exception);
             return;
         }
 
-        String fileName = FileUtils.saveFileDialog(FileType.SPECTRUM, FileUtils.stripFileExtension(file.getPath()) + ".spf");
+        // TODO: handle post import problems like NaNs and missing RvCorrection
+
+        String fileName = FileUtils.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
 
         if (fileName != null) {
             try {
-                new Spectrum(spectrumFile, new File(fileName)).save();
+                spectrum.saveAs(new File(fileName));
                 ComponentManager.getFileExplorer().refresh();
             } catch (SpefoException exception) {
                 Message.error("An error occurred while saving file.", exception);

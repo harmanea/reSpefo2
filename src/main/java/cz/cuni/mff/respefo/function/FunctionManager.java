@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.function;
 
-import cz.cuni.mff.respefo.format.FunctionAsset;
+import cz.cuni.mff.respefo.format.asset.FunctionAsset;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import org.reflections.Reflections;
@@ -52,6 +52,9 @@ public class FunctionManager extends UtilityClass {
 
         if (singleFileFunctions.isEmpty() && multiFileFunctions.isEmpty()) {
             Log.warning("No functions were loaded.");
+        } else {
+            singleFileFunctions.sort(Comparator.comparing(FunctionInfo::getName));
+            multiFileFunctions.sort(Comparator.comparing(FunctionInfo::getName));
         }
     }
 

@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.function;
 
-import cz.cuni.mff.respefo.format.FunctionAsset;
+import cz.cuni.mff.respefo.format.asset.FunctionAsset;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

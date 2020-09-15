@@ -25,12 +25,12 @@ public class TrimFunction implements SingleFileFunction {
     public void execute(File file) {
         Spectrum spectrum;
         try {
-            spectrum = new Spectrum(file);
+            spectrum = Spectrum.open(file);
         } catch (SpefoException e) {
             Message.error("Couldn't open file", e);
             return;
         }
-        TrimAsset asset = (TrimAsset) spectrum.getSpectrumFile().getFunctionAssets().getOrDefault("trim", new TrimAsset());
+        TrimAsset asset = (TrimAsset) spectrum.getFunctionAssets().getOrDefault("trim", new TrimAsset());
 
         TrimDialog dialog = new TrimDialog();
         dialog.setMin(asset.getMin());
@@ -44,9 +44,9 @@ public class TrimFunction implements SingleFileFunction {
         asset.setMax(dialog.getMax());
 
         if (asset.getMin() == Double.NEGATIVE_INFINITY && asset.getMax() == Double.POSITIVE_INFINITY) {
-            spectrum.getSpectrumFile().getFunctionAssets().remove("trim");
+            spectrum.getFunctionAssets().remove("trim");
         } else {
-            spectrum.getSpectrumFile().getFunctionAssets().put("trim", asset);
+            spectrum.getFunctionAssets().put("trim", asset);
         }
 
         try {
@@ -58,7 +58,7 @@ public class TrimFunction implements SingleFileFunction {
                     .yAxisLabel("y axis")
                     .series(lineSeries()
                             .name("series")
-                            .data(spectrum.getProcessedData()))
+                            .series(spectrum.getProcessedSeries()))
                     .build();
 
             Message.info("File saved successfully");

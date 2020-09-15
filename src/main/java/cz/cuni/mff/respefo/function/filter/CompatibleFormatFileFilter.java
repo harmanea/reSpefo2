@@ -15,6 +15,6 @@ public class CompatibleFormatFileFilter implements FileFilter {
 
         String fileExtension = FileUtils.getFileExtension(pathname.getPath());
 
-        return FormatManager.getKnownFileExtensions().contains(fileExtension);
+        return FormatManager.getImportableFileExtensions().contains(fileExtension);
     }
 }

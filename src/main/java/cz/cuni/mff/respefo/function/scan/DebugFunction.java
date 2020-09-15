@@ -11,7 +11,7 @@ import cz.cuni.mff.respefo.logging.Log;
 import java.io.File;
 import java.io.IOException;
 
-@Fun(name = "Debug", fileFilter = SpefoFormatFileFilter.class)
+@Fun(name = "__ Debug __", fileFilter = SpefoFormatFileFilter.class)
 public class DebugFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {
