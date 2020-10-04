@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 
 public class StringUtilsTest {
     @Test
-    public void testTrimTo() {
+    public void testSubstringBefore() {
         String s = "abc\ndef";
         assertEquals("abc", StringUtils.substringBefore(s, '\n'));
 

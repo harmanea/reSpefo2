@@ -10,16 +10,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.asset.FunctionAsset;
 import cz.cuni.mff.respefo.format.asset.FunctionAssetsDeserializer;
 import cz.cuni.mff.respefo.format.origin.OriginDeserializer;
 import cz.cuni.mff.respefo.format.origin.OriginSerializer;
-import cz.cuni.mff.respefo.util.JulianDate;
-import cz.cuni.mff.respefo.util.VersionInfo;
+import cz.cuni.mff.respefo.util.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -32,6 +34,12 @@ public class Spectrum {
                 MapperFeature.AUTO_DETECT_IS_GETTERS,
                 MapperFeature.AUTO_DETECT_SETTERS);
         MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        MAPPER.registerModule(new JSR310Module()); // LocalDateTime support
+
+        SimpleModule doubleArrayListModule = new SimpleModule();
+        doubleArrayListModule.addSerializer(DoubleArrayList.class, new DoubleArrayListSerializer());
+        doubleArrayListModule.addDeserializer(DoubleArrayList.class, new DoubleArrayListDeserializer());
+        MAPPER.registerModule(doubleArrayListModule);
     }
 
     private transient File file;
@@ -43,15 +51,14 @@ public class Spectrum {
     @JsonSerialize(using = OriginSerializer.class)
     private Object origin;
 
-    private JulianDate dateOfObservation;
+    private JulianDate hjd;
+    private LocalDateTime dateOfObservation;
     private double rvCorrection; // Maybe add support for different types in the future
 
     @JsonDeserialize(using = FunctionAssetsDeserializer.class)
     private LinkedHashMap<String, FunctionAsset> functionAssets;
 
     private XYSeries series;
-
-    // TODO: add history ?
 
     public static Spectrum open(File file) throws SpefoException {
         Spectrum spectrum = readFile(file);
@@ -90,7 +97,7 @@ public class Spectrum {
         }
     }
 
-    public Spectrum() {
+    private Spectrum() {
         // default empty constructor
     }
 
@@ -99,6 +106,8 @@ public class Spectrum {
         version = VersionInfo.getVersion();
         functionAssets = new LinkedHashMap<>();
 
+        hjd = new JulianDate();
+        dateOfObservation = LocalDateTime.MIN;
         rvCorrection = Double.NaN;
 
         this.series = series;
@@ -136,11 +145,19 @@ public class Spectrum {
         this.origin = origin;
     }
 
-    public JulianDate getDateOfObservation() {
+    public JulianDate getHjd() {
+        return hjd;
+    }
+
+    public void setHjd(JulianDate hjd) {
+        this.hjd = hjd;
+    }
+
+    public LocalDateTime getDateOfObservation() {
         return dateOfObservation;
     }
 
-    public void setDateOfObservation(JulianDate dateOfObservation) {
+    public void setDateOfObservation(LocalDateTime dateOfObservation) {
         this.dateOfObservation = dateOfObservation;
     }
 
@@ -170,25 +187,20 @@ public class Spectrum {
         return processedSeries;
     }
 
-    public XYSeries getProcessedSeriesBefore(FunctionAsset finalAsset) {
+    public XYSeries getProcessedSeriesWithout(FunctionAsset omittedAsset) {
         XYSeries processedSeries = this.series;
 
         for (FunctionAsset asset : functionAssets.values()) {
-            if (asset == finalAsset) {
-                break;
+            if (asset != omittedAsset) {
+                processedSeries = asset.process(processedSeries);
             }
-
-            processedSeries = asset.process(processedSeries);
         }
 
         return processedSeries;
     }
 
+    // TODO: make map functions available directly
     public Map<String, FunctionAsset> getFunctionAssets() {
         return functionAssets;
-    }
-
-    public void setFunctionAssets(LinkedHashMap<String, FunctionAsset> functionAssets) {
-        this.functionAssets = functionAssets;
     }
 }

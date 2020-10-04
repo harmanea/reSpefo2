@@ -20,7 +20,6 @@ public class ColorManager extends UtilityClass {
     private static void addColor(Device device, ColorResource resource) {
         try {
             colorMap.put(resource, resource.toColor(device));
-
         } catch (Exception exception) {
             throw new NoSuchResourceException("Resource [" + resource + "] could not be loaded.", exception);
         }

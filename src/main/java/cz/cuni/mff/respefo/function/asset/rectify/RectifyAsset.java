@@ -8,13 +8,12 @@ import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 public class RectifyAsset implements FunctionAsset {
-    private final DoubleArrayList xCoordinates;
-    private final DoubleArrayList yCoordinates;
+    private DoubleArrayList xCoordinates;
+    private DoubleArrayList yCoordinates;
     private transient int activeIndex = 0;
 
-    public RectifyAsset() {
-        this.xCoordinates = new DoubleArrayList();
-        this.yCoordinates = new DoubleArrayList();
+    private RectifyAsset() {
+        // default empty constructor
     }
 
     public RectifyAsset(DoubleArrayList xCoordinates, DoubleArrayList yCoordinates) {
@@ -80,6 +79,16 @@ public class RectifyAsset implements FunctionAsset {
 
     public XYSeries getActivePoint() {
         return new XYSeries(new double[]{xCoordinates.get(activeIndex)}, new double[]{yCoordinates.get(activeIndex)});
+    }
+
+    public void moveActivePoint(double xShift, double yShift) {
+        double oldX = getActiveX();
+        double oldY = getActiveY();
+
+        xCoordinates.remove(activeIndex);
+        yCoordinates.remove(activeIndex);
+
+        addPoint(oldX + xShift, oldY + yShift);
     }
 
     public double getActiveX() {

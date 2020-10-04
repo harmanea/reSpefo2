@@ -8,6 +8,8 @@ import org.reflections.Reflections;
 import java.io.FileFilter;
 import java.util.*;
 
+import static java.util.Optional.ofNullable;
+
 public class FunctionManager extends UtilityClass {
     private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.function.scan";
 
@@ -30,14 +32,15 @@ public class FunctionManager extends UtilityClass {
 
                 String name = funAnnotation.name();
                 FileFilter fileFilter = funAnnotation.fileFilter().getDeclaredConstructor().newInstance();
+                String group = funAnnotation.group().equals("") ? null : funAnnotation.group();
 
                 Object instance = functionClass.getDeclaredConstructor().newInstance();
 
                 if (instance instanceof SingleFileFunction) {
-                    singleFileFunctions.add(new FunctionInfo<>((SingleFileFunction) instance, name, fileFilter));
+                    singleFileFunctions.add(new FunctionInfo<>((SingleFileFunction) instance, name, fileFilter, ofNullable(group)));
                 }
                 if (instance instanceof MultiFileFunction) {
-                    multiFileFunctions.add(new FunctionInfo<>((MultiFileFunction) instance, name, fileFilter));
+                    multiFileFunctions.add(new FunctionInfo<>((MultiFileFunction) instance, name, fileFilter, ofNullable(group)));
                 }
 
                 Serialize serializeAnnotation = functionClass.getAnnotation(Serialize.class);

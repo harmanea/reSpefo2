@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.util.builders;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.RowLayout;
 
 public class RowLayoutBuilder extends LayoutBuilder<RowLayout> {
@@ -16,6 +17,10 @@ public class RowLayoutBuilder extends LayoutBuilder<RowLayout> {
         return new RowLayoutBuilder();
     }
 
+    /**
+     * @see SWT#VERTICAL
+     * @see SWT#HORIZONTAL
+     */
     public static RowLayoutBuilder rowLayout(int type) {
         return new RowLayoutBuilder(type);
     }

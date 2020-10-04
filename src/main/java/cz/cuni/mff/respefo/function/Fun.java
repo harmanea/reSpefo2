@@ -10,4 +10,5 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Fun {
     String name();
     Class<? extends FileFilter> fileFilter() default AllAcceptingFileFilter.class;
+    String group() default "";
 }

@@ -27,7 +27,7 @@ import java.io.File;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 
-@Fun(name = "Clean", fileFilter = SpefoFormatFileFilter.class)
+@Fun(name = "Clean", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = CleanFunction.SERIALIZE_KEY, assetClass = CleanAsset.class)
 public class CleanFunction implements SingleFileFunction {
 
@@ -48,7 +48,7 @@ public class CleanFunction implements SingleFileFunction {
 
         CleanAsset asset = (CleanAsset) spectrum.getFunctionAssets().getOrDefault(SERIALIZE_KEY, new CleanAsset());
 
-        XYSeries data = spectrum.getProcessedSeriesBefore(asset);
+        XYSeries data = spectrum.getProcessedSeriesWithout(asset);
 
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title(file.getName())

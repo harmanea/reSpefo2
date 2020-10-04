@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
+import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 
@@ -19,6 +20,10 @@ public class DispersionDialog extends SpefoDialog {
     private String labFileNameA;
     private String labFileNameB;
     private String cmpFileName;
+
+    public DispersionDialog() {
+        super("Derive dispersion");
+    }
 
     public String getLabFileNameA() {
         return labFileNameA;
@@ -33,15 +38,10 @@ public class DispersionDialog extends SpefoDialog {
     }
 
     @Override
-    protected String getTitle() {
-        return "Derive dispersion";
-    }
-
-    @Override
     protected void createDialogArea(Composite parent) {
         Composite composite = composite(parent)
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(compositeLayoutData())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500))
                 .build();
 
         label(composite)
@@ -97,11 +97,5 @@ public class DispersionDialog extends SpefoDialog {
             }
             parent.getShell().moveAbove(ComponentManager.getShell());
         });
-    }
-
-    private GridData compositeLayoutData() {
-        GridData data = new GridData(GridData.FILL_BOTH);
-        data.widthHint = 500;
-        return data;
     }
 }

@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
+import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 
@@ -21,6 +22,7 @@ public class FileFormatSelectionDialog<T extends FileFormat> extends SpefoDialog
     private final String type;
 
     public FileFormatSelectionDialog(List<T> fileFormats, String type) {
+        super(type);
         this.selectionIndex = -1;
         this.fileFormats = fileFormats;
         this.type = type;
@@ -33,15 +35,10 @@ public class FileFormatSelectionDialog<T extends FileFormat> extends SpefoDialog
     }
 
     @Override
-    protected String getTitle() {
-        return type;
-    }
-
-    @Override
     protected void createDialogArea(Composite parent) {
         Composite composite = composite(parent)
                 .layout(gridLayout(2, false).margins(15).spacings(15))
-                .layoutData(compositeLayoutData())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(400))
                 .build();
 
         label(composite)
@@ -73,11 +70,5 @@ public class FileFormatSelectionDialog<T extends FileFormat> extends SpefoDialog
                 descriptionLabel.getShell().pack();
             }
         });
-    }
-
-    private GridData compositeLayoutData() {
-        GridData data = new GridData(GridData.FILL_BOTH);
-        data.widthHint = 400;
-        return data;
     }
 }

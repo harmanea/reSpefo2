@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Log {
-    private static List<LogListener> listeners = new ArrayList<>();
+    private static final List<LogListener> listeners = new ArrayList<>();
 
     public static void registerListener(LogListener listener) {
         listeners.add(listener);

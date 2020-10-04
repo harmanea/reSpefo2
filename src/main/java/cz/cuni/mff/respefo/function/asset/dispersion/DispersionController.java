@@ -48,7 +48,7 @@ public class DispersionController {
 
     private double newPoint;
 
-    private final MeasurementController measurementController;
+    private final DispersionMeasurementController measurementController;
 
     public DispersionController(double[] cmpValues, XYSeries seriesA, XYSeries seriesB, File file) {
         measurements = new ComparisonLineMeasurements(cmpValues);
@@ -60,7 +60,7 @@ public class DispersionController {
 
         newPoint = Double.NaN;
 
-        measurementController = new MeasurementController(seriesA, seriesB);
+        measurementController = new DispersionMeasurementController(seriesA, seriesB);
     }
 
     public void start() {
@@ -97,13 +97,6 @@ public class DispersionController {
             Range range = chart.getAxisSet().getXAxis(0).getRange();
             double diff = range.upper - range.lower;
 
-            if (isNotNaN(newPoint)) {
-                int x = (int) (event.width * (newPoint - range.lower) / diff);
-
-                event.gc.setForeground(ColorManager.getColor(ORANGE));
-                event.gc.drawLine(x, 0, x, event.height);
-            }
-
             for (int i = 0; i < measurements.size(); i++){
                 ComparisonLineMeasurement measurement = measurements.getMeasurement(i);
                 if (measurement.isMeasured()) {
@@ -112,6 +105,13 @@ public class DispersionController {
                     event.gc.setForeground(ColorManager.getColor(GRAY));
                     event.gc.drawLine(x, 0, x, event.height);
                 }
+            }
+
+            if (isNotNaN(newPoint)) {
+                int x = (int) (event.width * (newPoint - range.lower) / diff);
+
+                event.gc.setForeground(ColorManager.getColor(ORANGE));
+                event.gc.drawLine(x, 0, x, event.height);
             }
         });
 
@@ -143,9 +143,9 @@ public class DispersionController {
                             }
 
                         } else {
-                            LineNumberDialog dialog = new LineNumberDialog(measurements.size());
+                            NumberDialog dialog = new NumberDialog(measurements.size(), "Select line number", "Line number:");
                             if (dialog.open() == SWT.OK) {
-                                ComparisonLineMeasurement measurement = measurements.getMeasurement(dialog.getLineNumber());
+                                ComparisonLineMeasurement measurement = measurements.getMeasurement(dialog.getNumber() - 1);
 
                                 measurementController.measure(measurement, newPoint, () -> {
                                     newPoint = Double.NaN;
@@ -246,6 +246,12 @@ public class DispersionController {
                         .color(RED)
                         .symbolSize(3)
                 )
+                .series(scatterSeries()
+                        .name("deleted")
+                        .series(results.getUnusedResidualSeries())
+                        .color(ORANGE)
+                        .symbolSize(3)
+                )
                 .series(lineSeries()
                         .xSeries(new double[] {0, x[x.length - 1]})
                         .ySeries(new double[] {0, 0})
@@ -306,13 +312,31 @@ public class DispersionController {
         text.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
         text.setText("Coefficients of dispersion polynomial:\n\n" + stream(coeffs).mapToObj(Double::toString).collect(joining("\n")));
 
-        Button printButton = new Button(tableComposite, SWT.PUSH);
-        printButton.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false));
+        Composite buttonsComposite = composite(tableComposite)
+                .layoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false))
+                .layout(gridLayout(3, true).margins(10).spacings(10))
+                .build();
+
+        Button polyButton = new Button(buttonsComposite, SWT.PUSH);
+        polyButton.setLayoutData(new GridData(GridData.FILL_BOTH));
+        polyButton.setText("Poly degree");
+        polyButton.addListener(SWT.Selection, event -> {
+            NumberDialog dialog = new NumberDialog(5, "Select poly degree", "Poly number:");
+            if (dialog.open() == SWT.OK) {
+                results.setPolyDegree(dialog.getNumber());
+                results.calculateCoeffs();
+                results.calculateValues();
+                thirdStage(results);
+            }
+        });
+
+        Button printButton = new Button(buttonsComposite, SWT.PUSH);
+        printButton.setLayoutData(new GridData(GridData.FILL_BOTH));
         printButton.setText("Print to file");
         printButton.addListener(SWT.Selection, event -> printResults(results));
 
-        Button finishButton = new Button(tableComposite, SWT.PUSH);
-        finishButton.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false));
+        Button finishButton = new Button(buttonsComposite, SWT.PUSH);
+        finishButton.setLayoutData(new GridData(GridData.FILL_BOTH));
         finishButton.setText("Finish");
         finishButton.addListener(SWT.Selection, event -> fourthStage(coeffs));
 
@@ -344,7 +368,7 @@ public class DispersionController {
             }
 
             writer.print("\n                                                              rms =");
-            writer.println(formatDouble(results.meanRms(), 3, 3));
+            writer.println(formatDouble(results.meanRms(), 4, 3));
             writer.println("\n\n  Coefficients of dispersion polynomial:\n");
 
             double[] coeffs = results.getCoeffs();
@@ -356,6 +380,7 @@ public class DispersionController {
                 throw new SpefoException("The print stream has encountered an error");
             }
 
+            ComponentManager.getFileExplorer().refresh();
         } catch (Exception exception) {
             Message.error("An exception occurred while printing to file.", exception);
         }
@@ -375,6 +400,7 @@ public class DispersionController {
             }
             spectrum.getSeries().setXSeries(xSeries);
             spectrum.saveAs(new File(FileUtils.replaceFileExtension(file.getPath(), "spf")));
+            ComponentManager.getFileExplorer().refresh();
 
             chart(ComponentManager.clearAndGetScene())
                     .title(file.getName())

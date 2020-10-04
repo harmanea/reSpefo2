@@ -8,14 +8,13 @@ import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
-import cz.cuni.mff.respefo.function.asset.common.NearestPointMouseMoveListener;
 import cz.cuni.mff.respefo.function.asset.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.asset.rectify.RectifyAsset;
 import cz.cuni.mff.respefo.function.asset.rectify.RectifyMouseListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.Point;
+import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -30,7 +29,7 @@ import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.l
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 
-@Fun(name = "Rectify", fileFilter = SpefoFormatFileFilter.class)
+@Fun(name = "Rectify", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = RectifyFunction.SERIALIZE_KEY, assetClass = RectifyAsset.class)
 public class RectifyFunction implements SingleFileFunction {
 
@@ -52,7 +51,7 @@ public class RectifyFunction implements SingleFileFunction {
         RectifyAsset asset = (RectifyAsset) spectrum.getFunctionAssets()
                 .getOrDefault(SERIALIZE_KEY, RectifyAsset.withDefaultPoints(spectrum.getProcessedSeries()));
 
-        XYSeries series = spectrum.getProcessedSeriesBefore(asset);
+        XYSeries series = spectrum.getProcessedSeriesWithout(asset);
 
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title(file.getName())
@@ -80,6 +79,16 @@ public class RectifyFunction implements SingleFileFunction {
                         .series(asset.getActivePoint()))
                 .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
                 .mouseAndMouseMoveListener(ch -> new RectifyMouseListener(ch,
+                        POINTS_SERIES_NAME,
+                        index -> {
+                            if (asset.getActiveIndex() != index) {
+                                updateActivePoint(ch, asset, index);
+                            }
+                        },
+                        point -> {
+                            asset.moveActivePoint(point.getX(), point.getY());
+                            updateAllSeries(ch, asset, series);
+                        },
                         point -> {
                             asset.addPoint(point);
                             updateAllSeries(ch, asset, series);
@@ -88,11 +97,6 @@ public class RectifyFunction implements SingleFileFunction {
                             asset.deleteActivePoint();
                             updateAllSeries(ch, asset, series);
                         }))
-                .mouseMoveListener(ch -> new NearestPointMouseMoveListener(ch, POINTS_SERIES_NAME, index -> {
-                    if (asset.getActiveIndex() != index) {
-                        updateActivePoint(ch, asset, index);
-                    }
-                }))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .makeAllSeriesEqualRange()
                 .forceFocus()
@@ -106,7 +110,7 @@ public class RectifyFunction implements SingleFileFunction {
                         Range xRange = chart.getAxisSet().getXAxis(0).getRange();
                         Range yRange = chart.getAxisSet().getYAxis(0).getRange();
 
-                        asset.addPoint(new Point((xRange.upper + xRange.lower) / 2, (yRange.upper + yRange.lower) / 2));
+                        asset.addPoint((xRange.upper + xRange.lower) / 2, (yRange.upper + yRange.lower) / 2);
 
                         updateAllSeries(chart, asset, series);
                         break;
@@ -127,6 +131,26 @@ public class RectifyFunction implements SingleFileFunction {
                         if (asset.getActiveIndex() < asset.getCount() - 1) {
                             updateActivePoint(chart, asset, asset.getActiveIndex() + 1);
                         }
+                        break;
+                    }
+                    case 'i': {
+                        asset.moveActivePoint(0, ChartUtils.getRelativeVerticalStep(chart));
+                        updateAllSeries(chart, asset, series);
+                        break;
+                    }
+                    case 'j': {
+                        asset.moveActivePoint(-ChartUtils.getRelativeHorizontalStep(chart), 0);
+                        updateAllSeries(chart, asset, series);
+                        break;
+                    }
+                    case 'k': {
+                        asset.moveActivePoint(0, -ChartUtils.getRelativeVerticalStep(chart));
+                        updateAllSeries(chart, asset, series);
+                        break;
+                    }
+                    case 'l': {
+                        asset.moveActivePoint(ChartUtils.getRelativeHorizontalStep(chart), 0);
+                        updateAllSeries(chart, asset, series);
                         break;
                     }
                     case 'p': {
@@ -150,7 +174,7 @@ public class RectifyFunction implements SingleFileFunction {
                         break;
                     }
                     case SWT.CR: {
-                        if (asset.isEmpty()) {
+                        if (asset.isEmpty()) { // TODO: this can never occurr
                             spectrum.getFunctionAssets().remove(SERIALIZE_KEY);
                         } else {
                             spectrum.getFunctionAssets().put(SERIALIZE_KEY, asset);

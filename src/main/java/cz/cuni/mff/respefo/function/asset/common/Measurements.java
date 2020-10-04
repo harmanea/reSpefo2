@@ -15,23 +15,23 @@ import java.util.NoSuchElementException;
 public class Measurements implements Iterable<Measurement> {
     private final List<Measurement> elements;
 
-    public Measurements(String[] fileNames) {
+    public Measurements() {
         elements = new ArrayList<>();
+    }
 
-        for (String fileName : fileNames) {
-            try {
-                parseFile(fileName);
-            } catch (SpefoException exception) {
-                Log.error("Couldn't load .stl file", exception);
-            }
+    public void loadMeasurements(String fileName, boolean isCorrection) {
+        try {
+            parseFile(fileName, isCorrection);
+        } catch (SpefoException exception) {
+            Log.error("Couldn't load .stl file", exception);
         }
     }
 
-    private void parseFile(String fileName) throws SpefoException {
+    private void parseFile(String fileName, boolean isCorrection) throws SpefoException {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = br.readLine()) != null) {
-                parseLine(line);
+                parseLine(line, isCorrection);
             }
 
         } catch (FileNotFoundException exception) {
@@ -41,7 +41,7 @@ public class Measurements implements Iterable<Measurement> {
         }
     }
 
-    private void parseLine(String line) {
+    private void parseLine(String line, boolean isCorrection) {
         String[] tokens = line.trim().split(" +", 3);
         if (tokens.length == 3) {
             try {
@@ -49,7 +49,7 @@ public class Measurements implements Iterable<Measurement> {
                 double radius = Double.parseDouble(tokens[1]);
                 String name = tokens[2];
 
-                elements.add(new Measurement(l0, radius, name));
+                elements.add(new Measurement(l0, radius, name, isCorrection));
 
             } catch (NumberFormatException exception) {
                 Log.trace("Skipped line while parsing a measurements file:\n" + line);
@@ -70,6 +70,10 @@ public class Measurements implements Iterable<Measurement> {
 
     public Measurement get(int index) {
         return elements.get(index);
+    }
+
+    public List<Measurement> getElements() {
+        return elements;
     }
 
     @Override

@@ -16,7 +16,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.*;
 
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
@@ -29,7 +28,6 @@ public class ComponentManager extends UtilityClass {
 
     private static FileExplorer fileExplorer;
     private static ComponentWithSidebars componentWithSidebars;
-    private static ComponentWithBottomBar componentWithBottomBar;
 
     public static void init() {
         display = new Display();
@@ -41,25 +39,16 @@ public class ComponentManager extends UtilityClass {
     }
 
     public static void build() throws SpefoException {
-        shell.setLayout(
-                gridLayout(3, false)
-                        .margins(0)
-                        .spacings(0)
-                        .build()
-        );
+        shell.setLayout(gridLayout(3, false).margins(0).spacings(0).build());
 
         // Top level
 
         final Composite leftBar = composite(shell, BORDER)
                 .layoutData(new GridData(LEFT, FILL, false, true))
-                .layout(
-                        gridLayout()
-                                .margins(0)
-                                .spacings(0)
-                                .build()
-                ).build();
+                .layout(gridLayout().margins(0).spacings(0).build())
+                .build();
 
-        componentWithBottomBar = new ComponentWithBottomBar(shell);
+        final ComponentWithBottomBar componentWithBottomBar = new ComponentWithBottomBar(shell);
         componentWithBottomBar.setLayoutData(new GridData(FILL, FILL, true, true));
         componentWithBottomBar.getScene().setLayout(fillLayout().margins(0).spacing(0).build()); // TEMPORARY
         componentWithBottomBar.getBottomBar().setLayout(gridLayout().margins(0).spacings(0).build()); // TEMPORARY
@@ -67,21 +56,13 @@ public class ComponentManager extends UtilityClass {
 
         final Composite rightBar = composite(shell, BORDER)
                 .layoutData(new GridData(RIGHT, FILL, false, true))
-                .layout(
-                        gridLayout()
-                                .margins(0)
-                                .spacings(0)
-                                .build()
-                ).build();
+                .layout(gridLayout().margins(0).spacings(0).build())
+                .build();
 
         final Composite bottomBar = composite(shell, BORDER)
                 .layoutData(new GridData(FILL, BOTTOM, true, false, 3, 1))
-                .layout(
-                        gridLayout(4, false)
-                                .margins(3)
-                                .spacings(3)
-                                .build()
-                ).build();
+                .layout(gridLayout(4, false).margins(3).spacings(3).build())
+                .build();
 
 
         // componentWithBottomBar -> scene
@@ -109,29 +90,6 @@ public class ComponentManager extends UtilityClass {
         rightBarComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         rightBarComposite.setLayout(new FillLayout(VERTICAL));
 
-        // TEMPORARY
-        pushButton(rightBarComposite)
-                .text("Log")
-                .onSelection(event -> Log.info("This is a test log " + System.currentTimeMillis()))
-                .build();
-
-        pushButton(rightBarComposite)
-                .text("Log warning")
-                .onSelection(event -> Log.warning("This is a warning test log " + System.currentTimeMillis()))
-                .build();
-
-        pushButton(rightBarComposite)
-                .text("Throw exception")
-                .onSelection(event -> {
-                    throw new RuntimeException("This is a test exception");
-                })
-                .build();
-
-        pushButton(rightBarComposite)
-                .text("Clear scene")
-                .onSelection(event -> clearScene())
-                .build();
-
         // componentWithBottomBar -> bottom bar
 
         TopBar bottomTopBar = new TopBar(componentWithBottomBar.getBottomBar(), "Event Log");
@@ -143,36 +101,23 @@ public class ComponentManager extends UtilityClass {
 
         // Fill main sidebars
 
-        final Toggle leftToggle = new Toggle(leftBar, NONE) {
-            @Override
-            protected void toggleAction() {
-                componentWithSidebars.toggleLeftBar();
-            }
-        };
-        leftToggle.setToggled(true);
-        leftToggle.setImage(ImageManager.getImage(ImageResource.FOLDER_LARGE));
+        final VerticalToggle leftToggle = new VerticalToggle(leftBar, UP);
         leftToggle.setLayoutData(new GridData(FILL, TOP, true, false));
-        leftToggle.setTooltipText("Project");
+        leftToggle.setImage(ImageManager.getImage(ImageResource.FOLDER_LARGE));
+        leftToggle.setText("Project");
+        leftToggle.setToggleAction(toggled -> componentWithSidebars.toggleLeftBar());
+        leftToggle.setToggled(true);
 
-        final Toggle rightToggle = new Toggle(rightBar, NONE) {
-            @Override
-            protected void toggleAction() {
-                componentWithSidebars.toggleRightBar();
-            }
-        };
-        rightToggle.setToggled(false);
-        rightToggle.setImage(ImageManager.getImage(ImageResource.WRENCH_LARGE));
+        final VerticalToggle rightToggle = new VerticalToggle(rightBar, DOWN);
         rightToggle.setLayoutData(new GridData(FILL, TOP, true, false));
-        rightToggle.setTooltipText("Tools");
+        rightToggle.setImage(ImageManager.getImage(ImageResource.TOOLS_LARGE));
+        rightToggle.setText("Tools");
+        rightToggle.setToggleAction(toggled -> componentWithSidebars.toggleRightBar());
+        rightToggle.setToggled(false);
 
-        final Toggle bottomToggle = new Toggle(bottomBar, NONE) {
-            @Override
-            protected void toggleAction() {
-                componentWithBottomBar.toggleScene();
-            }
-        };
+        final Toggle bottomToggle = new Toggle(bottomBar, NONE);
         bottomToggle.setToggled(false);
-        bottomToggle.setImage(ImageManager.getImage(ImageResource.SCROLL_LARGE));
+        bottomToggle.setImage(ImageManager.getImage(ImageResource.EVENT_LOG_LARGE));
         bottomToggle.setLayoutData(new GridData(LEFT, FILL, false, true));
         bottomToggle.setTooltipText("Event Log");
 
@@ -180,13 +125,14 @@ public class ComponentManager extends UtilityClass {
                 .text("")
                 .layoutData(new GridData(LEFT, CENTER, false, false))
                 .build();
-        bottomLogLabel.addListener(MouseDown, event -> {
-            bottomToggle.toggle();
+        bottomLogLabel.addListener(MouseDown, event -> bottomToggle.toggle());
+        Log.registerListener(new LabelLogListener(bottomLogLabel));
+
+        bottomToggle.setToggleAction(toggled -> {
+            componentWithBottomBar.toggleScene();
             bottomLogLabel.setText("");
             bottomLogLabel.requestLayout();
         });
-
-        Log.registerListener(new LabelLogListener(bottomLogLabel));
 
         final Label progressLabel = label(bottomBar, RIGHT)
                 .layoutData(new GridData(RIGHT, CENTER, true, true))

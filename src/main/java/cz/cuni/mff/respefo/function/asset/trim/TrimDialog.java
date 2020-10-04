@@ -1,14 +1,13 @@
 package cz.cuni.mff.respefo.function.asset.trim;
 
-import cz.cuni.mff.respefo.component.ComponentManager;
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
+import cz.cuni.mff.respefo.component.TitleAreaDialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
+import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static java.lang.Double.isNaN;
 
@@ -36,31 +35,16 @@ public class TrimDialog extends TitleAreaDialog {
     }
 
     public TrimDialog() {
-        super(ComponentManager.getShell());
-    }
-
-    protected TrimDialog(Shell parentShell) {
-        super(parentShell);
+        super("Trim");
     }
 
     @Override
-    protected Point getInitialSize() {
-        return new Point(500, 230);
-    }
+    protected void createDialogArea(Composite parent) {
+        setMessage("Trim the spectrum x-values", SWT.ICON_INFORMATION);
 
-    @Override
-    public void create() {
-        super.create();
-        setTitle("Trim");
-        setMessage("Trim the spectrum x-values", IMessageProvider.INFORMATION);
-    }
-
-    @Override
-    protected Control createDialogArea(Composite parent) {
-        Composite area = (Composite) super.createDialogArea(parent);
-        Composite composite = new Composite(area, SWT.NONE);
+        Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(gridLayout(2, false).margins(7).build());
-        composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        composite.setLayoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(80).build());
 
         final Label minLabel = new Label(composite, SWT.NONE);
         minLabel.setText("Min:");
@@ -85,8 +69,6 @@ public class TrimDialog extends TitleAreaDialog {
         }
         maxText.addListener(SWT.Modify, event -> validateMax());
         maxText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        return composite;
     }
 
     private void validateMin() {
@@ -119,11 +101,11 @@ public class TrimDialog extends TitleAreaDialog {
 
     private void validate() {
         if (isNaN(min) || isNaN(max)) {
-            getButton(IDialogConstants.OK_ID).setEnabled(false);
-            setMessage("Values must be valid numbers", IMessageProvider.ERROR);
+            setMessage("Values must be valid numbers", SWT.ICON_WARNING);
+            getButton(SWT.OK).setEnabled(false);
         } else {
-            getButton(IDialogConstants.OK_ID).setEnabled(true);
-            setMessage("Trim the spectrum x-values", IMessageProvider.INFORMATION);
+            setMessage("Trim the spectrum x-values", SWT.ICON_INFORMATION);
+            getButton(SWT.OK).setEnabled(true);
         }
     }
 }

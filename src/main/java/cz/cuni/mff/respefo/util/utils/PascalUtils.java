@@ -3,17 +3,26 @@ package cz.cuni.mff.respefo.util.utils;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 public class PascalUtils extends UtilityClass {
 
+    /**
+     * Extracts a short from it's byte array representation
+     * @param bytes byte array containing the short number in little endian order
+     * @return extracted short value
+     */
     public static short bytesToShort(byte[] bytes) {
         return ByteBuffer.wrap(bytes).order(LITTLE_ENDIAN).getShort();
     }
 
+    /**
+     * Extracts an integer from it's byte array representation
+     * @param bytes byte array containing the integer number in little endian order
+     * @return extracted integer value
+     */
     public static int bytesToInt(byte[] bytes) {
         return ByteBuffer.wrap(bytes).order(LITTLE_ENDIAN).getInt();
     }
@@ -32,7 +41,7 @@ public class PascalUtils extends UtilityClass {
 
         byte[] bytes = Arrays.copyOfRange(data, 8, 10);
         bytes[1] &= 0x7F; // except the sign bit
-        int exponent = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getShort() - 16382; // subtract to get the actual value
+        int exponent = bytesToShort(bytes) - 16382; // subtract to get the actual value
 
         double result;
         if (exponent >= -1024) {

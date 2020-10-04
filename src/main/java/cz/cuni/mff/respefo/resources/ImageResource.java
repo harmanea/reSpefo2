@@ -2,18 +2,28 @@ package cz.cuni.mff.respefo.resources;
 
 public enum ImageResource {
 
-    FOLDER("test2/folder.png"),
-    OPENED_FOLDER("test2/opened_folder.png"),
-    FILE("test2/file.png"),
-    SPECTRUM_FILE("test2/spectrum_file.png"),
-    IMPORTABLE_FILE("test2/importable_file.png"),
-    SUPPORT_FILE("test2/support_file.png"),
+    FOLDER("folder.png"),
+    OPENED_FOLDER("opened_folder.png"),
+    FILE("file.png"),
+    SPECTRUM_FILE("spectrum_file.png"),
+    IMPORTABLE_FILE("importable_file.png"),
+    SUPPORT_FILE("support_file.png"),
+
     REFRESH("sync.png"),
-    MINIMIZE("test2/minimize.png"),
-    COLLAPSE("test2/collapse.png"),
+    MINIMIZE("minimize.png"),
+    COLLAPSE("collapse.png"),
+
+    COPY("copy.png"),
+    DELETE("delete.png"),
+    PASTE("paste.png"),
+
     FOLDER_LARGE("folder_large.png"),
-    WRENCH_LARGE("wrench_large.png"),
-    SCROLL_LARGE("scroll_large.png");
+    SPECTRA_LARGE("spectra_large.png"),
+    TOOLS_LARGE("tools_large.png"),
+    KEYBOARD_LARGE("keyboard_large.png"),
+    HELP_LARGE("help_large.png"),
+    INFO_LARGE("info_large.png"),
+    EVENT_LOG_LARGE("event_log_large.png");
 
     private final String fileName;
 

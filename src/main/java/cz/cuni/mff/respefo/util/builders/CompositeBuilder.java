@@ -9,6 +9,15 @@ public class CompositeBuilder extends ControlBuilder<Composite, CompositeBuilder
         control = new Composite(parent, style);
     }
 
+    /**
+     * @see SWT#NO_BACKGROUND
+     * @see SWT#NO_FOCUS
+     * @see SWT#NO_MERGE_PAINTS
+     * @see SWT#NO_REDRAW_RESIZE
+     * @see SWT#NO_RADIO_GROUP
+     * @see SWT#EMBEDDED
+     * @see SWT#DOUBLE_BUFFERED
+     */
     public static CompositeBuilder composite(Composite parent, int style) {
         return new CompositeBuilder(parent, style);
     }

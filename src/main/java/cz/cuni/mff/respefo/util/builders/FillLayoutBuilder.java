@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.util.builders;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 
 public class FillLayoutBuilder extends LayoutBuilder<FillLayout> {
@@ -16,6 +17,10 @@ public class FillLayoutBuilder extends LayoutBuilder<FillLayout> {
         return new FillLayoutBuilder();
     }
 
+    /**
+     * @see SWT#VERTICAL
+     * @see SWT#HORIZONTAL
+     */
     public static FillLayoutBuilder fillLayout(int type) {
         return new FillLayoutBuilder(type);
     }

@@ -58,6 +58,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
 
             Spectrum spectrum = new Spectrum(series);
             spectrum.setOrigin(new FitsOrigin(fileName, headerCards));
+            spectrum.setHjd(getHJD(header));
             spectrum.setDateOfObservation(getDateOfObservation(header));
             spectrum.setRvCorrection(getRVCorrection(header));
 
@@ -122,36 +123,39 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return new XYSeries(xSeries, ySeries);
     }
 
-    // TODO: differentiate between UT and Julian Date
-    private JulianDate getDateOfObservation(Header header) {
+    private JulianDate getHJD(Header header) {
         for (String alias : JULIAN_DATE_ALIASES) {
             if (header.containsKey(alias)) {
                 return new JulianDate(header.getDoubleValue(alias));
             }
         }
 
+        return null;
+    }
+
+    private LocalDateTime getDateOfObservation(Header header) {
         String dateValue = header.getStringValue(Standard.DATE_OBS);
         LocalDateTime dateTime = parseDateTime(dateValue);
         if (dateTime != null) {
-            return JulianDate.fromDateTime(dateTime);
+            return dateTime;
         }
 
         String timeValue = header.getStringValue("UT");
         dateTime = parseDateAndTime(dateValue, timeValue);
         if (dateTime != null) {
-            return JulianDate.fromDateTime(dateTime);
+            return dateTime;
         }
 
         timeValue = header.getStringValue("UT-OBS");
         dateTime = parseDateAndTime(dateValue, timeValue);
         if (dateTime != null) {
-            return JulianDate.fromDateTime(dateTime);
+            return dateTime;
         }
 
         long tmStart = (long) header.getDoubleValue("TM-START", 0);
         dateTime = parseDateAndTmStart(dateValue, tmStart);
         if (dateTime != null) {
-            return JulianDate.fromDateTime(dateTime);
+            return dateTime;
         }
 
         return null;

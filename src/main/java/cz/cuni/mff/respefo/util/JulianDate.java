@@ -3,11 +3,12 @@ package cz.cuni.mff.respefo.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Objects;
 
 /**
  * Algorithms taken from https://en.wikipedia.org/wiki/Julian_day
  */
-public class JulianDate {
+public class JulianDate implements Comparable<JulianDate> {
     private final double jd;
 
     public JulianDate() {
@@ -100,5 +101,23 @@ public class JulianDate {
      */
     public int getDayOfWeek() {
         return (int) (jd + 0.5) % 7 + 1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JulianDate that = (JulianDate) o;
+        return Double.compare(that.jd, jd) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jd);
+    }
+
+    @Override
+    public int compareTo(JulianDate other) {
+        return Double.compare(jd, other.jd);
     }
 }

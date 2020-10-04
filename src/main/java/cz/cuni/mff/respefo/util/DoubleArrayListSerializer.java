@@ -1,6 +1,5 @@
 package cz.cuni.mff.respefo.util;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -18,7 +17,7 @@ public class DoubleArrayListSerializer extends StdSerializer<DoubleArrayList> {
     }
 
     @Override
-    public void serialize(DoubleArrayList doubles, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonGenerationException {
+    public void serialize(DoubleArrayList doubles, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartArray();
         for (double element: doubles) {
             jsonGenerator.writeNumber(element);

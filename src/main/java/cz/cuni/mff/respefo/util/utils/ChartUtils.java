@@ -61,12 +61,12 @@ public class ChartUtils extends UtilityClass {
         ISeries series = chart.getSeriesSet().getSeries(seriesName);
 
         double[] xSeries = series.getXSeries();
-        Range xRange = new Range(xSeries[0], xSeries[xSeries.length - 1]);
+        Range xRange = rangeWithMargin(xSeries[0], xSeries[xSeries.length - 1]);
 
         double[] ySeries = series.getYSeries();
         double ySeriesMax = stream(ySeries).filter(d -> !isNaN(d)).max().getAsDouble();
         double ySeriesMin = stream(ySeries).filter(d -> !isNaN(d)).min().getAsDouble();
-        Range yRange = new Range(ySeriesMin, ySeriesMax);
+        Range yRange = rangeWithMargin(ySeriesMin, ySeriesMax);
 
         for (IAxis xAxis : chart.getAxisSet().getXAxes()) {
             xAxis.setRange(xRange);
@@ -74,6 +74,13 @@ public class ChartUtils extends UtilityClass {
         for (IAxis yAxis : chart.getAxisSet().getYAxes()) {
             yAxis.setRange(yRange);
         }
+    }
+
+    private static Range rangeWithMargin(double lower, double upper) {
+        double length = upper - lower;
+        double margin = length / 100;
+
+        return new Range(lower - margin, upper + margin);
     }
 
     public static Point getRealValuesFromEventPosition(Chart chart, int x, int y) {
@@ -90,6 +97,11 @@ public class ChartUtils extends UtilityClass {
 
     public static double getRelativeHorizontalStep(Chart chart) {
         Range range = chart.getAxisSet().getXAxis(0).getRange();
+        return (range.upper - range.lower) / 1000;
+    }
+
+    public static double getRelativeVerticalStep(Chart chart) {
+        Range range = chart.getAxisSet().getYAxis(0).getRange();
         return (range.upper - range.lower) / 1000;
     }
 

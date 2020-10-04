@@ -1,7 +1,6 @@
 package cz.cuni.mff.respefo.util.builders;
 
 import cz.cuni.mff.respefo.format.XYSeries;
-import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.SWT;
@@ -17,32 +16,17 @@ import org.swtchart.ILineSeries.PlotSymbolType;
 
 import java.util.function.Function;
 
-// TODO: Maybe create a Theme class?
+import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
+
 public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
-    //TODO: Maybe change this to ColorResource instead
-    private static Color primaryColor = ColorManager.getColor(ColorResource.YELLOW);
-    private static Color secondaryColor = ColorManager.getColor(ColorResource.BLACK);
+
+    private static final ColorResource PRIMARY_COLOR = ColorResource.YELLOW;
+    private static final ColorResource SECONDARY_COLOR = ColorResource.BLACK;
 
     private boolean adjustRange = true;
 
     private ChartBuilder(Chart chart) {
         control = chart;
-    }
-
-    public static Color getPrimaryColor() {
-        return primaryColor;
-    }
-
-    public static void setPrimaryColor(Color primaryColor) {
-        ChartBuilder.primaryColor = primaryColor;
-    }
-
-    public static Color getSecondaryColor() {
-        return secondaryColor;
-    }
-
-    public static void setSecondaryColor(Color secondaryColor) {
-        ChartBuilder.secondaryColor = secondaryColor;
     }
 
     public static ChartBuilder chart(Composite parent) {
@@ -159,7 +143,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
 
             yAxis.getTick().setVisible(false);
             yAxis.getTitle().setVisible(false);
-            yAxis.getGrid().setForeground(secondaryColor);
+            yAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
 
             lineSeries.setYAxisId(yAxisId);
 
@@ -168,27 +152,27 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
 
             xAxis.getTick().setVisible(false);
             xAxis.getTitle().setVisible(false);
-            xAxis.getGrid().setForeground(secondaryColor);
+            xAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
 
             lineSeries.setXAxisId(xAxisId);
         }
     }
 
     private void setTheme() {
-        control.getTitle().setForeground(primaryColor);
+        control.getTitle().setForeground(getColor(PRIMARY_COLOR));
 
-        control.setBackground(secondaryColor);
-        control.setBackgroundInPlotArea(secondaryColor);
+        control.setBackground(getColor(SECONDARY_COLOR));
+        control.setBackgroundInPlotArea(getColor(SECONDARY_COLOR));
 
         IAxisSet axisset = control.getAxisSet();
 
-        axisset.getXAxis(0).getGrid().setForeground(secondaryColor);
-        axisset.getYAxis(0).getGrid().setForeground(secondaryColor);
+        axisset.getXAxis(0).getGrid().setForeground(getColor(SECONDARY_COLOR));
+        axisset.getYAxis(0).getGrid().setForeground(getColor(SECONDARY_COLOR));
 
-        axisset.getXAxis(0).getTick().setForeground(primaryColor);
-        axisset.getYAxis(0).getTick().setForeground(primaryColor);
-        axisset.getXAxis(0).getTitle().setForeground(primaryColor);
-        axisset.getYAxis(0).getTitle().setForeground(primaryColor);
+        axisset.getXAxis(0).getTick().setForeground(getColor(PRIMARY_COLOR));
+        axisset.getYAxis(0).getTick().setForeground(getColor(PRIMARY_COLOR));
+        axisset.getXAxis(0).getTitle().setForeground(getColor(PRIMARY_COLOR));
+        axisset.getYAxis(0).getTitle().setForeground(getColor(PRIMARY_COLOR));
 
         control.getLegend().setVisible(false);
     }
@@ -206,7 +190,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         int symbolSize = 1;
         int lineWidth = 1;
         String name = "series";
-        Color color = ColorManager.getColor(ColorResource.GREEN);
+        Color color = getColor(ColorResource.GREEN);
         double[] xSeries = {};
         double[] ySeries = {};
 
@@ -227,7 +211,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         }
 
         public B color(ColorResource colorResource) {
-            this.color = ColorManager.getColor(colorResource);
+            this.color = getColor(colorResource);
 
             return (B) this;
         }

@@ -10,7 +10,7 @@ import org.swtchart.Range;
 import java.util.function.IntConsumer;
 
 public class NearestPointMouseMoveListener implements MouseMoveListener {
-    private final Chart chart;
+    protected final Chart chart;
     private final String seriesName;
     private final IntConsumer callback;
 

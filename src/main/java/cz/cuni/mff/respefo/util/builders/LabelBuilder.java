@@ -13,6 +13,18 @@ public class LabelBuilder extends ControlBuilder<Label, LabelBuilder> {
         control = new Label(parent, style);
     }
 
+    /**
+     * @see SWT#SEPARATOR
+     * @see SWT#HORIZONTAL
+     * @see SWT#VERTICAL
+     * @see SWT#SHADOW_IN
+     * @see SWT#SHADOW_OUT
+     * @see SWT#SHADOW_NONE
+     * @see SWT#CENTER
+     * @see SWT#LEFT
+     * @see SWT#RIGHT
+     * @see SWT#WRAP
+     */
     public static LabelBuilder label(Composite parent, int style) {
         return new LabelBuilder(parent, style);
     }
@@ -36,6 +48,7 @@ public class LabelBuilder extends ControlBuilder<Label, LabelBuilder> {
     public LabelBuilder bold() {
         FontData fontData = control.getFont().getFontData()[0];
         control.setFont(new Font(ComponentManager.getDisplay(), new FontData(fontData.getName(), fontData.getHeight(), SWT.BOLD)));
+        control.addDisposeListener(event -> control.getFont().dispose());
 
         return this;
     }

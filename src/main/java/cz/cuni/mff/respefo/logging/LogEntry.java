@@ -3,11 +3,11 @@ package cz.cuni.mff.respefo.logging;
 import java.time.LocalDateTime;
 
 public class LogEntry {
-    private LocalDateTime dateTime;
-    private LogLevel level;
-    private String message;
-    private Throwable cause;
-    private Runnable action;
+    private final LocalDateTime dateTime;
+    private final LogLevel level;
+    private final String message;
+    private final Throwable cause;
+    private final Runnable action;
 
     public LogEntry(LocalDateTime dateTime, LogLevel level, String message, Throwable cause, Runnable action) {
         this.dateTime = dateTime;

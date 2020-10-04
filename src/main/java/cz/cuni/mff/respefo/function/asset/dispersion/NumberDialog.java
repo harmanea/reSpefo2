@@ -10,25 +10,22 @@ import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 
-public class LineNumberDialog extends SpefoDialog {
+public class NumberDialog extends SpefoDialog {
 
     private final int maximum;
+    private final String labelText;
 
-    private int lineNumber;
+    private int number;
 
-    public LineNumberDialog(int maximum) {
-        super();
+    public NumberDialog(int maximum, String title, String labelText) {
+        super(title);
 
         this.maximum = maximum;
+        this.labelText = labelText;
     }
 
-    public int getLineNumber() {
-        return lineNumber - 1;
-    }
-
-    @Override
-    protected String getTitle() {
-        return "Select line number";
+    public int getNumber() {
+        return number;
     }
 
     @Override
@@ -39,14 +36,14 @@ public class LineNumberDialog extends SpefoDialog {
                 .build();
 
         label(composite)
-                .text("Line number:")
+                .text(labelText)
                 .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING))
                 .build();
 
         Spinner spinner = new Spinner(composite, SWT.NONE);
         spinner.setValues(1, 1, maximum, 0, 1, 1);
         spinner.setLayoutData(new GridData(GridData.FILL_BOTH));
+        spinner.addModifyListener(event -> number = spinner.getSelection());
         spinner.forceFocus();
-        spinner.addModifyListener(event -> lineNumber = spinner.getSelection());
     }
 }

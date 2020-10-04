@@ -3,8 +3,8 @@ package cz.cuni.mff.respefo.util.utils;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static cz.cuni.mff.respefo.util.utils.StringUtils.repeat;
 
 public class FormattingUtils extends UtilityClass {
     /**
@@ -57,10 +57,6 @@ public class FormattingUtils extends UtilityClass {
         String formattedNumber = String.format(Locale.US, format, number);
 
         return repeat(" ", Math.max(targetLength - formattedNumber.length(), 0)) + formattedNumber;
-    }
-
-    public static String repeat(String str, int times) {
-        return IntStream.range(0, times).mapToObj(i -> str).collect(Collectors.joining());
     }
 
     protected FormattingUtils() throws IllegalAccessException {

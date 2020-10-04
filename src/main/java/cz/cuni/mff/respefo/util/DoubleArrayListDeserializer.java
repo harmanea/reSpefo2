@@ -1,10 +1,8 @@
-package cz.cuni.mff.respefo.util.utils;
+package cz.cuni.mff.respefo.util;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import cz.cuni.mff.respefo.util.DoubleArrayList;
 
 import java.io.IOException;
 
@@ -19,7 +17,7 @@ public class DoubleArrayListDeserializer extends StdDeserializer<DoubleArrayList
     }
 
     @Override
-    public DoubleArrayList deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+    public DoubleArrayList deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         double[] elements = jsonParser.readValueAs(double[].class);
 
         return new DoubleArrayList(elements);

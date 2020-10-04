@@ -5,9 +5,16 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
+import java.util.function.Consumer;
+
 import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 
-public abstract class Toggle extends Composite {
+public class Toggle extends Composite {
+
+    private boolean toggled;
+    private final CLabel label;
+
+    private Consumer<Boolean> toggleAction = t -> {};
 
     protected Toggle(Composite parent, int style) {
         this(parent, style, 0);
@@ -35,10 +42,6 @@ public abstract class Toggle extends Composite {
         label.addListener(SWT.MouseUp, event -> toggle());
     }
 
-    public boolean isToggled() {
-        return toggled;
-    }
-
     public final void setToggled(boolean toggled) {
         if (toggled != this.toggled) {
             if (toggled) {
@@ -63,9 +66,13 @@ public abstract class Toggle extends Composite {
         label.setToolTipText(tooltipText);
     }
 
+    public void setToggleAction(Consumer<Boolean> toggleAction) {
+        this.toggleAction = toggleAction;
+    }
+
     public void toggle() {
-        toggleAction();
         setToggled(!toggled);
+        toggleAction.accept(toggled);
     }
 
     private void setDefaultBackground() {
@@ -79,9 +86,4 @@ public abstract class Toggle extends Composite {
     private void setToggledBackground() {
         label.setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
     }
-
-    protected abstract void toggleAction();
-
-    private boolean toggled;
-    private final CLabel label;
 }

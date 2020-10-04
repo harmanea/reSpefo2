@@ -20,8 +20,8 @@ import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.l
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
 
-public class MeasurementController {
-    public static final String MIRRORED_SERIES_NAME = "mirrored";
+public class DispersionMeasurementController {
+    private static final String MIRRORED_SERIES_NAME = "mirrored";
 
     private final XYSeries seriesA;
     private final XYSeries seriesB;
@@ -29,7 +29,7 @@ public class MeasurementController {
     private double value;
     private int radius;
 
-    public MeasurementController(XYSeries seriesA, XYSeries seriesB) {
+    public DispersionMeasurementController(XYSeries seriesA, XYSeries seriesB) {
         this.seriesA = seriesA;
         this.seriesB = seriesB;
     }
@@ -109,14 +109,11 @@ public class MeasurementController {
     }
 
     private XYSeries computeSeries(XYSeries series) {
-        double[] xSeries = series.getXSeries();
-        double[] ySeries = series.getYSeries();
-
         int from = Math.max((int) Math.rint(value) - radius, 0);
-        int to = Math.min((int) Math.rint(value) + radius, ySeries.length - 1);
+        int to = Math.min((int) Math.rint(value) + radius, series.getYSeries().length - 1);
 
-        double[] mirroredYSeries = ArrayUtils.reverseArray(Arrays.copyOfRange(ySeries, from, to));
-        double[] mirroredXSeries = ArrayUtils.createArray(mirroredYSeries.length, i -> 2 * value - xSeries[to - i - 1]);
+        double[] mirroredYSeries = ArrayUtils.reverseArray(Arrays.copyOfRange(series.getYSeries(), from, to));
+        double[] mirroredXSeries = ArrayUtils.createArray(mirroredYSeries.length, i -> 2 * value - series.getX(to - i - 1));
 
         return new XYSeries(mirroredXSeries, mirroredYSeries);
     }

@@ -8,8 +8,10 @@ import java.io.FileFilter;
 public class SpefoFormatFileFilter implements FileFilter {
     @Override
     public boolean accept(File pathname) {
-        return FileUtils
-                .getFileExtension(pathname)
-                .equals("spf");
+        if (pathname.isDirectory()) {
+            return false;
+        }
+
+        return FileUtils.getFileExtension(pathname).equals("spf");
     }
 }

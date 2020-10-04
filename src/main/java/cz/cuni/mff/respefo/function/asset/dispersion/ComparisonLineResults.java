@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.function.asset.dispersion;
 
+import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.util.DoubleArrayList;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
@@ -21,7 +22,11 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
     private double[] actualY;
     private double[] residuals;
 
+    private int polyDegree;
+
     public ComparisonLineResults(List<ComparisonLineMeasurement> validMeasurements) {
+        polyDegree = 3;
+
         n = validMeasurements.size();
 
         xUp = new double[n];
@@ -65,7 +70,11 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
             }
         }
 
-        coeffs = MathUtils.fitPolynomial(usedXs.toArray(), usedLaboratoryValues.toArray(), 3);
+        coeffs = MathUtils.fitPolynomial(usedXs.toArray(), usedLaboratoryValues.toArray(), polyDegree);
+    }
+
+    public void setPolyDegree(int polyDegree) {
+        this.polyDegree = polyDegree;
     }
 
     public void calculateValues() {
@@ -97,12 +106,22 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
         return residuals;
     }
 
-    public boolean isUsed(int index) {
-        return used[index];
-    }
-
     public void inverseUsed(int index) {
         used[index] = !used[index];
+    }
+
+    public XYSeries getUnusedResidualSeries() {
+        DoubleArrayList xList = new DoubleArrayList();
+        DoubleArrayList residualsList = new DoubleArrayList();
+
+        for (int i = 0; i < n; i++) {
+            if (!used[i]) {
+                xList.add(x[i]);
+                residualsList.add(residuals[i]);
+            }
+        }
+
+        return new XYSeries(xList.toArray(), residualsList.toArray());
     }
 
     @Override

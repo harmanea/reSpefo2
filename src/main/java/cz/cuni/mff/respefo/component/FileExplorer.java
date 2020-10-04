@@ -6,18 +6,39 @@ import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.utils.FileUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TreeEditor;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 
+import static cz.cuni.mff.respefo.resources.ColorResource.BLACK;
 import static cz.cuni.mff.respefo.resources.ImageManager.getImage;
 import static cz.cuni.mff.respefo.resources.ImageResource.*;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.getFileExtension;
@@ -26,14 +47,24 @@ import static org.eclipse.swt.SWT.*;
 
 public class FileExplorer {
     private final Tree tree;
+    private final TreeEditor treeEditor;
+
+    private final Clipboard clipboard;
+
     private File rootDirectory;
 
     public FileExplorer(Composite parent) {
         tree = new Tree(parent, BORDER | MULTI | V_SCROLL);
 
+        treeEditor = new TreeEditor(tree);
+        treeEditor.horizontalAlignment = LEFT;
+
         addExpandListener();
         addCollapseListener();
         addDoubleClickListener();
+        addKeyListener();
+
+        clipboard = new Clipboard(ComponentManager.getDisplay());
 
         new FileExplorerMenu(tree);
     }
@@ -78,6 +109,7 @@ public class FileExplorer {
         if (directoryName != null) {
             try {
                 setRootDirectory(new File(directoryName));
+                FileUtils.setFilterPath(directoryName);
             } catch (Exception exception) {
                 Message.error("Couldn't change directory.", exception);
             }
@@ -167,7 +199,7 @@ public class FileExplorer {
         }
     }
 
-    public List<File> getSelection() {
+    private List<File> getSelection() {
         return Arrays.stream(tree.getSelection())
                 .map(item -> (File) item.getData())
                 .collect(toList());
@@ -191,6 +223,36 @@ public class FileExplorer {
         for (TreeItem treeItem : tree.getItems()) {
             treeItem.dispose();
         }
+    }
+
+    private void addKeyListener() {
+        tree.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                switch (e.keyCode) {
+                    case 'c':
+                        if (e.stateMask == SWT.CTRL && tree.getSelectionCount() > 0) {
+                            copy();
+                        }
+                        break;
+                    case 'v':
+                        if (e.stateMask == SWT.CTRL && tree.getSelectionCount() == 1) {
+                            paste();
+                        }
+                        break;
+                    case F2:
+                        if (tree.getSelectionCount() == 1) {
+                            rename();
+                        }
+                        break;
+                    case DEL:
+                        if (tree.getSelectionCount() > 0) {
+                            delete();
+                        }
+                        break;
+                }
+            }
+        });
     }
 
     private void addExpandListener() {
@@ -274,13 +336,180 @@ public class FileExplorer {
         }
     }
 
+    private void copy() {
+        String[] fileNames = Arrays.stream(tree.getSelection())
+                .map(item -> (File) item.getData())
+                .map(File::getAbsolutePath)
+                .toArray(String[]::new);
+
+        clipboard.setContents(new Object[]{fileNames}, new Transfer[]{FileTransfer.getInstance()});
+    }
+
+    private void paste() {
+        String[] fileNames = (String[]) clipboard.getContents(FileTransfer.getInstance());
+
+        if (fileNames != null) {
+            for (String fileName : fileNames){
+                try {
+                    Path source = Paths.get(fileName);
+                    File target = (File) tree.getSelection()[0].getData();
+                    if (!target.isDirectory()) {
+                        target = target.getParentFile();
+                    }
+
+                    copyFile(source, target.toPath());
+
+                } catch (IOException exception) {
+                    Log.error("An error occurred while pasting", exception);
+                }
+            }
+
+            refresh();
+        }
+    }
+
+    private void copyFile(Path source, Path target, CopyOption... options) throws IOException {
+        if (Files.isDirectory(source)) {
+            Files.createDirectories(target.resolve(source.getFileName()));
+
+            Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    Files.createDirectories(target.resolve(source.getParent().relativize(dir)));
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.copy(file, target.resolve(source.getParent().relativize(file)), options);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } else {
+            Files.copy(source, target.resolve(source.getFileName()), options);
+        }
+    }
+
+    private void delete() {
+        List<File> files = getSelection();
+
+        if (!Message.question("Are you sure you want to delete the following file(s)?\n\n" + filesListToString(files))) {
+            return;
+        }
+
+        for (File file : files) {
+            if (file.exists()) {
+                try {
+                    deleteFile(file);
+                } catch (IOException exception) {
+                    Log.error("An error occurred while deleting file", exception);
+                }
+            }
+        }
+
+        refresh();
+    }
+
+    private String filesListToString(List<File> files) {
+        return (files.size() > 5 ? files.subList(0, 5)  : files)
+                .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining("\n"))
+                + (files.size() > 5 ? "\n\nand " + (files.size() - 5) + " more"  : "");
+    }
+
+    private void deleteFile(File file) throws IOException {
+        if (file.isDirectory()) {
+            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+
+        } else {
+            Files.delete(file.toPath());
+        }
+    }
+
+    private void rename() {
+        TreeItem item = tree.getSelection()[0];
+
+        final Composite composite = new Composite(tree, NONE);
+        composite.setBackground(ColorManager.getColor(BLACK));
+
+        final Text text = new Text(composite, NONE);
+
+        final Consumer<String> resize = txt -> {
+            GC gc = new GC(text);
+            Point size = gc.textExtent(txt);
+            gc.dispose();
+
+            size = text.computeSize(size.x, DEFAULT);
+
+            Rectangle itemBounds = item.getBounds();
+            Rectangle treeClientArea = tree.getClientArea();
+            treeEditor.minimumWidth = Math.min(Math.max(size.x, itemBounds.width) + 2, treeClientArea.x + treeClientArea.width - itemBounds.x);
+            treeEditor.minimumHeight = size.y + 2;
+            treeEditor.layout();
+        };
+
+        Listener resizeListener = e -> resize.accept(text.getText());
+        tree.addListener(Resize, resizeListener);
+        composite.addDisposeListener(e -> tree.removeListener(Resize, resizeListener));
+
+        composite.addListener(Resize, event -> {
+            Rectangle rectangle = composite.getClientArea();
+            text.setBounds(rectangle.x + 1, rectangle.y + 1, rectangle.width - 2, rectangle.height - 2);
+        });
+
+        text.addListener(FocusOut, event -> composite.dispose());
+        text.addListener(Verify, event -> resize.accept(text.getText().substring(0, event.start) + event.text + text.getText().substring(event.end)));
+        text.addListener(Traverse, event -> {
+            if (event.detail == TRAVERSE_RETURN || event.detail == TRAVERSE_ESCAPE) {
+                if (event.detail == TRAVERSE_RETURN) {
+                    Path file = ((File) item.getData()).toPath();
+                    try {
+                        Files.move(file, file.resolveSibling(text.getText()));
+                        item.setText(text.getText());
+                        refresh();
+
+                    } catch (FileAlreadyExistsException existsException) {
+                        Message.warning("File with that name already exists.");
+                    } catch (IOException exception) {
+                        Message.error("An error occurred while renaming file", exception);
+                    }
+                }
+
+                composite.dispose();
+                event.doit = false;
+            }
+        });
+
+        treeEditor.setEditor(composite, item);
+
+        text.setText(item.getText());
+        if (item.getText().contains(".")) {
+            text.setSelection(0, item.getText().lastIndexOf("."));
+        } else {
+            text.selectAll();
+        }
+
+        text.setFocus();
+    }
+
     public class FileExplorerMenu {
         private final Menu menu;
 
         private final List<MenuItem> contextOptions = new ArrayList<>();
 
         FileExplorerMenu(Tree tree) {
-            menu = new Menu(tree);
+            menu = new Menu(ComponentManager.getShell(), POP_UP | NO_RADIO_GROUP);
             tree.setMenu(menu);
 
             createAlwaysVisibleMenuItems();
@@ -288,22 +517,33 @@ public class FileExplorer {
             menu.addMenuListener(new MenuAdapter() {
                 @Override
                 public void menuShown(MenuEvent e) {
-                    super.menuShown(e);
-
                     List<File> selection = getSelection();
 
                     contextOptions.forEach(Widget::dispose);
                     contextOptions.clear();
 
                     if (selection.size() == 1) {
-                        createSingleSelectionMenuItems(selection.get(0));
+                        final MenuItem renameItem = new MenuItem(menu, PUSH);
+                        renameItem.setText("Rename\tF2");
+                        renameItem.addListener(Selection, event -> rename());
+                        contextOptions.add(renameItem);
+
+                        contextOptions.add(new MenuItem(menu, SEPARATOR));
+
+                        createMenuItems(selection.get(0),
+                                (s, fileFilter) -> fileFilter.accept(s),
+                                FunctionManager.getSingleFileFunctions(),
+                                SingleFileFunction::execute);
                     } else if (selection.size() > 1) {
-                        createMultiSelectionMenuItems(selection);
+                        createMenuItems(selection,
+                                (s, fileFilter) -> s.stream().allMatch(fileFilter::accept),
+                                FunctionManager.getMultiFileFunctions(),
+                                MultiFileFunction::execute);
                     }
 
                     if (contextOptions.isEmpty()) {
-                        MenuItem item = new MenuItem(menu, 0);
-                        item.setText("No actions available");
+                        MenuItem item = new MenuItem(menu, PUSH);
+                        item.setText("No context actions");
                         item.setEnabled(false);
                         contextOptions.add(item);
                     }
@@ -312,39 +552,63 @@ public class FileExplorer {
         }
 
         private void createAlwaysVisibleMenuItems() {
-            MenuItem item = new MenuItem(menu, 0);
-            item.setText("Change Directory");
-            item.addListener(Selection, event -> changeDirectory());
+            final MenuItem copyItem = new MenuItem(menu, PUSH);
+            copyItem.setText("Copy\tCtrl+C");
+            copyItem.addListener(Selection, event -> copy());
 
-            item = new MenuItem(menu, 0);
-            item.setText("Refresh");
-            item.addListener(Selection, event -> refresh());
-
-            item = new MenuItem(menu, 0);
-            item.setText("Collapse All");
-            item.addListener(Selection, event -> collapseAll());
+            final MenuItem pasteItem = new MenuItem(menu, PUSH);
+            pasteItem.setText("Paste\tCtrl+V");
+            pasteItem.addListener(Selection, event -> paste());
 
             new MenuItem(menu, SEPARATOR);
-        }
 
-        private void createSingleSelectionMenuItems(File selection) {
-            for (FunctionInfo<SingleFileFunction> functionInfo : FunctionManager.getSingleFileFunctions()) {
-                if (functionInfo.getFileFilter().accept(selection)) {
-                    MenuItem item = new MenuItem(menu, 0);
-                    item.setText(functionInfo.getName());
-                    item.addListener(Selection, event -> functionInfo.getInstance().execute(selection));
+            final MenuItem deleteItem = new MenuItem(menu, PUSH);
+            deleteItem.setText("Delete\tDel");
+            deleteItem.addListener(Selection, event -> delete());
 
-                    contextOptions.add(item);
+            new MenuItem(menu, SEPARATOR);
+
+            menu.addMenuListener(new MenuAdapter() {
+                @Override
+                public void menuShown(MenuEvent e) {
+                    copyItem.setEnabled(tree.getSelectionCount() > 0);
+                    pasteItem.setEnabled(tree.getSelectionCount() == 1 && clipboard.getContents(FileTransfer.getInstance()) != null);
+                    deleteItem.setEnabled(tree.getSelectionCount() > 0);
                 }
-            }
+            });
         }
 
-        private void createMultiSelectionMenuItems(List<File> selection) {
-            for (FunctionInfo<MultiFileFunction> functionInfo : FunctionManager.getMultiFileFunctions()) {
-                if (selection.stream().allMatch(file -> functionInfo.getFileFilter().accept(file))) {
-                    MenuItem item = new MenuItem(menu, 0);
+        private <T, S> void createMenuItems(T selection, BiPredicate<T, FileFilter> filter, List<FunctionInfo<S>> functions, BiConsumer<S, T> executor) {
+            Map<String, Menu> menuGroups = new HashMap<>();
+
+            functions.stream()
+                    .filter(functionInfo -> filter.test(selection, functionInfo.getFileFilter()))
+                    .filter(functionInfo -> functionInfo.getGroup().isPresent())
+                    .map(functionInfo -> functionInfo.getGroup().get())
+                    .distinct()
+                    .sorted()
+                    .forEach(group -> {
+                        final MenuItem groupItem = new MenuItem(menu, CASCADE);
+                        groupItem.setText(group);
+
+                        final Menu subMenu = new Menu(menu.getShell(), DROP_DOWN | NO_RADIO_GROUP);
+                        groupItem.setMenu(subMenu);
+
+                        contextOptions.add(groupItem);
+                        menuGroups.put(group, subMenu);
+                    });
+
+            if (!menuGroups.isEmpty()) {
+                contextOptions.add(new MenuItem(menu, SEPARATOR));
+            }
+
+            for (FunctionInfo<S> functionInfo : functions) {
+                if (filter.test(selection, functionInfo.getFileFilter())) {
+                    Menu parent = functionInfo.getGroup().isPresent() ? menuGroups.get(functionInfo.getGroup().get()) : menu;
+
+                    MenuItem item = new MenuItem(parent, PUSH);
                     item.setText(functionInfo.getName());
-                    item.addListener(Selection, event -> functionInfo.getInstance().execute(selection));
+                    item.addListener(Selection, event -> executor.accept(functionInfo.getInstance(), selection));
 
                     contextOptions.add(item);
                 }

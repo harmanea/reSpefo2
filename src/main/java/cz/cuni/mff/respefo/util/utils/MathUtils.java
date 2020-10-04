@@ -2,6 +2,8 @@ package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.UtilityClass;
 
+import java.util.Arrays;
+
 public class MathUtils extends UtilityClass {
     public static final double DOUBLE_PRECISION = 0.0000001;
 
@@ -225,12 +227,97 @@ public class MathUtils extends UtilityClass {
         return Math.sqrt(rss);
     }
 
+    /**
+     * Calculate root mean square error
+     * @param values
+     * @param actual predicted value
+     * @return root mean square error
+     */
+    public static double rmse(double[] values, double actual) {
+        if (values.length <= 1) {
+            throw new IllegalArgumentException("Array must contain at least two values.");
+        }
+
+        double sum = Arrays.stream(values).map(value -> Math.pow(value - actual, 2)).sum();
+        sum /= values.length;
+        sum /= values.length - 1;
+
+        return Math.sqrt(sum);
+    }
+
     public static double clamp(double value, double min, double max) {
         return Math.min(Math.max(value, min), max);
     }
 
     public static int clamp(int value, int min, int max) {
         return Math.min(Math.max(value, min), max);
+    }
+
+    public static double robustMean(double[] values) {
+        int n = values.length;
+        double[] dd = new double[n];
+        double t = median(values);
+
+        for (int i = 0; i < 5; i++) {
+            for (int k = 0; k < n; k++) {
+                dd[k] = Math.abs(values[k] - t);
+            }
+
+            Arrays.sort(dd);
+            double s = 2.1 * median(dd);
+
+            int m1 = 0;
+            int m3 = 0;
+
+            int m1old = -1;
+            int m3old = -1;
+
+            while (m1 != m1old && m3 != m3old) {
+
+                // Compute Winsorizing counts and decide on stopping
+                double xLower = t - Math.PI * s;
+                double xUpper = t + Math.PI * s;
+
+                m1 = 0;
+                while (m1 < n && values[m1] <= xLower) {
+                    m1++;
+                }
+                m1--;
+
+                m3 = n - 1;
+                while (m3 >= 0 && values[m3] >= xUpper) {
+                    m3--;
+                }
+                m3++;
+
+                if (m1 != m1old || m3 != m3old) {
+
+                    m1old = m1;
+                    m3old = m3;
+
+                    // Update estimate set
+                    double sSin = 0;
+                    double sCos = 0;
+                    for (int j = m1 + 1; j <= m3 - 1; j++) {
+                        double z = (values[j] - t) / s;
+                        sSin += Math.sin(z);
+                        sCos += Math.cos(z);
+                    }
+
+                    t += s * Math.atan(sSin / sCos);
+                }
+            }
+
+        }
+
+        return t;
+    }
+
+    public static double median(double[] values) {
+        if (values.length % 2 == 0)
+            return (values[values.length / 2] + values[values.length / 2 - 1]) / 2;
+        else
+            return values[values.length / 2];
     }
 
     protected MathUtils() throws IllegalAccessException {

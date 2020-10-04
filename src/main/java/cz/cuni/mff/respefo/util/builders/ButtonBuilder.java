@@ -11,6 +11,19 @@ public class ButtonBuilder extends ControlBuilder<Button, ButtonBuilder> {
         control = new Button(parent, style);
     }
 
+    /**
+     * @see SWT#ARROW
+     * @see SWT#CHECK
+     * @see SWT#PUSH
+     * @see SWT#RADIO
+     * @see SWT#TOGGLE
+     * @see SWT#FLAT
+     * @see SWT#UP
+     * @see SWT#DOWN
+     * @see SWT#LEFT
+     * @see SWT#RIGHT
+     * @see SWT#CENTER
+     */
     public static ButtonBuilder button(Composite parent, int style) {
         return new ButtonBuilder(parent, style);
     }

@@ -1,7 +1,6 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
@@ -9,16 +8,12 @@ import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.trim.TrimAsset;
 import cz.cuni.mff.respefo.function.asset.trim.TrimDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
-import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.Message;
-import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
 
 import java.io.File;
 
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
-
-@Fun(name = "Trim", fileFilter = SpefoFormatFileFilter.class)
+@Fun(name = "Trim", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = "trim", assetClass = TrimAsset.class)
 public class TrimFunction implements SingleFileFunction {
     @Override
@@ -35,8 +30,7 @@ public class TrimFunction implements SingleFileFunction {
         TrimDialog dialog = new TrimDialog();
         dialog.setMin(asset.getMin());
         dialog.setMax(asset.getMax());
-        if (dialog.open() != Window.OK) {
-            Log.debug("Trim dialog cancelled");
+        if (dialog.open() != SWT.OK) {
             return;
         }
 
@@ -51,15 +45,7 @@ public class TrimFunction implements SingleFileFunction {
 
         try {
             spectrum.save();
-
-            chart(ComponentManager.clearAndGetScene())
-                    .title(file.getName())
-                    .xAxisLabel("x axis")
-                    .yAxisLabel("y axis")
-                    .series(lineSeries()
-                            .name("series")
-                            .series(spectrum.getProcessedSeries()))
-                    .build();
+            OpenFunction.displaySpectrum(spectrum);
 
             Message.info("File saved successfully");
         } catch (SpefoException e) {
