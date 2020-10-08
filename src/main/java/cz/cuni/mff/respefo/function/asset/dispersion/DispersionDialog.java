@@ -3,7 +3,7 @@ package cz.cuni.mff.respefo.function.asset.dispersion;
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.SpefoDialog;
 import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.utils.FileUtils;
+import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -55,7 +55,7 @@ public class DispersionDialog extends SpefoDialog {
         Button aButton = new Button(composite, SWT.PUSH);
         aButton.setText("Browse");
         aButton.addListener(SWT.Selection, event -> {
-            String fileName = FileUtils.openFileDialog(FileType.FITS);
+            String fileName = FileDialogs.openFileDialog(FileType.FITS);
             if (fileName != null) {
                 aText.setText(fileName);
             }
@@ -73,7 +73,7 @@ public class DispersionDialog extends SpefoDialog {
         Button bButton = new Button(composite, SWT.PUSH);
         bButton.setText("Browse");
         bButton.addListener(SWT.Selection, event -> {
-            String fileName = FileUtils.openFileDialog(FileType.FITS);
+            String fileName = FileDialogs.openFileDialog(FileType.FITS);
             if (fileName != null) {
                 bText.setText(fileName);
             }
@@ -91,7 +91,7 @@ public class DispersionDialog extends SpefoDialog {
         Button cButton = new Button(composite, SWT.PUSH);
         cButton.setText("Browse");
         cButton.addListener(SWT.Selection, event -> {
-            String fileName = FileUtils.openFileDialog(FileType.CMP);
+            String fileName = FileDialogs.openFileDialog(FileType.CMP);
             if (fileName != null) {
                 cText.setText(fileName);
             }

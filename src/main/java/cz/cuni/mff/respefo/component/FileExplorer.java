@@ -10,6 +10,7 @@ import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
@@ -109,7 +110,7 @@ public class FileExplorer {
         if (directoryName != null) {
             try {
                 setRootDirectory(new File(directoryName));
-                FileUtils.setFilterPath(directoryName);
+                FileDialogs.setFilterPath(directoryName);
             } catch (Exception exception) {
                 Message.error("Couldn't change directory.", exception);
             }

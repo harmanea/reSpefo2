@@ -2,10 +2,64 @@ package cz.cuni.mff.respefo.util.utils;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
+import static cz.cuni.mff.respefo.util.utils.MathUtils.DOUBLE_PRECISION;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.rmse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class MathUtilsTest {
+
+    @Test
+    public void testRobustMean() {
+        double[] values = {29.3936, 27.9973, 25.5745, 23.6468, 29.7703, 29.4919, 28.4588, 27.6771, 24.1238, 28.1947,
+                30.3977, 26.3970, 27.2327, 23.0827, 33.0418, 31.5371, 34.0490};
+        Arrays.sort(values);
+        double expected = 28.2193;
+
+        assertEquals(expected, MathUtils.robustMean(values), DOUBLE_PRECISION);
+
+
+        values = new double[]{28.392, 23.949, 28.848, 22.65, 27.622, 27.937, 27.5, 29.081, 26.116, 25.472, 32.387,
+                27.795, 24.517, 25.654, 30.337, 29.419, 30.763, 23.517};
+        Arrays.sort(values);
+        expected = 27.345;
+
+        assertEquals(expected, MathUtils.robustMean(values), DOUBLE_PRECISION);
+
+
+        values = new double[]{-23.233, -0.378};
+        expected = -11.805;
+
+        assertEquals(expected, MathUtils.robustMean(values), DOUBLE_PRECISION);
+    }
+
+    @Test
+    public void testRmse() {
+        double[] values = { 29.3936, 27.9973, 25.5745, 23.6468, 29.7703, 29.4919, 28.4588, 27.6771, 24.1238, 28.1947,
+                30.3977, 26.3970, 27.2327, 23.0827, 33.0418, 31.5371, 34.0490 };
+        double predicted = 28.2193;
+        double mean = 0.7528;
+
+        assertEquals(mean, MathUtils.rmse(values, predicted), DOUBLE_PRECISION);
+
+
+        values = new double[] { 28.392, 23.949, 28.848, 22.65, 27.622, 27.937, 27.5, 29.081, 26.116, 25.472, 32.387,
+                27.795, 24.517, 25.654, 30.337, 29.419, 30.763, 23.517 };
+        predicted = 27.345;
+        mean = 0.63;
+
+        assertEquals(mean, MathUtils.rmse(values, predicted), DOUBLE_PRECISION);
+
+
+        values = new double[] { -23.233, -0.378 };
+        predicted = -11.805;
+        mean = 11.428;
+
+        assertEquals(mean, MathUtils.rmse(values, predicted), DOUBLE_PRECISION);
+    }
+
     @Test
     public void testFitPolynomial() {
         double[] x = new double[]{

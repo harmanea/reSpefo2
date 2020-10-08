@@ -8,12 +8,20 @@ import org.swtchart.IAxis;
 import org.swtchart.ISeries;
 import org.swtchart.Range;
 
-import static java.lang.Double.isNaN;
+import java.util.Objects;
+
 import static java.util.Arrays.stream;
 
+// TODO: add tests
 public class ChartUtils extends UtilityClass {
 
+    /**
+     * Set the range of all chart axes so that all are fully visible.
+     * @param chart whose axes will be adjusted
+     */
     public static void makeAllSeriesEqualRange(Chart chart) {
+        Objects.requireNonNull(chart);
+
         double xMax = Double.NEGATIVE_INFINITY;
         double xMin = Double.POSITIVE_INFINITY;
         double yMax = Double.NEGATIVE_INFINITY;
@@ -21,8 +29,9 @@ public class ChartUtils extends UtilityClass {
 
         for (ISeries series : chart.getSeriesSet().getSeries()) {
             double[] xSeries = series.getXSeries();
+            double[] ySeries = series.getYSeries();
 
-            if (xSeries.length == 0) {
+            if (xSeries.length == 0 || ySeries.length == 0) {
                 continue;
             }
 
@@ -33,9 +42,8 @@ public class ChartUtils extends UtilityClass {
                 xMin = xSeries[0];
             }
 
-            double[] ySeries = series.getYSeries();
-            double ySeriesMax = stream(ySeries).filter(d -> !isNaN(d)).max().getAsDouble();
-            double ySeriesMin = stream(ySeries).filter(d -> !isNaN(d)).min().getAsDouble();
+            double ySeriesMax = stream(ySeries).max().getAsDouble();
+            double ySeriesMin = stream(ySeries).min().getAsDouble();
 
             if (yMax < ySeriesMax) {
                 yMax = ySeriesMax;
@@ -57,15 +65,27 @@ public class ChartUtils extends UtilityClass {
         }
     }
 
+    /**
+     * Set the range of all axes so that the series with the given name are fully visible.
+     * @param chart whose axes will be adjusted
+     * @param seriesName name of the series to center around
+     */
     public static void centerAroundSeries(Chart chart, String seriesName) {
+        Objects.requireNonNull(chart);
+        Objects.requireNonNull(seriesName);
+
         ISeries series = chart.getSeriesSet().getSeries(seriesName);
 
         double[] xSeries = series.getXSeries();
+        double[] ySeries = series.getYSeries();
+        if (xSeries.length == 0 || ySeries.length == 0) {
+            throw new IllegalArgumentException("The selected series has no data points");
+        }
+
         Range xRange = rangeWithMargin(xSeries[0], xSeries[xSeries.length - 1]);
 
-        double[] ySeries = series.getYSeries();
-        double ySeriesMax = stream(ySeries).filter(d -> !isNaN(d)).max().getAsDouble();
-        double ySeriesMin = stream(ySeries).filter(d -> !isNaN(d)).min().getAsDouble();
+        double ySeriesMax = stream(ySeries).max().getAsDouble();
+        double ySeriesMin = stream(ySeries).min().getAsDouble();
         Range yRange = rangeWithMargin(ySeriesMin, ySeriesMax);
 
         for (IAxis xAxis : chart.getAxisSet().getXAxes()) {
@@ -83,7 +103,16 @@ public class ChartUtils extends UtilityClass {
         return new Range(lower - margin, upper + margin);
     }
 
-    public static Point getRealValuesFromEventPosition(Chart chart, int x, int y) {
+    /**
+     * Transform the x and y coordinates of the chart plot area to corresponding values in the displayed plot.
+     * @param chart whose coordinate should be transformed
+     * @param x coordinate of the chart plot area
+     * @param y coordinate of the chart plot area
+     * @return real values
+     */
+    public static Point getRealValuesFromCoordinates(Chart chart, int x, int y) {
+        Objects.requireNonNull(chart);
+
         Range yRange = chart.getAxisSet().getYAxis(0).getRange();
         Range xRange = chart.getAxisSet().getXAxis(0).getRange();
 
@@ -95,12 +124,26 @@ public class ChartUtils extends UtilityClass {
         return new Point(realX, realY);
     }
 
+    /**
+     * Get the step value that is 1/1000th of the x range.
+     * @param chart to calculate relative step for
+     * @return relative step
+     */
     public static double getRelativeHorizontalStep(Chart chart) {
+        Objects.requireNonNull(chart);
+
         Range range = chart.getAxisSet().getXAxis(0).getRange();
         return (range.upper - range.lower) / 1000;
     }
 
+    /**
+     * Get the step value that is 1/1000th of the y range.
+     * @param chart to calculate relative step for
+     * @return relative step
+     */
     public static double getRelativeVerticalStep(Chart chart) {
+        Objects.requireNonNull(chart);
+
         Range range = chart.getAxisSet().getYAxis(0).getRange();
         return (range.upper - range.lower) / 1000;
     }

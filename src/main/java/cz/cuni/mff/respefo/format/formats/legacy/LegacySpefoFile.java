@@ -6,7 +6,7 @@ import cz.cuni.mff.respefo.util.DoubleArrayList;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import static cz.cuni.mff.respefo.util.utils.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.PascalUtils.pascalExtendedToDouble;
 import static cz.cuni.mff.respefo.util.utils.PascalUtils.pascalRealToDouble;
 

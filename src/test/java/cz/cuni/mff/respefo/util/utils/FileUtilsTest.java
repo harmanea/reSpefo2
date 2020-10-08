@@ -2,19 +2,18 @@ package cz.cuni.mff.respefo.util.utils;
 
 import org.junit.Test;
 
-import java.io.File;
-
+import static cz.cuni.mff.respefo.util.TestUtils.buildPath;
 import static org.junit.Assert.assertEquals;
 
 public class FileUtilsTest {
     @Test
     public void testFileExtensionUtils() {
-        String fileName = "foo" + File.separator + "bar" + File.separator + "expected.extension";
+        String fileName = buildPath("foo", "bar", "expected.extension");
         assertEquals("extension", FileUtils.getFileExtension(fileName));
-        assertEquals("foo" + File.separator + "bar" + File.separator + "expected", FileUtils.stripFileExtension(fileName));
-        assertEquals("foo" + File.separator + "bar" + File.separator + "expected.newextension", FileUtils.replaceFileExtension(fileName, "newextension"));
+        assertEquals(buildPath("foo", "bar", "expected"), FileUtils.stripFileExtension(fileName));
+        assertEquals(buildPath("foo", "bar", "expected.newextension"), FileUtils.replaceFileExtension(fileName, "newextension"));
 
-        fileName = "noExtension";
+        fileName = "noextension";
         assertEquals("", FileUtils.getFileExtension(fileName));
         assertEquals(fileName, FileUtils.stripFileExtension(fileName));
         assertEquals(fileName + ".newextension", FileUtils.replaceFileExtension(fileName, "newextension"));
@@ -26,14 +25,12 @@ public class FileUtilsTest {
 
     @Test
     public void testParentDirectoryUtils() {
-        String path = File.separator + "adam" + File.separator + "home" + File.separator + "bla.txt";
+        String path = buildPath("", "user", "home", "file.txt");
+        assertEquals( buildPath("", "user", "home"), FileUtils.getParentDirectory(path));
+        assertEquals("file.txt", FileUtils.stripParent(path));
 
-        assertEquals( File.separator + "adam" + File.separator + "home", FileUtils.getParentDirectory(path));
-        assertEquals("bla.txt", FileUtils.stripParent(path));
-
-        path = "bla.txt";
-
+        path = "file.txt";
         assertEquals("", FileUtils.getParentDirectory(path));
-        assertEquals("bla.txt", FileUtils.stripParent(path));
+        assertEquals("file.txt", FileUtils.stripParent(path));
     }
 }

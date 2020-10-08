@@ -20,10 +20,12 @@ public class JulianDate implements Comparable<JulianDate> {
     }
 
     public static JulianDate fromDate(LocalDate date) {
+        Objects.requireNonNull(date);
         return fromDate(date.getYear(), date.getMonthValue(), date.getDayOfMonth());
     }
 
     public static JulianDate fromDateTime(LocalDateTime dateTime) {
+        Objects.requireNonNull(dateTime);
         return fromDateTime(dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth(),
                 dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond());
     }
@@ -118,6 +120,7 @@ public class JulianDate implements Comparable<JulianDate> {
 
     @Override
     public int compareTo(JulianDate other) {
+        Objects.requireNonNull(other);
         return Double.compare(jd, other.jd);
     }
 }

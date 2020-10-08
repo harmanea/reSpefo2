@@ -19,7 +19,7 @@ import org.eclipse.swt.SWT;
 
 import java.io.File;
 
-import static cz.cuni.mff.respefo.util.utils.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 
 @Fun(name = "Measure RV", fileFilter = SpefoFormatFileFilter.class, group = "Measure")
 @Serialize(key = MeasureRVFunction.SERIALIZE_KEY, assetClass = MeasureRVResults.class)

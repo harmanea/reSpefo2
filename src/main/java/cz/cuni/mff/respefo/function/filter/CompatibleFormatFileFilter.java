@@ -13,7 +13,7 @@ public class CompatibleFormatFileFilter implements FileFilter {
             return false;
         }
 
-        String fileExtension = FileUtils.getFileExtension(pathname.getPath());
+        String fileExtension = FileUtils.getFileExtension(pathname);
 
         return FormatManager.getImportableFileExtensions().contains(fileExtension);
     }

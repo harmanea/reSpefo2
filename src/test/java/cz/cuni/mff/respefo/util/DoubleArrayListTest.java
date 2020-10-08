@@ -128,7 +128,7 @@ public class DoubleArrayListTest {
     }
 
     @Test
-    public void testValidElements() {
+    public void testToArray() {
         DoubleArrayList list = new DoubleArrayList(10);
         for (int i = 0; i < 5; i++) {
             list.add(i + 1);

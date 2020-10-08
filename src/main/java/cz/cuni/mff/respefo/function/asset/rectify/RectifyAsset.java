@@ -50,7 +50,7 @@ public class RectifyAsset implements FunctionAsset {
     }
 
     public void addPoint(double x, double y) {
-        int index = ArrayUtils.findFirstGreaterThen(getXCoordinatesArray(), x);
+        int index = ArrayUtils.findFirstGreaterThan(getXCoordinatesArray(), x);
 
         xCoordinates.add(x, index);
         yCoordinates.add(y, index);

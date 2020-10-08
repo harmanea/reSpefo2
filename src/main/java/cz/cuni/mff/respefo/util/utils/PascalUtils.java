@@ -4,35 +4,39 @@ import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 public class PascalUtils extends UtilityClass {
 
     /**
-     * Extracts a short from it's byte array representation
+     * Extracts a short from it's byte array representation.
      * @param bytes byte array containing the short number in little endian order
      * @return extracted short value
      */
     public static short bytesToShort(byte[] bytes) {
+        Objects.requireNonNull(bytes);
         return ByteBuffer.wrap(bytes).order(LITTLE_ENDIAN).getShort();
     }
 
     /**
-     * Extracts an integer from it's byte array representation
+     * Extracts an integer from it's byte array representation.
      * @param bytes byte array containing the integer number in little endian order
      * @return extracted integer value
      */
     public static int bytesToInt(byte[] bytes) {
+        Objects.requireNonNull(bytes);
         return ByteBuffer.wrap(bytes).order(LITTLE_ENDIAN).getInt();
     }
 
     /**
-     * Converts a Turbo Pascal Extended type to double
+     * Converts a Turbo Pascal Extended type to double.
      * @param data byte array containing the extended value in little endian byte order
      * @return converted double value
      */
     public static double pascalExtendedToDouble(byte[] data) {
+        Objects.requireNonNull(data);
         if (data.length != 10) {
             throw new IllegalArgumentException("Extended format takes up 10 bytes");
         }
@@ -61,11 +65,12 @@ public class PascalUtils extends UtilityClass {
     }
 
     /**
-     * Converts a Turbo Pascal Real type to double
+     * Converts a Turbo Pascal Real type to double.
      * @param data byte array containing the real value in little endian byte order
      * @return converted double value
      */
     public static double pascalRealToDouble(byte[] data) {
+        Objects.requireNonNull(data);
         if (data.length != 6) {
             throw new IllegalArgumentException("Real format takes up 6 bytes");
         }

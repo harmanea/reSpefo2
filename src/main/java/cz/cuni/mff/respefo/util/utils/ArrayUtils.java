@@ -3,17 +3,21 @@ package cz.cuni.mff.respefo.util.utils;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.IntToDoubleFunction;
+import java.util.stream.IntStream;
 
 public class ArrayUtils extends UtilityClass {
 
     /**
-     * Find first array entry that is greater than target
-     * @param array of values
-     * @param target value
+     * Find first array entry that is greater than target.
+     * @param array to search
+     * @param target to search for
      * @return index of the value matching the criteria, returns array.length if all values are smaller than or equal to the target
      */
-    public static int findFirstGreaterThen(double[] array, double target) {
+    public static int findFirstGreaterThan(double[] array, double target) {
+        Objects.requireNonNull(array);
+
         int index = Arrays.binarySearch(array, target);
         if (index >= 0) {
             return index + 1;
@@ -23,118 +27,14 @@ public class ArrayUtils extends UtilityClass {
     }
 
     /**
-     * Divide all array entries by values in another array
-     * @param numerators array to be divided
-     * @param denominators array to divide with
-     * @return adjusted array
+     * Find the array entry that is, by value, the closest to the target.
+     * @param array to search
+     * @param target to search for
+     * @return index of the value matching the criteria
      */
-    public static double[] divideArrayValues(double[] numerators, double[] denominators) {
-        if (numerators.length != denominators.length) {
-            throw new IllegalArgumentException("Arrays must be of equal length");
-        }
-
-        return createArray(numerators.length, i -> numerators[i] / denominators[i]);
-    }
-
-    /**
-     * Divide all array entries by a given value
-     * @param numerators array to be divided
-     * @param denominator value to divide with
-     * @return adjusted array
-     */
-    public static double[] divideArrayValues(double[] numerators, double denominator) {
-        return Arrays.stream(numerators).map(numerator -> numerator / denominator).toArray();
-    }
-
-    /**
-     * Add a value to all array entries
-     * @param array
-     * @param value to add
-     * @return adjusted array
-     */
-    public static double[] addValueToArrayElements(double[] array, double value) {
-        return Arrays.stream(array).map(num -> num + value).toArray();
-    }
-
-    public static double[] fillArray(int size, double start, double step) {
-        if (size < 1) {
-            throw new IllegalArgumentException("Size must be a positive integer");
-        }
-
-        double[] result = new double[size];
-
-        result[0] = start;
-        for (int i = 1; i < size; i++) {
-            result[i] = result[i - 1] + step;
-        }
-
-        return result;
-    }
-
-    public static double[] fillArray(int size, double value) {
-        if (size < 1) {
-            throw new IllegalArgumentException("Size must be a positive integer");
-        }
-
-        double[] result = new double[size];
-        for (int i = 0; i < size; i++) {
-            result[i] = value;
-        }
-
-        return result;
-    }
-
-    public static double[] createArray(int size, IntToDoubleFunction creator) {
-        if (size < 1) {
-            throw new IllegalArgumentException("Size must be a positive integer");
-        }
-
-        double[] result = new double[size];
-        for (int i = 0; i < size; i++) {
-            result[i] = creator.applyAsDouble(i);
-        }
-        return result;
-    }
-
-    public static double[] applyBScale(double[] array, double bZero, double bScale) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = array[i] * bScale + bZero;
-        }
-
-        return array;
-    }
-
-    public static int nDims(Object data) {
-        return 1 + data.getClass().getName().lastIndexOf('[');
-    }
-
-    public static boolean valuesHaveSameDifference(double[] values) {
-        if (values.length < 2) {
-            throw new IllegalArgumentException("Values must contain at least two values");
-        } else if (values.length == 2) {
-            return true;
-        }
-
-        double diff = values[1] - values[0];
-        for (int i = 2; i < values.length; i++) {
-            if (!MathUtils.doublesEqual(diff, values[i] - values[i - 1])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static double[] reverseArray(double[] array) {
-        double[] newArray = new double[array.length];
-        for(int i = 0; i < newArray.length; i++)
-        {
-            newArray[i] = array[array.length - i - 1];
-        }
-
-        return newArray;
-    }
-
     public static int findClosest(double[] array, double target) {
+        Objects.requireNonNull(array);
+
         int index = Arrays.binarySearch(array, target);
         if (index >= 0) {
             return index;
@@ -152,6 +52,162 @@ public class ArrayUtils extends UtilityClass {
                 return lowDiff > topDiff ? insertionPoint : insertionPoint - 1;
             }
         }
+    }
+
+    /**
+     * Divide all array entries by values in another array.
+     * @param numerators array to be divided
+     * @param denominators array to divide with
+     * @return adjusted array
+     */
+    public static double[] divideArrayValues(double[] numerators, double[] denominators) {
+        Objects.requireNonNull(numerators);
+        Objects.requireNonNull(denominators);
+
+        if (numerators.length != denominators.length) {
+            throw new IllegalArgumentException("Arrays must be of equal length");
+        }
+
+        return IntStream.range(0, numerators.length).mapToDouble(i -> numerators[i] / denominators[i]).toArray();
+    }
+
+    /**
+     * Divide all array entries by a given value.
+     * @param numerators array to be divided
+     * @param denominator value to divide with
+     * @return adjusted array
+     */
+    public static double[] divideArrayValues(double[] numerators, double denominator) {
+        Objects.requireNonNull(numerators);
+
+        return Arrays.stream(numerators).map(numerator -> numerator / denominator).toArray();
+    }
+
+    /**
+     * Add a value to all array entries.
+     * @param array to add to
+     * @param value to add
+     * @return adjusted array
+     */
+    public static double[] addValueToArrayElements(double[] array, double value) {
+        Objects.requireNonNull(array);
+
+        return Arrays.stream(array).map(num -> num + value).toArray();
+    }
+
+    /**
+     * Create a new array and fill it with the given range.
+     * @param size of the new array
+     * @param start value (inclusive)
+     * @param step increment
+     * @return filled array
+     */
+    public static double[] fillArray(int size, double start, double step) {
+        if (size < 1) {
+            throw new IllegalArgumentException("Size must be a positive integer");
+        }
+
+        double[] result = new double[size];
+
+        result[0] = start;
+        for (int i = 1; i < size; i++) {
+            result[i] = result[i - 1] + step;
+        }
+
+        return result;
+    }
+
+    /**
+     * Create a new array using the given function.
+     * @param size of the new array
+     * @param creator function that maps the array index to a value
+     * @return created array
+     */
+    public static double[] createArray(int size, IntToDoubleFunction creator) {
+        Objects.requireNonNull(creator);
+
+        if (size < 1) {
+            throw new IllegalArgumentException("Size must be a positive integer");
+        }
+
+        return IntStream.range(0, size).mapToDouble(creator).toArray();
+    }
+
+    /**
+     * Create a new array that is the mirrored version of the given array.
+     * @param array to mirror
+     * @return mirrored array
+     */
+    public static double[] reverseArray(double[] array) {
+        Objects.requireNonNull(array);
+
+        double[] newArray = new double[array.length];
+        for(int i = 0; i < newArray.length; i++)
+        {
+            newArray[i] = array[array.length - i - 1];
+        }
+
+        return newArray;
+    }
+
+    /**
+     * Transform array pixel values to they're physical values.
+     *
+     * As defined by the FITS Standard. This transformation shall be used,
+     * when the array pixel values are not the true physical values, to
+     * transform the primary data array values to the true values using the
+     * equation: physical_value = BZERO + BSCALE * array_value.
+     *
+     * @param array of pixels
+     * @param bZero a floating point number representing the physical value
+     * corresponding to an array value of zero.
+     * @param bScale a floating point number
+     * representing the coefficient of the linear term in the scaling
+     * equation, the ratio of physical value to array value at zero offset
+     * @return transformed array
+     */
+    public static double[] applyBScale(double[] array, double bZero, double bScale) {
+        Objects.requireNonNull(array);
+
+        for (int i = 0; i < array.length; i++) {
+            array[i] = array[i] * bScale + bZero;
+        }
+
+        return array;
+    }
+
+    /**
+     * Returns the dimension of the given array.
+     * @param data array
+     * @return number of dimensions, 0 if the parameter is not an array
+     */
+    public static int nDims(Object data) {
+        Objects.requireNonNull(data);
+
+        return 1 + data.getClass().getName().lastIndexOf('[');
+    }
+
+    /**
+     * Test if the differences between all neighbouring pairs are equal.
+     * @param values to test
+     * @return true if all differences are the same, false otherwise
+     */
+    public static boolean valuesHaveSameDifference(double[] values) {
+        Objects.requireNonNull(values);
+
+        if (values.length < 2) {
+            throw new IllegalArgumentException("Values must contain at least two values");
+        } else if (values.length == 2) {
+            return true;
+        }
+
+        double diff = values[1] - values[0];
+        for (int i = 2; i < values.length; i++) {
+            if (!MathUtils.doublesEqual(diff, values[i] - values[i - 1])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected ArrayUtils() throws IllegalAccessException {

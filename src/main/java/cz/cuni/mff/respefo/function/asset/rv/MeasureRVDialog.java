@@ -2,7 +2,7 @@ package cz.cuni.mff.respefo.function.asset.rv;
 
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
 import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.utils.FileUtils;
+import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -83,7 +83,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
     }
 
     private void addStlFile(Table table) {
-        String fileName = FileUtils.openFileDialog(FileType.STL, false);
+        String fileName = FileDialogs.openFileDialog(FileType.STL, false);
         if (fileName != null) {
             TableItem item = new TableItem(table, SWT.NONE);
             item.setText(fileName);

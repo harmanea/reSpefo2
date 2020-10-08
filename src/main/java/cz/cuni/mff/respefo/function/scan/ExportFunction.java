@@ -10,7 +10,7 @@ import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
 import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.utils.FileUtils;
+import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
@@ -34,7 +34,7 @@ public class ExportFunction implements SingleOrMultiFileFunction {
             return;
         }
 
-        String fileName = FileUtils.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrumFile.getName()));
+        String fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrumFile.getName()));
 
         if (fileName != null) {
             try {

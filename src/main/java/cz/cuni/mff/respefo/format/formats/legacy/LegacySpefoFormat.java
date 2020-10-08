@@ -15,7 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static cz.cuni.mff.respefo.util.utils.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 
 public class LegacySpefoFormat implements ImportFileFormat {
     private static final String[] FILE_EXTENSIONS = new String[]{"uui", "rui", "rci"};

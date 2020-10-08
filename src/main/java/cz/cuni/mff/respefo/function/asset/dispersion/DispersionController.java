@@ -26,13 +26,13 @@ import java.util.Iterator;
 import java.util.Locale;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
-import static cz.cuni.mff.respefo.util.utils.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;

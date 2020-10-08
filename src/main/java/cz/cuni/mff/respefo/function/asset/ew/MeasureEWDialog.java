@@ -3,7 +3,7 @@ package cz.cuni.mff.respefo.function.asset.ew;
 
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
 import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.utils.FileUtils;
+import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -82,7 +82,7 @@ public class MeasureEWDialog extends TitleAreaDialog {
     }
 
     private void addStlFile(List list) {
-        String fileName = FileUtils.openFileDialog(FileType.STL, false);
+        String fileName = FileDialogs.openFileDialog(FileType.STL, false);
         if (fileName != null) {
             list.add(fileName);
 

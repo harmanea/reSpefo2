@@ -50,7 +50,7 @@ public class RectifyMouseListener extends NearestPointMouseMoveListener implemen
 
         if (!dragged) {
             if (event.button == 1) {
-                Point point = ChartUtils.getRealValuesFromEventPosition(chart, event.x, event.y);
+                Point point = ChartUtils.getRealValuesFromCoordinates(chart, event.x, event.y);
                 insertCallback.accept(point);
 
             } else if (event.button == 3) {

@@ -3,13 +3,13 @@ package cz.cuni.mff.respefo.util.utils;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.util.Arrays;
+import java.util.Objects;
 
+// TODO: add some tests and javadoc
 public class MathUtils extends UtilityClass {
     public static final double DOUBLE_PRECISION = 0.0000001;
 
     /**
-     * The INTEP interpolation algorithm
-     * <p>
      * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine"). This implementation is based on the FORTRAN code stated therein.
      *
      * @param x      Independent values sorted in strictly ascending order
@@ -22,17 +22,19 @@ public class MathUtils extends UtilityClass {
     }
 
     /**
-     * The INTEP interpolation algorithm
-     * <p>
      * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine"). This implementation is based on the FORTRAN code stated therein.
      *
      * @param x         Independent values sorted in strictly ascending order
      * @param y         Dependent values
      * @param xinter    Values at which to interpolate the tabulated data given by 'x' and 'y'
-     * @param fillValue This value will be used to represent values outside of the given bounds (null implies the last value in the bounds)
+     * @param fillValue This value will be used to represent values outside of the given bounds, if null, the last value in the bounds will be used
      * @return Interpolated values at the locations specified by 'xinter'
      */
     public static double[] intep(double[] x, double[] y, double[] xinter, Double fillValue) {
+        Objects.requireNonNull(x);
+        Objects.requireNonNull(y);
+        Objects.requireNonNull(xinter);
+
         // create result array
         double[] result = new double[xinter.length];
 
@@ -65,11 +67,19 @@ public class MathUtils extends UtilityClass {
         }
 
         // treat points inside bounds
-        double xp, xpi, xpi1, l1, l2, lp1, lp2, fp1, fp2;
+        double xp;
+        double xpi;
+        double xpi1;
+        double l1;
+        double l2;
+        double lp1;
+        double lp2;
+        double fp1;
+        double fp2;
 
         for (int i = ilow; i <= iup; i++) {
             xp = xinter[i];
-            int infl = ArrayUtils.findFirstGreaterThen(x, xp);
+            int infl = ArrayUtils.findFirstGreaterThan(x, xp);
             if (infl == x.length) {
                 result[i] = y[y.length - 1];
                 continue;
@@ -106,9 +116,14 @@ public class MathUtils extends UtilityClass {
     }
 
     public static double linearInterpolation(double x0, double y0, double x1, double y1, double x) {
-        return y0 + (x - x0)*(y1 - y0)/(x1 - x0);
+        return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
     }
 
+    /**
+     * Returns false if the specified number is a Not-a-Number (NaN) value, true otherwise.
+     * @param value to be tested
+     * @return false if the value of the argument is NaN; true otherwise.
+     */
     public static boolean isNotNaN(double value) {
         return !Double.isNaN(value);
     }
@@ -118,13 +133,15 @@ public class MathUtils extends UtilityClass {
     }
 
     /**
-     * Transform an index to wavelength using Taylor polynomials
+     * Transform an index to wavelength using Taylor polynomials.
      *
-     * @param x input value
+     * @param x            input value
      * @param coefficients array of up to 5 polynomial coefficients
      * @return y output value
      */
     public static double polynomial(double x, double[] coefficients) {
+        Objects.requireNonNull(coefficients);
+
         int degree = coefficients.length;
         if (degree > 6) {
             degree = 6;
@@ -140,6 +157,9 @@ public class MathUtils extends UtilityClass {
     }
 
     public static double[] fitPolynomial(double[] x, double[] y, int degree) {
+        Objects.requireNonNull(x);
+        Objects.requireNonNull(y);
+
         int n = x.length;
 
         double[] sigmasX = new double[2 * degree + 1]; // store the values of N, sigma(xi), sigma(xi^2), sigma(xi^3), ..., sigma(xi^2n)
@@ -204,12 +224,16 @@ public class MathUtils extends UtilityClass {
     }
 
     /**
-     * Calculate root mean square error
+     * Calculate root mean square error.
+     *
      * @param predicted values
-     * @param actual values
+     * @param actual    values
      * @return root mean square error
      */
     public static double rmse(double[] predicted, double[] actual) {
+        Objects.requireNonNull(predicted);
+        Objects.requireNonNull(actual);
+
         if (predicted.length == 0 || actual.length == 0) {
             throw new IllegalArgumentException("Arrays must contain some values.");
         }
@@ -228,32 +252,29 @@ public class MathUtils extends UtilityClass {
     }
 
     /**
-     * Calculate root mean square error
-     * @param values
-     * @param actual predicted value
+     * Calculate root mean square error.
+     *
+     * @param predicted values
+     * @param actual    value
      * @return root mean square error
      */
-    public static double rmse(double[] values, double actual) {
-        if (values.length <= 1) {
+    public static double rmse(double[] predicted, double actual) {
+        Objects.requireNonNull(predicted);
+
+        if (predicted.length <= 1) {
             throw new IllegalArgumentException("Array must contain at least two values.");
         }
 
-        double sum = Arrays.stream(values).map(value -> Math.pow(value - actual, 2)).sum();
-        sum /= values.length;
-        sum /= values.length - 1;
+        double sum = Arrays.stream(predicted).map(value -> Math.pow(value - actual, 2)).sum();
+        sum /= predicted.length;
+        sum /= predicted.length - 1;
 
         return Math.sqrt(sum);
     }
 
-    public static double clamp(double value, double min, double max) {
-        return Math.min(Math.max(value, min), max);
-    }
-
-    public static int clamp(int value, int min, int max) {
-        return Math.min(Math.max(value, min), max);
-    }
-
     public static double robustMean(double[] values) {
+        Objects.requireNonNull(values);
+
         int n = values.length;
         double[] dd = new double[n];
         double t = median(values);
@@ -313,7 +334,14 @@ public class MathUtils extends UtilityClass {
         return t;
     }
 
+    /**
+     * Calculate the median of the given values.
+     * @param values whose median should be computed
+     * @return the median
+     */
     public static double median(double[] values) {
+        Objects.requireNonNull(values);
+
         if (values.length % 2 == 0)
             return (values[values.length / 2] + values[values.length / 2 - 1]) / 2;
         else
