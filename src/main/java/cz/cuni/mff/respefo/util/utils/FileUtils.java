@@ -4,8 +4,9 @@ import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Objects;
 
 public class FileUtils extends UtilityClass {
@@ -113,6 +114,33 @@ public class FileUtils extends UtilityClass {
     public static Path getRelativePath(Path path) {
         Objects.requireNonNull(path);
         return ComponentManager.getFileExplorer().getRootDirectory().toPath().relativize(path);
+    }
+
+    /**
+     * Deletes a file.
+     * If it is a directory, it's contents will be recursively deleted first.
+     * @param file to be deleted
+     * @throws IOException if an I/O error occurs
+     */
+    public static void deleteFile(File file) throws IOException {
+        if (file.isDirectory()) {
+            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+
+        } else {
+            Files.delete(file.toPath());
+        }
     }
 
     protected FileUtils() throws IllegalAccessException {

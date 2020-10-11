@@ -36,6 +36,8 @@ public class ButtonBuilder extends ControlBuilder<Button, ButtonBuilder> {
         return new ButtonBuilder(parent, SWT.RADIO);
     }
 
+    public static ButtonBuilder checkButton(Composite parent) { return new ButtonBuilder(parent, SWT.CHECK); }
+
     public ButtonBuilder text(String text) {
         control.setText(text);
 

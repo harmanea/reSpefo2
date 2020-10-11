@@ -2,6 +2,8 @@ package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.UtilityClass;
 
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -56,6 +58,19 @@ public class StringUtils extends UtilityClass {
 
         return IntStream.range(0, times).mapToObj(i -> str).collect(Collectors.joining());
     }
+
+    public static String humanReadableByteCountSI(long bytes) {
+        if (-1000 < bytes && bytes < 1000) {
+            return bytes + " B";
+        }
+        CharacterIterator ci = new StringCharacterIterator("kMGTPE");
+        while (bytes <= -999_950 || bytes >= 999_950) {
+            bytes /= 1000;
+            ci.next();
+        }
+        return String.format("%.1f %cB", bytes / 1000.0, ci.current());
+    }
+
 
     protected StringUtils() throws IllegalAccessException {
         super();

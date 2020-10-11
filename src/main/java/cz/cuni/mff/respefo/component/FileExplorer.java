@@ -1,14 +1,13 @@
 package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ColorManager;
-import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.FileCopy;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
@@ -29,8 +28,9 @@ import org.eclipse.swt.widgets.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -40,9 +40,10 @@ import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.BLACK;
+import static cz.cuni.mff.respefo.resources.ImageManager.getIconForFile;
 import static cz.cuni.mff.respefo.resources.ImageManager.getImage;
-import static cz.cuni.mff.respefo.resources.ImageResource.*;
-import static cz.cuni.mff.respefo.util.utils.FileUtils.getFileExtension;
+import static cz.cuni.mff.respefo.resources.ImageResource.FOLDER;
+import static cz.cuni.mff.respefo.resources.ImageResource.OPENED_FOLDER;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
@@ -85,7 +86,7 @@ public class FileExplorer {
 
         clearTree();
 
-        File[] children = file.listFiles();
+        File[] children = listFiles(file);
         Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         for (File child : children) {
             TreeItem item = new TreeItem(tree, 0);
@@ -125,9 +126,11 @@ public class FileExplorer {
 
     private void refreshNested(TreeItem item, File file) {
         if (file.isDirectory()) {
-            int nestedFileCount = file.list().length;
+            int nestedFileCount = listFiles(file).length;
 
             if (nestedFileCount == 0 && item.getItemCount() > 0) {
+                // the file no longer has any children
+
                 if (item.getExpanded()) {
                     item.setImage(getImage(FOLDER));
                 }
@@ -137,16 +140,32 @@ public class FileExplorer {
                 }
 
             } else if (item.getExpanded()) {
+                // recursively refresh the file's children
+
                 refreshItems(item.getItems(), file, index -> new TreeItem(item, 0, index));
 
             } else if (nestedFileCount > 0 && item.getItemCount() == 0) {
+                // the file now has some children, might not have been a folder before
+
                 new TreeItem(item, 0);
+                item.setImage(getImage(FOLDER));
+            }
+        } else {
+            TreeItem[] items = item.getItems();
+            if (items.length > 0) {
+                // the file was previously a folder but isn't anymore
+
+                for (TreeItem treeItem : items) {
+                    treeItem.dispose();
+                }
+
+                item.setImage(getIconForFile(file));
             }
         }
     }
 
     private void refreshItems(TreeItem[] items, File file, IntFunction<TreeItem> itemFactory) {
-        File[] checkFiles = file.listFiles();
+        File[] checkFiles = listFiles(file);
         Arrays.sort(checkFiles, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
 
         int itemsIndex = 0;
@@ -292,7 +311,7 @@ public class FileExplorer {
 
         File file = (File) item.getData();
 
-        File[] children = file.listFiles();
+        File[] children = listFiles(file);
         Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         for (File child : children) {
             TreeItem childItem = new TreeItem(item, 0);
@@ -308,33 +327,15 @@ public class FileExplorer {
         item.setText(file.getName());
         item.setData(file);
 
-        if (file.isDirectory() && file.list().length > 0) {
+        if (file.isDirectory() && listFiles(file).length > 0) {
             new TreeItem(item, 0);
         }
 
-        item.setImage(getImage(getImageResourceForFile(file)));
+        item.setImage(getIconForFile(file));
     }
 
     private static void collapseTreeItem(TreeItem item) {
         item.setImage(getImage(FOLDER));
-    }
-
-    private static ImageResource getImageResourceForFile(File file) {
-        if (file.isDirectory()) {
-            return FOLDER;
-        } else {
-            String fileExtension = getFileExtension(file);
-
-            if (fileExtension.equals("spf")) {
-                return SPECTRUM_FILE;
-            } else if (FormatManager.getImportableFileExtensions().contains(fileExtension)) {
-                return IMPORTABLE_FILE;
-            } else if (fileExtension.equals("stl") || fileExtension.equals("lst")) {
-                return SUPPORT_FILE;
-            } else {
-                return FILE; // TODO: add more custom icons
-            }
-        }
     }
 
     private void copy() {
@@ -348,47 +349,21 @@ public class FileExplorer {
 
     private void paste() {
         String[] fileNames = (String[]) clipboard.getContents(FileTransfer.getInstance());
-
-        if (fileNames != null) {
-            for (String fileName : fileNames){
-                try {
-                    Path source = Paths.get(fileName);
-                    File target = (File) tree.getSelection()[0].getData();
-                    if (!target.isDirectory()) {
-                        target = target.getParentFile();
-                    }
-
-                    copyFile(source, target.toPath());
-
-                } catch (IOException exception) {
-                    Log.error("An error occurred while pasting", exception);
-                }
-            }
-
-            refresh();
+        if (fileNames == null) {
+            return;
         }
-    }
 
-    private void copyFile(Path source, Path target, CopyOption... options) throws IOException {
-        if (Files.isDirectory(source)) {
-            Files.createDirectories(target.resolve(source.getFileName()));
-
-            Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    Files.createDirectories(target.resolve(source.getParent().relativize(dir)));
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.copy(file, target.resolve(source.getParent().relativize(file)), options);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } else {
-            Files.copy(source, target.resolve(source.getFileName()), options);
+        File target = (File) tree.getSelection()[0].getData();
+        if (!target.isDirectory()) {
+            target = target.getParentFile();
         }
+
+        List<String> failedFiles = FileCopy.copyTo(target.toPath(), fileNames);
+        if (!failedFiles.isEmpty()) {
+            Message.warning("Some files failed to copy:\n\n" + filesListToString(failedFiles.stream().map(File::new).collect(toList())));
+        }
+
+        refresh();
     }
 
     private void delete() {
@@ -398,14 +373,20 @@ public class FileExplorer {
             return;
         }
 
+        List<File> failedFiles = new ArrayList<>();
         for (File file : files) {
             if (file.exists()) {
                 try {
-                    deleteFile(file);
+                    FileUtils.deleteFile(file);
                 } catch (IOException exception) {
+                    failedFiles.add(file);
                     Log.error("An error occurred while deleting file", exception);
                 }
             }
+        }
+
+        if (!failedFiles.isEmpty()) {
+            Message.warning("Some files failed to delete:\n\n" + filesListToString(failedFiles));
         }
 
         refresh();
@@ -415,27 +396,6 @@ public class FileExplorer {
         return (files.size() > 5 ? files.subList(0, 5)  : files)
                 .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining("\n"))
                 + (files.size() > 5 ? "\n\nand " + (files.size() - 5) + " more"  : "");
-    }
-
-    private void deleteFile(File file) throws IOException {
-        if (file.isDirectory()) {
-            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.delete(dir);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-
-        } else {
-            Files.delete(file.toPath());
-        }
     }
 
     private void rename() {
@@ -504,6 +464,15 @@ public class FileExplorer {
         text.setFocus();
     }
 
+    private static File[] listFiles(File file) {
+        File[] lst = file.listFiles();
+        if (lst == null) {
+            throw new IllegalStateException("Couldn't list files for file " + file);
+        } else {
+            return lst;
+        }
+    }
+
     public class FileExplorerMenu {
         private final Menu menu;
 
@@ -542,7 +511,7 @@ public class FileExplorer {
                                 MultiFileFunction::execute);
                     }
 
-                    if (contextOptions.isEmpty()) {
+                    if (contextOptions.isEmpty() || (contextOptions.size() == 2 && contextOptions.get(0).getText().startsWith("Rename"))) {
                         MenuItem item = new MenuItem(menu, PUSH);
                         item.setText("No context actions");
                         item.setEnabled(false);

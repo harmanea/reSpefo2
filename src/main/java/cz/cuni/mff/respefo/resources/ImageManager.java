@@ -1,11 +1,15 @@
 package cz.cuni.mff.respefo.resources;
 
+import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 
+import java.io.File;
 import java.util.EnumMap;
 
+import static cz.cuni.mff.respefo.resources.ImageResource.*;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.getFileExtension;
 import static java.io.File.separator;
 
 public class ImageManager extends UtilityClass {
@@ -37,6 +41,24 @@ public class ImageManager extends UtilityClass {
             return imageMap.get(resource);
         } else {
             throw new NoSuchResourceException("Resource [" + resource + "] could not be found.");
+        }
+    }
+
+    public static Image getIconForFile(File file) {
+        if (file.isDirectory()) {
+            return getImage(FOLDER);
+        } else {
+            String fileExtension = getFileExtension(file);
+
+            if (fileExtension.equals("spf")) {
+                return getImage(SPECTRUM_FILE);
+            } else if (FormatManager.getImportableFileExtensions().contains(fileExtension)) {
+                return getImage(IMPORTABLE_FILE);
+            } else if (fileExtension.equals("stl") || fileExtension.equals("lst")) {
+                return getImage(SUPPORT_FILE);
+            } else {
+                return getImage(FILE);
+            }
         }
     }
 
