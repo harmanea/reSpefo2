@@ -6,11 +6,14 @@ import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.function.Fun;
+import cz.cuni.mff.respefo.function.Serialize;
 import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
 import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
+import cz.cuni.mff.respefo.function.asset.port.PostImportAsset;
 import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
 
@@ -18,7 +21,10 @@ import java.io.File;
 import java.util.List;
 
 @Fun(name = "Import", fileFilter = CompatibleFormatFileFilter.class)
+@Serialize(key = ImportFunction.SERIALIZE_KEY, assetClass = PostImportAsset.class)
 public class ImportFunction implements SingleOrMultiFileFunction {
+
+    public static final String SERIALIZE_KEY = "import";
 
     // TODO: handle overwriting
     // TODO: message on success
@@ -41,8 +47,9 @@ public class ImportFunction implements SingleOrMultiFileFunction {
         }
 
         // TODO: handle post import problems like NaNs and missing RvCorrection
+        spectrum.getFunctionAssets().put(SERIALIZE_KEY, new PostImportAsset(0));
 
-        String fileName = FileUtils.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
+        String fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
 
         if (fileName != null) {
             try {

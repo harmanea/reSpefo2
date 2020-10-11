@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MeasureEWResult {
+    private double l0;
+    private double radius;
+    private String name;
     private int[] bounds;
     private List<Integer> points;
     private List<MeasureEWResultPointCategory> categories;
@@ -15,10 +18,26 @@ public class MeasureEWResult {
         // default empty constructor
     }
 
-    public MeasureEWResult(int left, int right) {
+    public MeasureEWResult(double l0, double radius, String name, int left, int right) {
+        this.l0 = l0;
+        this.radius = radius;
+        this.name = name;
+
         bounds = new int[]{left, right};
         points = new ArrayList<>();
         categories = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getL0() {
+        return l0;
+    }
+
+    public double getRadius() {
+        return radius;
     }
 
     public int pointsCount() {

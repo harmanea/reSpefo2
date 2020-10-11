@@ -21,7 +21,7 @@ import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 import static org.eclipse.swt.SWT.*;
 
 @Fun(name = "Open plain text", fileFilter = PlainTextFileFilter.class)
-public class PlainTextFunction implements SingleFileFunction {
+public class OpenPlainTextFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {
         try {
@@ -42,11 +42,11 @@ public class PlainTextFunction implements SingleFileFunction {
             textComposite.setLayout(gridLayout().margins(0).marginLeft(5).build());
 
             Text text = new Text(textComposite, MULTI | READ_ONLY | WRAP | V_SCROLL);
-            text.setText(content);
             text.setLayoutData(new GridData(GridData.FILL_BOTH));
 
             textComposite.setBackground(text.getBackground());
 
+            text.setText(content);
             text.requestLayout();
 
         } catch (IOException exception) {

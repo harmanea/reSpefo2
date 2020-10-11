@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import static cz.cuni.mff.respefo.util.utils.MathUtils.DOUBLE_PRECISION;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.rmse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -18,7 +17,7 @@ public class MathUtilsTest {
         Arrays.sort(values);
         double expected = 28.2193;
 
-        assertEquals(expected, MathUtils.robustMean(values), DOUBLE_PRECISION);
+        assertEquals(expected, MathUtils.robustMean(values), 0.0001);
 
 
         values = new double[]{28.392, 23.949, 28.848, 22.65, 27.622, 27.937, 27.5, 29.081, 26.116, 25.472, 32.387,
@@ -26,13 +25,13 @@ public class MathUtilsTest {
         Arrays.sort(values);
         expected = 27.345;
 
-        assertEquals(expected, MathUtils.robustMean(values), DOUBLE_PRECISION);
+        assertEquals(expected, MathUtils.robustMean(values), 0.001);
 
 
         values = new double[]{-23.233, -0.378};
         expected = -11.805;
 
-        assertEquals(expected, MathUtils.robustMean(values), DOUBLE_PRECISION);
+        assertEquals(expected, MathUtils.robustMean(values), 0.001);
     }
 
     @Test
@@ -42,7 +41,7 @@ public class MathUtilsTest {
         double predicted = 28.2193;
         double mean = 0.7528;
 
-        assertEquals(mean, MathUtils.rmse(values, predicted), DOUBLE_PRECISION);
+        assertEquals(mean, MathUtils.rmse(values, predicted), 0.0001);
 
 
         values = new double[] { 28.392, 23.949, 28.848, 22.65, 27.622, 27.937, 27.5, 29.081, 26.116, 25.472, 32.387,
@@ -50,14 +49,14 @@ public class MathUtilsTest {
         predicted = 27.345;
         mean = 0.63;
 
-        assertEquals(mean, MathUtils.rmse(values, predicted), DOUBLE_PRECISION);
+        assertEquals(mean, MathUtils.rmse(values, predicted), 0.001);
 
 
         values = new double[] { -23.233, -0.378 };
         predicted = -11.805;
         mean = 11.428;
 
-        assertEquals(mean, MathUtils.rmse(values, predicted), DOUBLE_PRECISION);
+        assertEquals(mean, MathUtils.rmse(values, predicted), 0.001);
     }
 
     @Test

@@ -75,21 +75,21 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
 
         composite.setBackground(titleLabel.getBackground());
 
-        for (MeasureEWResults.MeasurementAndResult mar : results) {
+        for (MeasureEWResult result : results) {
             Group group = new Group(composite, SWT.NONE);
             group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER));
             group.setLayout(gridLayout().margins(10).build());
-            group.setText("Results for measurement " + mar.getMeasurement().getName());
+            group.setText("Results for measurement " + result.getName());
 
             label(group, SWT.LEFT)
                     .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                    .text("EW: " + formatDouble(mar.getResult().getEW(series), 4, 4))
+                    .text("EW: " + formatDouble(result.getEW(series), 4, 4))
                     .build();
 
-            if (mar.getResult().containsCategory(MeasureEWResultPointCategory.Ic)) {
-                double fwhm = mar.getResult().getFWHM(series);
+            if (result.containsCategory(MeasureEWResultPointCategory.Ic)) {
+                double fwhm = result.getFWHM(series);
                 if (isNaN(fwhm)) {
-                    Log.warning("Couldn't compute FWHM for measurement " + mar.getMeasurement().getName());
+                    Log.warning("Couldn't compute FWHM for measurement " + result.getName());
                 } else {
                     label(group, SWT.LEFT)
                             .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
@@ -98,12 +98,34 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
                 }
             }
 
-            for (int i = 0; i < mar.getResult().pointsCount(); i++) {
+            for (int i = 0; i < result.pointsCount(); i++) {
                 label(group, SWT.LEFT)
                         .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                        .text(mar.getResult().getCategory(i).name() + ": " + formatDouble(series.getY(mar.getResult().getPoint(i)), 4, 4))
+                        .text(result.getCategory(i).name() + ": " + formatDouble(series.getY(result.getPoint(i)), 4, 4))
                         .build();
             }
+
+            pushButton(group)
+                    .text("Delete")
+                    .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END))
+                    .onSelection(event -> {
+                        results.remove(result);
+
+                        group.dispose();
+                        composite.requestLayout();
+
+                        if (results.isEmpty()) {
+                            spectrum.getFunctionAssets().remove(MeasureEWFunction.SERIALIZE_KEY);
+                            scrolledComposite.dispose();
+                        }
+
+                        try {
+                            spectrum.save();
+                        } catch (SpefoException exception) {
+                            Message.error("Couldn't save changes", exception);
+                        }
+                    })
+                    .build();
         }
 
         scrolledComposite.setContent(composite);

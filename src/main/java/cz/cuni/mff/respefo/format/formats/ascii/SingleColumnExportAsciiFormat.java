@@ -17,15 +17,15 @@ public class SingleColumnExportAsciiFormat extends ExportAsciiFormat {
         double[] y = series.getYSeries();
 
         if (!ArrayUtils.valuesHaveSameDifference(x)) {
-            Message.warning("Not all x values have the same step. This might lead to unexpected results.");
+            Message.warning("Not all x values have the same step.\nThis might lead to unexpected results.");
         }
 
         try (PrintWriter writer = new PrintWriter(fileName)) {
             double xDiff = x[1] - x[0];
-            writer.println(x[0] + " " + xDiff);
+            writer.println(FORMAT.format(x[0]) + " " + FORMAT.format(xDiff));
 
             for (int i = 0; i < x.length; i++) {
-                writer.println(y[i]);
+                writer.println(FORMAT.format(y[i]));
             }
 
             if (writer.checkError()) {

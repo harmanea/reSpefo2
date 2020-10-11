@@ -59,6 +59,16 @@ public class StringUtils extends UtilityClass {
         return IntStream.range(0, times).mapToObj(i -> str).collect(Collectors.joining());
     }
 
+    /**
+     * Returns a human-readable version of the file size as defined by SI (e.g. 1k = 1.000).
+     * <p>
+     * Taken from a Stack Overflow answer by aioobe, CC BY-SA 4.0
+     * <p>
+     * https://stackoverflow.com/a/3758880
+     *
+     * @param bytes the number of bytes
+     * @return a human-readable display value
+     */
     public static String humanReadableByteCountSI(long bytes) {
         if (-1000 < bytes && bytes < 1000) {
             return bytes + " B";

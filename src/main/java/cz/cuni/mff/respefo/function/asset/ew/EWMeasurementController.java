@@ -34,7 +34,7 @@ public class EWMeasurementController {
     }
 
     public void measure(Measurements measurements, Consumer<MeasureEWResults> callback) {
-        results = new MeasureEWResults(measurements.getElements());
+        results = new MeasureEWResults();
 
         measureSingle(measurements.iterator(), callback);
     }
@@ -45,6 +45,9 @@ public class EWMeasurementController {
         shift = 0;
 
         MeasureEWResult result = new MeasureEWResult(
+                measurement.getL0(),
+                measurement.getRadius(),
+                measurement.getName(),
                 ArrayUtils.findClosest(series.getXSeries(), measurement.getLowerBound()),
                 ArrayUtils.findClosest(series.getXSeries(), measurement.getUpperBound())
         );

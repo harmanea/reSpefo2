@@ -63,7 +63,7 @@ public abstract class SpefoDialog {
 
     void createButtonsArea(Composite parent) {
         final Composite composite = composite(parent)
-                .layout(gridLayout(0, true).margins(5).horizontalSpacing(5))
+                .layout(gridLayout(0, true).margins(10).horizontalSpacing(10))
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END)
                 .build();
 

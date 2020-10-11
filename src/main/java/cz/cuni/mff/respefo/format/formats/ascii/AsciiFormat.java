@@ -18,8 +18,8 @@ public class AsciiFormat implements FileFormat {
     @Override
     public String description() {
         return "The default way of storing plain text files.\n\n" +
-                "Consists of two columns of floating point numbers representing the x and y values of the data points. " +
-                "The first line can optionally contain some extra information. ";
+                "Consists of two columns of floating point numbers representing the x and y values of the data points." +
+                "The first line can optionally contain some extra information.";
     }
 
     @Override

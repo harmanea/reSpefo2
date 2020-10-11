@@ -3,7 +3,9 @@ package cz.cuni.mff.respefo.function.scan;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Tree;
@@ -14,7 +16,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-//@Fun(name = "__ Debug __", fileFilter = SpefoFormatFileFilter.class)
+@Fun(name = "__ Debug __", fileFilter = SpefoFormatFileFilter.class)
 public class DebugFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {
