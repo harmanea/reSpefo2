@@ -18,6 +18,7 @@ import cz.cuni.mff.respefo.util.utils.MathUtils;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
+import java.util.Optional;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 
@@ -81,13 +82,14 @@ public class MeasureRVFunction implements SingleFileFunction {
     }
 
     private static void saveResults(Spectrum spectrum, MeasureRVResults results) {
-        if (spectrum.getFunctionAssets().containsKey(SERIALIZE_KEY)
+        Optional<MeasureRVResults> oldResults = spectrum.getFunctionAsset(SERIALIZE_KEY, MeasureRVResults.class);
+        if (oldResults.isPresent()
                 && Message.question("Measurements of this type is already saved in this file.\n\nDo you want to append to it?")) {
 
-            ((MeasureRVResults) spectrum.getFunctionAssets().get(SERIALIZE_KEY)).append(results);
+            oldResults.get().append(results);
 
         } else {
-            spectrum.getFunctionAssets().put(SERIALIZE_KEY, results);
+            spectrum.putFunctionAsset(SERIALIZE_KEY, results);
         }
 
         try {

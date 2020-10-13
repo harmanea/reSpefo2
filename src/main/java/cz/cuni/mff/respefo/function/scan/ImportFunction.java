@@ -47,7 +47,7 @@ public class ImportFunction implements SingleOrMultiFileFunction {
         }
 
         // TODO: handle post import problems like NaNs and missing RvCorrection
-        spectrum.getFunctionAssets().put(SERIALIZE_KEY, new PostImportAsset(0));
+        spectrum.putFunctionAsset(SERIALIZE_KEY, new PostImportAsset(0));
 
         String fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
 

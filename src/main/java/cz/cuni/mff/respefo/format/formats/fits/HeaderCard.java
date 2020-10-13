@@ -5,8 +5,8 @@ public class HeaderCard {
     private String key;
     private String value;
 
-    public HeaderCard() {
-        // Default empty constructor
+    private HeaderCard() {
+        // default empty constructor
     }
 
     public HeaderCard(String comment, String key, String value) {

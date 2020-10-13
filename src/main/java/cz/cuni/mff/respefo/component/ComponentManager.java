@@ -11,11 +11,12 @@ import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import cz.cuni.mff.respefo.util.VersionInfo;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.*;
 
+import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
@@ -86,9 +87,20 @@ public class ComponentManager extends UtilityClass {
 
         TopBar rightTopBar = new TopBar(componentWithSidebars.getRightBar(), "Tools");
 
-        Composite rightBarComposite = new Composite(componentWithSidebars.getRightBar(), BORDER);
-        rightBarComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-        rightBarComposite.setLayout(new FillLayout(VERTICAL));
+        Composite rightBarComposite = composite(componentWithSidebars.getRightBar(), BORDER)
+                .layoutData(new GridData(GridData.FILL_BOTH))
+                .layout(new GridLayout())
+                .build();
+
+        pushButton(rightBarComposite)
+                .layoutData(new GridData(CENTER, TOP, true, false))
+                .text("Clear scene")
+                .onSelection(event -> ComponentManager.clearScene());
+
+        pushButton(rightBarComposite)
+                .layoutData(new GridData(CENTER, TOP, true, false))
+                .text("Focus scene")
+                .onSelection(event -> ComponentManager.getScene().forceFocus());
 
         // componentWithBottomBar -> bottom bar
 

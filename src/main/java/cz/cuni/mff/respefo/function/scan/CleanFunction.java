@@ -24,6 +24,8 @@ import org.swtchart.ILineSeries;
 
 import java.io.File;
 
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 
@@ -46,14 +48,14 @@ public class CleanFunction implements SingleFileFunction {
             return;
         }
 
-        CleanAsset asset = (CleanAsset) spectrum.getFunctionAssets().getOrDefault(SERIALIZE_KEY, new CleanAsset());
+        CleanAsset asset = spectrum.getFunctionAsset(SERIALIZE_KEY, CleanAsset.class).orElse(new CleanAsset());
 
         XYSeries data = spectrum.getProcessedSeriesWithout(asset);
 
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title(file.getName())
-                .xAxisLabel("wavelength (Å)")
-                .yAxisLabel("relative flux I(λ)")
+                .xAxisLabel(WAVELENGTH)
+                .yAxisLabel(RELATIVE_FLUX)
                 .series(scatterSeries()
                         .name(DELETED_SERIES_NAME)
                         .color(ColorResource.GRAY)
@@ -111,9 +113,9 @@ public class CleanFunction implements SingleFileFunction {
                     }
                     case SWT.CR: {
                         if (asset.isEmpty()) {
-                            spectrum.getFunctionAssets().remove(SERIALIZE_KEY);
+                            spectrum.removeFunctionAsset(SERIALIZE_KEY);
                         } else {
-                            spectrum.getFunctionAssets().put(SERIALIZE_KEY, asset);
+                            spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
                         }
 
                         try {

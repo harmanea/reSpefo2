@@ -8,7 +8,7 @@ public abstract class BaseOrigin {
     protected String fileName;
 
     public BaseOrigin() {
-        // Default empty constructor
+        // default empty constructor
     }
 
     public BaseOrigin(String fileName) {

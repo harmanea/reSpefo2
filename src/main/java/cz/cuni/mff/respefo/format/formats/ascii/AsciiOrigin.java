@@ -8,8 +8,8 @@ public class AsciiOrigin extends BaseOrigin {
 
     private String firstLine;
 
-    public AsciiOrigin() {
-        super();
+    private AsciiOrigin() {
+        // default empty constructor
     }
 
     public AsciiOrigin(String fileName, String firstLine) {

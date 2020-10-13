@@ -16,6 +16,7 @@ import cz.cuni.mff.respefo.util.Message;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
+import java.util.Optional;
 
 @Fun(name = "Measure EW", fileFilter = SpefoFormatFileFilter.class, group = "Measure")
 @Serialize(key = MeasureEWFunction.SERIALIZE_KEY, assetClass = MeasureEWResults.class)
@@ -55,13 +56,12 @@ public class MeasureEWFunction implements SingleFileFunction {
     }
 
     private static void saveResults(Spectrum spectrum, MeasureEWResults results) {
-        if (spectrum.getFunctionAssets().containsKey(SERIALIZE_KEY)
+        Optional<MeasureEWResults> oldResults = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class);
+        if (oldResults.isPresent()
                 && Message.question("Measurements of this type is already saved in this file.\n\nDo you want to append to it?")) {
-
-            ((MeasureEWResults) spectrum.getFunctionAssets().get(SERIALIZE_KEY)).append(results);
-
+            oldResults.get().append(results);
         } else {
-            spectrum.getFunctionAssets().put(SERIALIZE_KEY, results);
+            spectrum.putFunctionAsset(SERIALIZE_KEY, results);
         }
 
         try {

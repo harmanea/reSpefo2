@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.DOUBLE_PRECISION;
@@ -54,8 +56,8 @@ public class EWMeasurementController {
 
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title(measurement.getName() + " " + measurement.getL0())
-                .xAxisLabel("wavelength (Å)")
-                .yAxisLabel("relative flux I(λ)")
+                .xAxisLabel(WAVELENGTH)
+                .yAxisLabel(RELATIVE_FLUX)
                 .series(lineSeries()
                         .series(series)
                         .color(GREEN))

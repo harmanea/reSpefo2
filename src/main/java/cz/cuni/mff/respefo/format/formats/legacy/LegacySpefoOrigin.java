@@ -15,8 +15,8 @@ public class LegacySpefoOrigin extends BaseOrigin {
     private double[] filterWidth;
     private int reserve;
 
-    public LegacySpefoOrigin() {
-        // Default empty constructor
+    private LegacySpefoOrigin() {
+        // default empty constructor
     }
 
     public LegacySpefoOrigin(String fileName) {

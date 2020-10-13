@@ -86,7 +86,7 @@ public class LegacySpefoFormat implements ImportFileFormat {
                     new DoubleArrayList(Arrays.stream(spefoFile.getRectX()).mapToDouble(index -> xSeries[index]).toArray()),
                     spefoFile.getRectY()
             );
-            spectrum.getFunctionAssets().put(RectifyFunction.SERIALIZE_KEY, rectifyAsset);
+            spectrum.putFunctionAsset(RectifyFunction.SERIALIZE_KEY, rectifyAsset);
         }
 
         return spectrum;

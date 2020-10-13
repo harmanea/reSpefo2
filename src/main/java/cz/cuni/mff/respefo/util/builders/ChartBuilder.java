@@ -24,6 +24,7 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     private static final ColorResource SECONDARY_COLOR = ColorResource.BLACK;
 
     private boolean adjustRange = true;
+    private boolean layoutData = true;
 
     private ChartBuilder(Chart chart) {
         control = chart;
@@ -43,8 +44,18 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         return this;
     }
 
+    public ChartBuilder xAxisLabel(AxisLabel axisLabel) {
+        control.getAxisSet().getXAxis(0).getTitle().setText(axisLabel.getLabel());
+        return this;
+    }
+
     public ChartBuilder yAxisLabel(String label) {
         control.getAxisSet().getYAxis(0).getTitle().setText(label);
+        return this;
+    }
+
+    public ChartBuilder yAxisLabel(AxisLabel axisLabel) {
+        control.getAxisSet().getYAxis(0).getTitle().setText(axisLabel.getLabel());
         return this;
     }
 
@@ -125,9 +136,20 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
     }
 
     @Override
+    public ChartBuilder layoutData(Object data) {
+        layoutData = false;
+
+        return super.layoutData(data);
+    }
+
+    @Override
     public Chart build() {
         setTheme();
-        setLayoutData(new GridData(GridData.FILL_BOTH)); // TODO: maybe make this optional?
+
+        if (layoutData) {
+            control.setLayoutData(new GridData(GridData.FILL_BOTH));
+            control.getParent().layout();
+        }
 
         if (adjustRange) {
             control.getAxisSet().adjustRange();
@@ -177,11 +199,6 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         control.getLegend().setVisible(false);
     }
 
-    private void setLayoutData(Object layoutData) {
-        control.setLayoutData(layoutData);
-        control.getParent().layout();
-    }
-
     @SuppressWarnings("unchecked")
     public abstract static class SeriesBuilder<B extends SeriesBuilder<B>> {
         final ISeries.SeriesType seriesType;
@@ -228,9 +245,9 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
             return (B) this;
         }
 
-        public B series(XYSeries data) {
-            this.xSeries = data.getXSeries();
-            this.ySeries = data.getYSeries();
+        public B series(XYSeries xySeries) {
+            this.xSeries = xySeries.getXSeries();
+            this.ySeries = xySeries.getYSeries();
 
             return (B) this;
         }
@@ -278,6 +295,22 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
             this.symbolType = symbolType;
 
             return this;
+        }
+    }
+
+    public enum AxisLabel {
+        WAVELENGTH("wavelength (Å)"),
+        RELATIVE_FLUX("relative flux I(λ)"),
+        PIXELS("pixels");
+
+        private final String label;
+
+        AxisLabel(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
         }
     }
 }

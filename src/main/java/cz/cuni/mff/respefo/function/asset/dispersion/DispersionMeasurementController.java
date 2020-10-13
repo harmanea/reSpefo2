@@ -16,6 +16,8 @@ import java.util.function.DoubleConsumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.PIXELS;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
@@ -49,8 +51,8 @@ public class DispersionMeasurementController {
 
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title(label + " " + measurement.getLaboratoryValue())
-                .xAxisLabel("pixels")
-                .yAxisLabel("relative flux I(λ)")
+                .xAxisLabel(PIXELS)
+                .yAxisLabel(RELATIVE_FLUX)
                 .series(lineSeries()
                         .name("original")
                         .series(series)

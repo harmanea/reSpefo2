@@ -7,6 +7,7 @@ import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.format.formats.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.HorizontalDragMouseListener;
+import cz.cuni.mff.respefo.function.scan.OpenFunction;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
@@ -27,6 +28,8 @@ import java.util.Locale;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.PIXELS;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
@@ -70,7 +73,7 @@ public class DispersionController {
     private void firstStage() {
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title("Derive dispersion")
-                .xAxisLabel("pixels")
+                .xAxisLabel(PIXELS)
                 .hideYAxis()
                 .series(lineSeries()
                         .name("a")
@@ -226,8 +229,8 @@ public class DispersionController {
 
         chart(chartsComposite)
                 .title("Dispersion function")
-                .xAxisLabel("pixels")
-                .yAxisLabel("wavelength (Å)")
+                .xAxisLabel(PIXELS)
+                .yAxisLabel(WAVELENGTH)
                 .series(scatterSeries()
                         .xSeries(x)
                         .ySeries(actualY)
@@ -237,7 +240,7 @@ public class DispersionController {
 
         chart(chartsComposite)
                 .title("Residuals")
-                .xAxisLabel("pixels")
+                .xAxisLabel(PIXELS)
                 .yAxisLabel("error")
                 .series(scatterSeries()
                         .name("points")
@@ -402,14 +405,7 @@ public class DispersionController {
             spectrum.saveAs(new File(FileUtils.replaceFileExtension(file.getPath(), "spf")));
             ComponentManager.getFileExplorer().refresh();
 
-            chart(ComponentManager.clearAndGetScene())
-                    .title(file.getName())
-                    .xAxisLabel("wavelength (Å)")
-                    .yAxisLabel("relative flux I(λ)")
-                    .series(lineSeries()
-                            .name("series")
-                            .series(spectrum.getProcessedSeries()))
-                    .build();
+            OpenFunction.displaySpectrum(spectrum);
 
         } catch (SpefoException exception) {
             Message.error("An error occurred while saving file", exception);

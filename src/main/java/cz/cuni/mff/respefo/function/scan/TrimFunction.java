@@ -14,8 +14,10 @@ import org.eclipse.swt.SWT;
 import java.io.File;
 
 @Fun(name = "Trim", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
-@Serialize(key = "trim", assetClass = TrimAsset.class)
+@Serialize(key = TrimFunction.SERIALIZE_KEY, assetClass = TrimAsset.class)
 public class TrimFunction implements SingleFileFunction {
+    public static final String SERIALIZE_KEY = "trim";
+
     @Override
     public void execute(File file) {
         Spectrum spectrum;
@@ -25,7 +27,7 @@ public class TrimFunction implements SingleFileFunction {
             Message.error("Couldn't open file", e);
             return;
         }
-        TrimAsset asset = (TrimAsset) spectrum.getFunctionAssets().getOrDefault("trim", new TrimAsset());
+        TrimAsset asset = spectrum.getFunctionAsset (SERIALIZE_KEY, TrimAsset.class).orElse(new TrimAsset());
 
         TrimDialog dialog = new TrimDialog();
         dialog.setMin(asset.getMin());
@@ -38,9 +40,9 @@ public class TrimFunction implements SingleFileFunction {
         asset.setMax(dialog.getMax());
 
         if (asset.getMin() == Double.NEGATIVE_INFINITY && asset.getMax() == Double.POSITIVE_INFINITY) {
-            spectrum.getFunctionAssets().remove("trim");
+            spectrum.removeFunctionAsset(SERIALIZE_KEY);
         } else {
-            spectrum.getFunctionAssets().put("trim", asset);
+            spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
         }
 
         try {

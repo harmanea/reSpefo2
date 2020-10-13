@@ -47,7 +47,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
             return;
         }
 
-        if (!spectrum.getFunctionAssets().containsKey(MeasureEWFunction.SERIALIZE_KEY)) {
+        if (!spectrum.containsFunctionAsset(MeasureEWFunction.SERIALIZE_KEY)) {
             Message.warning("There are no EW measurements in this file.");
             return;
         }
@@ -56,7 +56,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
     }
 
     private static void displayResults(Spectrum spectrum) {
-        MeasureEWResults results = (MeasureEWResults) spectrum.getFunctionAssets().get(MeasureEWFunction.SERIALIZE_KEY);
+        MeasureEWResults results = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get();
         XYSeries series = spectrum.getProcessedSeries();
 
         ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
@@ -115,7 +115,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
                         composite.requestLayout();
 
                         if (results.isEmpty()) {
-                            spectrum.getFunctionAssets().remove(MeasureEWFunction.SERIALIZE_KEY);
+                            spectrum.removeFunctionAsset(MeasureEWFunction.SERIALIZE_KEY);
                             scrolledComposite.dispose();
                         }
 
@@ -144,7 +144,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
             try {
                 Spectrum spectrum = Spectrum.open(file);
 
-                if (spectrum.getFunctionAssets().containsKey(MeasureEWFunction.SERIALIZE_KEY)) {
+                if (spectrum.containsFunctionAsset(MeasureEWFunction.SERIALIZE_KEY)) {
                     spectra.add(spectrum);
                 } else {
                     Log.warning("There are no EW measurements in the file [" + file.getPath() + "]");
@@ -180,7 +180,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
         composite.setBackground(titleLabel.getBackground());
 
         String[] names = spectra.stream()
-                .map(spectrum -> (MeasureEWResults) spectrum.getFunctionAssets().get(MeasureEWFunction.SERIALIZE_KEY))
+                .map(spectrum -> spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get())
                 .map(MeasureEWResults::getMeasurementNames)
                 .flatMap(Stream::of)
                 .distinct()
@@ -206,7 +206,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
             }
 
             for (Spectrum spectrum : spectra) {
-                MeasureEWResults results = (MeasureEWResults) spectrum.getFunctionAssets().get(MeasureEWFunction.SERIALIZE_KEY);
+                MeasureEWResults results = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get();
                 if (results.hasMeasurementWithName(name)) {
                     MeasureEWResult result = results.getResultForName(name);
                     XYSeries series = spectrum.getProcessedSeries();
@@ -269,7 +269,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
             writer.println("Summary of equivalent widths etc.\n");
 
             String[] names = spectra.stream()
-                    .map(spectrum -> (MeasureEWResults) spectrum.getFunctionAssets().get(MeasureEWFunction.SERIALIZE_KEY))
+                    .map(spectrum -> spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get())
                     .map(MeasureEWResults::getMeasurementNames)
                     .flatMap(Stream::of)
                     .distinct()
@@ -282,7 +282,7 @@ public class EWResultsFunction implements SingleOrMultiFileFunction {
                 writer.println(" Jul. date " + " " + "    EW    " + " " + "   FWHM   " + " " + "     V    " + " " + "     R    " + " " + "    Ic    " + " " + "    V/R   " + " " + "  (V+R)/2 ");
 
                 for (Spectrum spectrum : spectra) {
-                    MeasureEWResults results = (MeasureEWResults) spectrum.getFunctionAssets().get(MeasureEWFunction.SERIALIZE_KEY);
+                    MeasureEWResults results = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get();
                     if (results.hasMeasurementWithName(name)) {
                         MeasureEWResult result = results.getResultForName(name);
                         XYSeries series = spectrum.getProcessedSeries();

@@ -4,7 +4,7 @@ public class XYSeries {
     private double[] xSeries;
     private double[] ySeries;
 
-    public XYSeries() {
+    private XYSeries() {
         // default empty constructor
     }
 

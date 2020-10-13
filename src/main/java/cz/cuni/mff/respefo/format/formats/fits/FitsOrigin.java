@@ -10,8 +10,8 @@ public class FitsOrigin extends BaseOrigin {
 
     private List<HeaderCard> headerCards;
 
-    public FitsOrigin() {
-        // Default empty constructor
+    private FitsOrigin() {
+        // default empty constructor
     }
 
     public FitsOrigin(String fileName, List<HeaderCard> headerCards) {

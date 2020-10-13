@@ -9,7 +9,6 @@ import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.asset.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
-import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
@@ -64,7 +63,7 @@ public class CompareFunction implements MultiFileFunction {
             chartBuilder.series(
                     lineSeries()
                             .name(String.valueOf(i))
-                            .color(ColorManager.getColor(COLORS[i]))
+                            .color(COLORS[i])
                             .series(spectrum.getProcessedSeries())
             );
         }

@@ -32,8 +32,8 @@ public class OpenFunction implements SingleFileFunction {
     public static void displaySpectrum(Spectrum spectrum) {
         chart(ComponentManager.clearAndGetScene())
                 .title(spectrum.getFile().getName())
-                .xAxisLabel("x axis")
-                .yAxisLabel("y axis")
+                .xAxisLabel("X axis")
+                .yAxisLabel("Y axis")
                 .series(lineSeries()
                         .name("series")
                         .series(spectrum.getProcessedSeries()))

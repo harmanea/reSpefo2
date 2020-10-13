@@ -25,6 +25,8 @@ import org.swtchart.Range;
 
 import java.io.File;
 
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
@@ -48,15 +50,15 @@ public class RectifyFunction implements SingleFileFunction {
             return;
         }
 
-        RectifyAsset asset = (RectifyAsset) spectrum.getFunctionAssets()
-                .getOrDefault(SERIALIZE_KEY, RectifyAsset.withDefaultPoints(spectrum.getProcessedSeries()));
+        RectifyAsset asset = spectrum.getFunctionAsset(SERIALIZE_KEY, RectifyAsset.class)
+                .orElse(RectifyAsset.withDefaultPoints(spectrum.getProcessedSeries()));
 
         XYSeries series = spectrum.getProcessedSeriesWithout(asset);
 
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title(file.getName())
-                .xAxisLabel("wavelength (Å)")
-                .yAxisLabel("relative flux I(λ)")
+                .xAxisLabel(WAVELENGTH)
+                .yAxisLabel(RELATIVE_FLUX)
                 .series(lineSeries()
                         .name("original")
                         .color(ColorResource.GREEN)
@@ -175,9 +177,9 @@ public class RectifyFunction implements SingleFileFunction {
                     }
                     case SWT.CR: {
                         if (asset.isEmpty()) { // TODO: this can never occurr
-                            spectrum.getFunctionAssets().remove(SERIALIZE_KEY);
+                            spectrum.removeFunctionAsset(SERIALIZE_KEY);
                         } else {
-                            spectrum.getFunctionAssets().put(SERIALIZE_KEY, asset);
+                            spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
                         }
 
                         try {

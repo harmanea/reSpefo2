@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
+import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
@@ -51,8 +52,8 @@ public class RVMeasurementController {
 
         Chart chart = chart(ComponentManager.clearAndGetScene())
                 .title(measurement.getName() + " " + measurement.getL0())
-                .xAxisLabel("pixels")
-                .yAxisLabel("relative flux I(λ)")
+                .xAxisLabel("index")
+                .yAxisLabel(RELATIVE_FLUX)
                 .series(lineSeries()
                         .name("original")
                         .xSeries(ArrayUtils.fillArray(series.getYSeries().length, 0, 1))

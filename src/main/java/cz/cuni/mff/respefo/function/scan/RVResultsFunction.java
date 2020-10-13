@@ -52,7 +52,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
             return;
         }
 
-        if (!spectrum.getFunctionAssets().containsKey(MeasureRVFunction.SERIALIZE_KEY)) {
+        if (!spectrum.containsFunctionAsset(MeasureRVFunction.SERIALIZE_KEY)) {
             Message.warning("There are no RV measurements in this file.");
             return;
         }
@@ -61,7 +61,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
     }
 
     private static void displayResults(Spectrum spectrum) {
-        MeasureRVResults results = (MeasureRVResults) spectrum.getFunctionAssets().get(MeasureRVFunction.SERIALIZE_KEY);
+        MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
 
         ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
         scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -152,7 +152,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
                     }
 
                     if (results.isEmpty()) {
-                        spectrum.getFunctionAssets().remove(MeasureRVFunction.SERIALIZE_KEY);
+                        spectrum.removeFunctionAsset(MeasureRVFunction.SERIALIZE_KEY);
                         scrolledComposite.dispose();
                     }
 
@@ -195,7 +195,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
             try {
                 Spectrum spectrum = Spectrum.open(file);
 
-                if (spectrum.getFunctionAssets().containsKey(MeasureRVFunction.SERIALIZE_KEY)) {
+                if (spectrum.containsFunctionAsset(MeasureRVFunction.SERIALIZE_KEY)) {
                     spectra.add(spectrum);
                 } else {
                     Log.warning("There are no RV measurements in the file [" + file.getPath() + "]");
@@ -237,7 +237,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
         table.addListener(SWT.Selection, event -> table.deselectAll());
 
         String[] categories = spectra.stream()
-                .map(spectrum -> (MeasureRVResults) spectrum.getFunctionAssets().get(MeasureRVFunction.SERIALIZE_KEY))
+                .map(spectrum -> spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get())
                 .map(MeasureRVResults::getCategories)
                 .flatMap(Stream::of)
                 .distinct()
@@ -260,7 +260,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
             tableItem.setText(0, String.format(Locale.US, "%8.4f", spectrum.getHjd().getJD()));
             tableItem.setText(1, String.format(Locale.US, "%4.2f", spectrum.getRvCorrection()));
 
-            MeasureRVResults results = (MeasureRVResults) spectrum.getFunctionAssets().get(MeasureRVFunction.SERIALIZE_KEY);
+            MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
             for (int i = 0; i < categories.length; i++) {
                 double result = results.getRvOfCategory(categories[i]);
                 if (isNotNaN(result)) {
@@ -311,7 +311,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
             writer.print("  N. Jul. date RVCorr ");
 
             String[] categories = spectra.stream()
-                    .map(spectrum -> (MeasureRVResults) spectrum.getFunctionAssets().get(MeasureRVFunction.SERIALIZE_KEY))
+                    .map(spectrum -> spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get())
                     .map(MeasureRVResults::getCategories)
                     .flatMap(Stream::of)
                     .distinct()
@@ -329,7 +329,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
                 writer.print(formatDouble(spectrum.getHjd().getRJD(), 5, 4, false) + " ");
                 writer.print(formatDouble(spectrum.getRvCorrection(), 2, 2, true));
 
-                MeasureRVResults results = (MeasureRVResults) spectrum.getFunctionAssets().get(MeasureRVFunction.SERIALIZE_KEY);
+                MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
                 for (String category : categories) {
                     double result = results.getRvOfCategory(category);
                     if (isNotNaN(result)) {
@@ -364,7 +364,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
             writer.print("  N. Jul. date ");
 
             String[] categories = spectra.stream()
-                    .map(spectrum -> (MeasureRVResults) spectrum.getFunctionAssets().get(MeasureRVFunction.SERIALIZE_KEY))
+                    .map(spectrum -> spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get())
                     .map(MeasureRVResults::getCategories)
                     .flatMap(Stream::of)
                     .distinct()
@@ -378,7 +378,7 @@ public class RVResultsFunction implements SingleOrMultiFileFunction {
 
             for (int i = 0; i < spectra.size(); i++) {
                 Spectrum spectrum = spectra.get(i);
-                MeasureRVResults results = (MeasureRVResults) spectrum.getFunctionAssets().get(MeasureRVFunction.SERIALIZE_KEY);
+                MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
 
                 if (isNaN(results.getRvOfCategory("corr"))) {
                     Log.warning("Spectrum " + spectrum.getFile().getName() + " was skipped because it does not have meaured corrections.");

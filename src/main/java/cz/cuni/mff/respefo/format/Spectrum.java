@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Optional;
 
 public class Spectrum {
     private static final int CURRENT_FORMAT = 1;
@@ -199,8 +199,20 @@ public class Spectrum {
         return processedSeries;
     }
 
-    // TODO: make map functions available directly
-    public Map<String, FunctionAsset> getFunctionAssets() {
-        return functionAssets;
+    @SuppressWarnings({"unchecked", "unused"})
+    public <T extends FunctionAsset> Optional<T> getFunctionAsset(String key, Class<T> cls) {
+        return Optional.ofNullable((T) functionAssets.get(key));
+    }
+
+    public void putFunctionAsset(String key, FunctionAsset asset) {
+        functionAssets.put(key, asset);
+    }
+
+    public void removeFunctionAsset(String key) {
+        functionAssets.remove(key);
+    }
+
+    public boolean containsFunctionAsset(String key) {
+        return functionAssets.containsKey(key);
     }
 }
