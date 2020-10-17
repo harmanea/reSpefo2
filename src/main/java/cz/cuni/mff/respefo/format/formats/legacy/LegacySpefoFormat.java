@@ -46,9 +46,9 @@ public class LegacySpefoFormat implements ImportFileFormat {
     public Spectrum importFrom(String fileName) throws SpefoException {
         LegacySpefoFile spefoFile = new LegacySpefoFile(fileName);
 
-        String conFileName = FileUtils.replaceFileExtension(fileName, "con");
         switch (FileUtils.getFileExtension(fileName)) {
             case "uui":
+                String conFileName = FileUtils.replaceFileExtension(fileName, "con");
                 if (Files.exists(Paths.get(conFileName))) {
                     LegacyConFile conFile = new LegacyConFile(conFileName);
                     spefoFile.setRemark(conFile.getRemark());
