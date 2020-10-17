@@ -12,14 +12,10 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
+import static cz.cuni.mff.respefo.component.OverwriteDialog.*;
 import static org.eclipse.swt.SWT.CANCEL;
 
 public class FileCopy {
-
-    public static final int REPLACE = -2;
-    public static final int MERGE = -3;
-    public static final int RENAME = -4;
-    public static final int SKIP = -5;
 
     private final Path targetDir;
 

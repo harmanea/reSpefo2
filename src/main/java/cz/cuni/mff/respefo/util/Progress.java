@@ -1,12 +1,15 @@
 package cz.cuni.mff.respefo.util;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.SpefoDialog;
+import javafx.util.Pair;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Progress {
     private static ProgressBar progressBar;
@@ -30,9 +33,14 @@ public class Progress {
     public static <T> void withProgressTracking(Function<Progress, T> backgroundProcess, Consumer<T> callback) {
         Runnable runnable = () -> {
             increaseCounter();
-            T response = backgroundProcess.apply(new Progress());
-            decreaseCounter();
-            display.asyncExec(() -> callback.accept(response));
+            try {
+                T response = backgroundProcess.apply(new Progress());
+                display.asyncExec(() -> callback.accept(response));
+            } catch(Exception exception) {
+                display.asyncExec(() -> { throw exception; });
+            } finally {
+                decreaseCounter();
+            }
         };
         new Thread(runnable).start();
     }
@@ -71,6 +79,19 @@ public class Progress {
 
     public void asyncExec(Runnable runnable) {
         display.asyncExec(runnable);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends SpefoDialog> Pair<Integer, T> syncOpenDialog(Supplier<T> dialogSupplier) {
+        SpefoDialog[] dialogs = new SpefoDialog[1];
+        int[] returnValues = new int[1];
+
+        display.syncExec(() -> {
+            dialogs[0] = dialogSupplier.get();
+            returnValues[0] = dialogs[0].open();
+        });
+
+        return new Pair<>(returnValues[0], (T) dialogs[0]);
     }
 
     public void refresh(String label, int range) {

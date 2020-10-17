@@ -2,28 +2,39 @@ package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.OverwriteDialog;
 import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.format.Spectrum;
+import cz.cuni.mff.respefo.format.UnknownFileFormatException;
 import cz.cuni.mff.respefo.format.formats.ExportFileFormat;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
+import cz.cuni.mff.respefo.function.asset.port.FileExtensionDialog;
 import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
+import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FileDialogs;
+import cz.cuni.mff.respefo.util.utils.FileUtils;
+import javafx.util.Pair;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
+import static cz.cuni.mff.respefo.component.OverwriteDialog.*;
 import static cz.cuni.mff.respefo.util.FileType.COMPATIBLE_SPECTRUM_FILES;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
+import static org.eclipse.swt.SWT.CANCEL;
 
 @Fun(name = "Export", fileFilter = SpefoFormatFileFilter.class)
 public class ExportFunction implements SingleOrMultiFileFunction {
 
-    // TODO: handle overwriting
-    // TODO: message on success
     @Override
     public void execute(File spectrumFile) {
         Spectrum spectrum;
@@ -35,14 +46,9 @@ public class ExportFunction implements SingleOrMultiFileFunction {
         }
 
         String fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrumFile.getName()));
-
         if (fileName != null) {
             try {
-                List<ExportFileFormat> fileFormats = FormatManager.getExportFileFormats(fileName);
-
-                FileFormatSelectionDialog<ExportFileFormat> dialog = new FileFormatSelectionDialog<>(fileFormats, "Export");
-                if (dialog.open() == SWT.OK) {
-                    dialog.getFileFormat().exportTo(spectrum, fileName);
+                if (exportTo(spectrum, fileName)) {
                     ComponentManager.getFileExplorer().refresh();
                 }
             } catch (SpefoException exception) {
@@ -51,8 +57,126 @@ public class ExportFunction implements SingleOrMultiFileFunction {
         }
     }
 
+    private static boolean exportTo(Spectrum spectrum, String fileName) throws SpefoException {
+        if (Files.exists(Paths.get(fileName))) {
+            OverwriteDialog dialog = new OverwriteDialog(new File(fileName));
+            int response = dialog.open();
+            if (response == RENAME) {
+                return exportTo(spectrum, Paths.get(fileName).resolveSibling(dialog.getNewName()).toString());
+            } else if (response == CANCEL || response == SKIP) {
+                return false;
+            } /* else response == REPLACE */
+        }
+
+        List<ExportFileFormat> fileFormats = FormatManager.getExportFileFormats(fileName);
+
+        FileFormatSelectionDialog<ExportFileFormat> dialog = new FileFormatSelectionDialog<>(fileFormats, "Export");
+        if (dialog.open() == SWT.OK) {
+            dialog.getFileFormat().exportTo(spectrum, fileName);
+        }
+        return true;
+    }
+
     @Override
     public void execute(List<File> spectrumFiles) {
-        Message.warning("This function is not yet implemented.\nUse the single file version instead.");
+        FileExtensionDialog dialog = new FileExtensionDialog();
+        if (dialog.open() != SWT.OK) {
+            return;
+        }
+        String fileExtension = dialog.getFileExtension();
+
+        List<ExportFileFormat> fileFormats;
+        try {
+            fileFormats = FormatManager.getExportFileFormats("file." + fileExtension);
+        } catch (UnknownFileFormatException exception) {
+            Message.error("Unknown file extension", exception);
+            return;
+        }
+
+        FileFormatSelectionDialog<ExportFileFormat> formatDialog = new FileFormatSelectionDialog<>(fileFormats, "Export");
+        if (formatDialog.open() != SWT.OK) {
+            return;
+        }
+        ExportFileFormat exportFormat = formatDialog.getFileFormat();
+
+        Progress.withProgressTracking(p -> {
+            p.refresh("Exporting files", spectrumFiles.size() * 2);
+            List<File> failedFiles = new ArrayList<>();
+
+            List<Spectrum> spectra = new ArrayList<>();
+            for (File spectrumFile : spectrumFiles) {
+                try {
+                    Spectrum spectrum = Spectrum.open(spectrumFile);
+                    spectra.add(spectrum);
+                } catch (SpefoException exception) {
+                    Log.error("An error occured while opening file " + spectrumFile.toPath());
+                    failedFiles.add(spectrumFile);
+                } finally {
+                    p.step();
+                }
+            }
+
+            int applyToAllAction = 0;
+            for (Spectrum spectrum : spectra) {
+                try {
+                    String fileName = FileUtils.replaceFileExtension(spectrum.getFile().getPath(), fileExtension);
+
+                    int response = exportTo(p, spectrum, fileName, exportFormat, applyToAllAction);
+                    if (response == CANCEL) {
+                        break;
+                    } else if (response < 0) {
+                        applyToAllAction = response;
+                    }
+
+                } catch (SpefoException exception) {
+                    Log.error("An error occured while exporting file " + spectrum.getFile().toPath());
+                    failedFiles.add(spectrum.getFile());
+                } finally {
+                    p.step();
+                }
+            }
+
+            return failedFiles;
+        }, failedFiles -> {
+            if (!failedFiles.isEmpty()) {
+                Message.warning("Some files failed to import:\n\n" + filesListToString(failedFiles));
+            }
+            ComponentManager.getFileExplorer().refresh();
+        });
+    }
+
+    private static int exportTo(Progress p, Spectrum spectrum, String fileName, ExportFileFormat exportFormat, int applyToAllAction) throws SpefoException {
+        if (Files.exists(Paths.get(fileName))) {
+            if (applyToAllAction < 0) {
+                if (applyToAllAction == REPLACE) {
+                    exportFormat.exportTo(spectrum, fileName);
+                } /* else applyToAllAction == SKIP */
+                return applyToAllAction;
+            }
+
+            Pair<Integer, OverwriteDialog> overwriteResponseAndDialog = p.syncOpenDialog(() -> new OverwriteDialog(new File(fileName)));
+            int response = overwriteResponseAndDialog.getKey();
+            OverwriteDialog dialog = overwriteResponseAndDialog.getValue();
+
+            if (response == REPLACE) {
+                exportFormat.exportTo(spectrum, fileName);
+                if (dialog.applyToAll()) {
+                    return REPLACE;
+                }
+            } else if (response == RENAME) {
+                return exportTo(p, spectrum, Paths.get(fileName).resolveSibling(dialog.getNewName()).toString(), exportFormat, applyToAllAction);
+
+            } else if (response == SKIP) {
+                if (overwriteResponseAndDialog.getValue().applyToAll()) {
+                    return SKIP;
+                }
+            }  else /* response == CANCEL */ {
+                return CANCEL;
+            }
+        } else {
+            exportFormat.exportTo(spectrum, fileName);
+        }
+
+        return applyToAllAction;
     }
 }

@@ -37,13 +37,14 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import java.util.stream.Collectors;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.BLACK;
 import static cz.cuni.mff.respefo.resources.ImageManager.getIconForFile;
 import static cz.cuni.mff.respefo.resources.ImageManager.getImage;
 import static cz.cuni.mff.respefo.resources.ImageResource.FOLDER;
 import static cz.cuni.mff.respefo.resources.ImageResource.OPENED_FOLDER;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.filenamesListToString;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
@@ -360,7 +361,7 @@ public class FileExplorer {
 
         List<String> failedFiles = FileCopy.copyTo(target.toPath(), fileNames);
         if (!failedFiles.isEmpty()) {
-            Message.warning("Some files failed to copy:\n\n" + filesListToString(failedFiles.stream().map(File::new).collect(toList())));
+            Message.warning("Some files failed to copy:\n\n" + filenamesListToString(failedFiles));
         }
 
         refresh();
@@ -390,12 +391,6 @@ public class FileExplorer {
         }
 
         refresh();
-    }
-
-    private String filesListToString(List<File> files) {
-        return (files.size() > 5 ? files.subList(0, 5)  : files)
-                .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining("\n"))
-                + (files.size() > 5 ? "\n\nand " + (files.size() - 5) + " more"  : "");
     }
 
     private void rename() {

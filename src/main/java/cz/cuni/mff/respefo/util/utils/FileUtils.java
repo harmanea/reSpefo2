@@ -7,7 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class FileUtils extends UtilityClass {
     private static final File USER_DIRECTORY;
@@ -141,6 +145,28 @@ public class FileUtils extends UtilityClass {
         } else {
             Files.delete(file.toPath());
         }
+    }
+
+    /**
+     * Transforms a list of filenames to a formatted string.
+     * Outputs up to five filenames relative to the project root per line and, if there are any, the number of the remaining filenames.
+     * @param fileNames list of filenames
+     * @return formatted string
+     */
+    public static String filenamesListToString(List<String> fileNames) {
+        return filesListToString(fileNames.stream().map(File::new).collect(toList()));
+    }
+
+    /**
+     * Transforms a list of files to a formatted string.
+     * Outputs up to five filenames relative to the project root per line and, if there are any, the number of the remaining filenames.
+     * @param files list of files
+     * @return formatted string
+     */
+    public static String filesListToString(List<File> files) {
+        return (files.size() > 5 ? files.subList(0, 5)  : files)
+                .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining("\n"))
+                + (files.size() > 5 ? "\n\nand " + (files.size() - 5) + " more"  : "");
     }
 
     protected FileUtils() throws IllegalAccessException {

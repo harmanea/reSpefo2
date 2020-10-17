@@ -13,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static cz.cuni.mff.respefo.resources.ImageManager.getIconForFile;
-import static cz.cuni.mff.respefo.util.FileCopy.*;
 import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.checkButton;
 import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
@@ -24,6 +23,10 @@ import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 public class OverwriteDialog extends TitleAreaDialog {
 
     private static final int DEFAULT = -1;
+    public static final int REPLACE = -2;
+    public static final int MERGE = -3;
+    public static final int RENAME = -4;
+    public static final int SKIP = -5;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
 
@@ -35,6 +38,16 @@ public class OverwriteDialog extends TitleAreaDialog {
 
     private String newName = null;
     private boolean applyToAll;
+
+    public OverwriteDialog(File file) {
+        super("Replace file  \"" + file.getName() + "\"?");
+
+        this.originalFile = file;
+        this.replaceWith = null;
+
+        originalFileisDirectory = file.isDirectory();
+        replaceWithIsDirectory = false;
+    }
 
     public OverwriteDialog(File originalFile, File replaceWith) {
         super((originalFile.isDirectory() && replaceWith.isDirectory() ? "Merge folder" : "Replace file") + " \"" + originalFile.getName() + "\"?");
@@ -126,23 +139,24 @@ public class OverwriteDialog extends TitleAreaDialog {
                         : "Size: " + StringUtils.humanReadableByteCountSI(originalFile.length()));
         label(originalFileComposite).text("Last modified: " + dateFormat.format(new Date(originalFile.lastModified())));
 
-        label(fileDetailsComposite)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER))
-                .image(getIconForFile(replaceWith));
+        if (replaceWith != null) {
+            label(fileDetailsComposite)
+                    .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER))
+                    .image(getIconForFile(replaceWith));
 
-        final Composite replaceWithComposite = composite(fileDetailsComposite)
-                .layout(new FillLayout(SWT.VERTICAL))
-                .build();
+            final Composite replaceWithComposite = composite(fileDetailsComposite)
+                    .layout(new FillLayout(SWT.VERTICAL))
+                    .build();
 
-        label(replaceWithComposite)
-                .text(originalFileisDirectory && replaceWithIsDirectory ? "Merge" : "Replace" + " with")
-                .bold();
+            label(replaceWithComposite)
+                    .text(originalFileisDirectory && replaceWithIsDirectory ? "Merge" : "Replace" + " with")
+                    .bold();
 
-        label(replaceWithComposite).text(replaceWithIsDirectory
-                ? "Contents: " + directoryContents(replaceWith) + " items"
-                : "Size: " + StringUtils.humanReadableByteCountSI(replaceWith.length()));
-        label(replaceWithComposite).text("Last modified: " + dateFormat.format(new Date(replaceWith.lastModified())));
-
+            label(replaceWithComposite).text(replaceWithIsDirectory
+                    ? "Contents: " + directoryContents(replaceWith) + " items"
+                    : "Size: " + StringUtils.humanReadableByteCountSI(replaceWith.length()));
+            label(replaceWithComposite).text("Last modified: " + dateFormat.format(new Date(replaceWith.lastModified())));
+        }
 
         final Composite expandBarComposite = composite(topComposite)
                 .layout(gridLayout().margins(5))
