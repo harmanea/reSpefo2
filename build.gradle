@@ -9,7 +9,6 @@ version gitVersion()
 
 sourceCompatibility = 1.8
 
-apply plugin: 'com.diffplug.gradle.eclipse.mavencentral'
 eclipseMavenCentral {
     release '4.12.0', {
         implementation 'org.eclipse.swt'
@@ -39,6 +38,7 @@ tasks.withType(JavaExec) {
     systemProperty "respefo.version", version
 }
 
+// https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Jar.html
 task fatJar(type: Jar) {
     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 
@@ -49,9 +49,9 @@ task fatJar(type: Jar) {
         )
     }
 
-    // archiveAppendix = os and bitness
-    // destinationDirectory = some/other/dir
+    baseName = 'reSpefo'
+    appendix = 'unix64'
 
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
