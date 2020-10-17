@@ -122,22 +122,20 @@ public class DispersionController {
             @Override
             public void keyPressed(KeyEvent e) {
                 switch (e.keyCode) {
-                    case SWT.INSERT: {
+                    case SWT.INSERT:
                         if (Double.isNaN(newPoint)) {
                             Range range = chart.getAxisSet().getXAxis(0).getRange();
                             newPoint = (range.lower + range.upper) / 2;
                             chart.redraw();
                         }
                         break;
-                    }
-                    case SWT.ESC: {
+                    case SWT.ESC:
                         if (!Double.isNaN(newPoint)) {
                             newPoint = Double.NaN;
                             chart.redraw();
                         }
                         break;
-                    }
-                    case SWT.CR: {
+                    case SWT.CR:
                         if (Double.isNaN(newPoint)) {
                             if (measurements.numberOfMeasured() < 2) {
                                 Message.warning("You must first manually select at least two lines.");
@@ -157,21 +155,18 @@ public class DispersionController {
                             }
                         }
                         break;
-                    }
-                    case 'n': {
+                    case 'n':
                         if (isNotNaN(newPoint)) {
                             newPoint -= getRelativeHorizontalStep(chart);
                             chart.redraw();
                         }
                         break;
-                    }
-                    case 'm': {
+                    case 'm':
                         if (isNotNaN(newPoint)) {
                             newPoint += getRelativeHorizontalStep(chart);
                             chart.redraw();
                         }
                         break;
-                    }
                 }
             }
         });

@@ -108,7 +108,7 @@ public class RectifyFunction implements SingleFileFunction {
             @Override
             public void keyPressed(KeyEvent e) {
                 switch (e.keyCode) {
-                    case SWT.INSERT: {
+                    case SWT.INSERT:
                         Range xRange = chart.getAxisSet().getXAxis(0).getRange();
                         Range yRange = chart.getAxisSet().getYAxis(0).getRange();
 
@@ -116,46 +116,38 @@ public class RectifyFunction implements SingleFileFunction {
 
                         updateAllSeries(chart, asset, series);
                         break;
-                    }
-                    case SWT.DEL: {
+                    case SWT.DEL:
                         asset.deleteActivePoint();
 
                         updateAllSeries(chart, asset, series);
                         break;
-                    }
-                    case 'n': {
+                    case 'n':
                         if (asset.getActiveIndex() > 0) {
                             updateActivePoint(chart, asset, asset.getActiveIndex() - 1);
                         }
                         break;
-                    }
-                    case 'm': {
+                    case 'm':
                         if (asset.getActiveIndex() < asset.getCount() - 1) {
                             updateActivePoint(chart, asset, asset.getActiveIndex() + 1);
                         }
                         break;
-                    }
-                    case 'i': {
+                    case 'i':
                         asset.moveActivePoint(0, ChartUtils.getRelativeVerticalStep(chart));
                         updateAllSeries(chart, asset, series);
                         break;
-                    }
-                    case 'j': {
+                    case 'j':
                         asset.moveActivePoint(-ChartUtils.getRelativeHorizontalStep(chart), 0);
                         updateAllSeries(chart, asset, series);
                         break;
-                    }
-                    case 'k': {
+                    case 'k':
                         asset.moveActivePoint(0, -ChartUtils.getRelativeVerticalStep(chart));
                         updateAllSeries(chart, asset, series);
                         break;
-                    }
-                    case 'l': {
+                    case 'l':
                         asset.moveActivePoint(ChartUtils.getRelativeHorizontalStep(chart), 0);
                         updateAllSeries(chart, asset, series);
                         break;
-                    }
-                    case 'p': {
+                    case 'p':
                         double x = asset.getActiveX();
                         Range chartXRange = chart.getAxisSet().getXAxis(0).getRange();
                         Range newXRange = new Range(x - (chartXRange.upper - chartXRange.lower) / 2, x + (chartXRange.upper - chartXRange.lower) / 2);
@@ -174,8 +166,7 @@ public class RectifyFunction implements SingleFileFunction {
 
                         chart.redraw();
                         break;
-                    }
-                    case SWT.CR: {
+                    case SWT.CR:
                         if (asset.isEmpty()) { // TODO: this can never occurr
                             spectrum.removeFunctionAsset(SERIALIZE_KEY);
                         } else {
@@ -192,7 +183,6 @@ public class RectifyFunction implements SingleFileFunction {
                             Message.error("Couldn't save file", exception);
                         }
                         break;
-                    }
                 }
             }
         });

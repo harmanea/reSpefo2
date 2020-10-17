@@ -1,13 +1,14 @@
 package cz.cuni.mff.respefo.format.origin;
 
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.util.UtilityClass;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class OriginManager {
+public class OriginManager extends UtilityClass {
     private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.format.formats";
 
     private static Map<String, Class<?>> origins;
@@ -35,5 +36,9 @@ public class OriginManager {
         }
 
         throw new IllegalArgumentException("There is no origin with the key [" + key + "].");
+    }
+
+    protected OriginManager() throws IllegalAccessException {
+        super();
     }
 }

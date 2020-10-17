@@ -87,31 +87,27 @@ public class CleanFunction implements SingleFileFunction {
             @Override
             public void keyPressed(KeyEvent e) {
                 switch (e.keyCode) {
-                    case SWT.DEL: {
+                    case SWT.DEL:
                         asset.addActiveIndex();
                         updateSeries(chart, data, asset);
                         updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getXSeries().length ? 1 : 0));
                         break;
-                    }
-                    case SWT.INSERT: {
+                    case SWT.INSERT:
                         asset.removeActiveIndex();
                         updateSeries(chart, data, asset);
                         updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getXSeries().length ? 1 : 0));
                         break;
-                    }
-                    case 'n': {
+                    case 'n':
                         if (asset.getActiveIndex() > 0) {
                             updateActivePoint(chart, asset, asset.getActiveIndex() - 1);
                         }
                         break;
-                    }
-                    case 'm': {
+                    case 'm':
                         if (asset.getActiveIndex() < data.getXSeries().length - 1) {
                             updateActivePoint(chart, asset, asset.getActiveIndex() + 1);
                         }
                         break;
-                    }
-                    case SWT.CR: {
+                    case SWT.CR:
                         if (asset.isEmpty()) {
                             spectrum.removeFunctionAsset(SERIALIZE_KEY);
                         } else {
@@ -128,7 +124,6 @@ public class CleanFunction implements SingleFileFunction {
                             Message.error("Spectrum file couldn't be saved.", exception);
                         }
                         break;
-                    }
                 }
             }
         });

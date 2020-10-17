@@ -41,6 +41,7 @@ public class ComponentManager extends UtilityClass {
 
     public static void build() throws SpefoException {
         shell.setLayout(gridLayout(3, false).margins(0).spacings(0).build());
+        shell.addListener(Close, event -> event.doit = Message.question("Are you sure you want to quit?"));
 
         // Top level
 
