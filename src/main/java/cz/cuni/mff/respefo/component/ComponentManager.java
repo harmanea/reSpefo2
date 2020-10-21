@@ -1,26 +1,29 @@
 package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.function.scan.DebugFunction;
+import cz.cuni.mff.respefo.function.scan.ExportFunction;
+import cz.cuni.mff.respefo.function.scan.ImportFunction;
+import cz.cuni.mff.respefo.function.scan.OpenFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
-import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.Progress;
-import cz.cuni.mff.respefo.util.UtilityClass;
-import cz.cuni.mff.respefo.util.VersionInfo;
+import cz.cuni.mff.respefo.util.*;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.*;
 
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
+import java.io.File;
+
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
 public class ComponentManager extends UtilityClass {
@@ -42,6 +45,114 @@ public class ComponentManager extends UtilityClass {
     public static void build() throws SpefoException {
         shell.setLayout(gridLayout(3, false).margins(0).spacings(0).build());
         shell.addListener(Close, event -> event.doit = Message.question("Are you sure you want to quit?"));
+
+        // Menu
+
+        final Menu menuBar = new Menu(shell, BAR);
+        shell.setMenuBar(menuBar);
+
+        final MenuItem fileMenuHeader = new MenuItem(menuBar, CASCADE);
+        fileMenuHeader.setText("&File");
+
+        final Menu fileMenu = new Menu(shell, DROP_DOWN);
+        fileMenuHeader.setMenu(fileMenu);
+
+        final MenuItem openMenuItem = new MenuItem(fileMenu, PUSH);
+        openMenuItem.setText("Open");
+        openMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
+            if (fileName != null) {
+                new OpenFunction().execute(new File(fileName)); // TODO: refactor this
+            }
+        }));
+
+        new MenuItem(fileMenu, SEPARATOR);
+
+        final MenuItem importMenuItem = new MenuItem(fileMenu, PUSH);
+        importMenuItem.setText("Import");
+        importMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.COMPATIBLE_SPECTRUM_FILES);
+            if (!fileNames.isEmpty()) {
+                new ImportFunction().execute(fileNames.stream().map(File::new).collect(toList())); // TODO: refactor this
+            }
+        }));
+
+        final MenuItem exportMenuItem = new MenuItem(fileMenu, PUSH);
+        exportMenuItem.setText("Export");
+        exportMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.SPECTRUM);
+            if (!fileNames.isEmpty()) {
+                new ExportFunction().execute(fileNames.stream().map(File::new).collect(toList())); // TODO: refactor this
+            }
+        }));
+
+        new MenuItem(fileMenu, SEPARATOR);
+
+        final MenuItem quitMenuItem = new MenuItem(fileMenu, PUSH);
+        quitMenuItem.setText("Quit");
+        quitMenuItem.addSelectionListener(new DefaultSelectionListener(event -> shell.close()));
+
+
+        final MenuItem windowMenuHeader = new MenuItem(menuBar, CASCADE);
+        windowMenuHeader.setText("&Window");
+
+        final Menu windowMenu = new Menu(shell, DROP_DOWN);
+        windowMenuHeader.setMenu(windowMenu);
+
+        final MenuItem showSideBarsMenuItem = new MenuItem(windowMenu, PUSH);
+        showSideBarsMenuItem.setText("Show Sidebars");
+        showSideBarsMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            if (componentWithSidebars.isLeftBarMinimized()) {
+                componentWithSidebars.restoreLeftBar();
+            }
+            if (componentWithSidebars.isRightBarMinimized()) {
+                componentWithSidebars.restoreRightBar();
+            }
+        }));
+
+        final MenuItem hideSideBarsMenuItem = new MenuItem(windowMenu, PUSH);
+        hideSideBarsMenuItem.setText("Hide Sidebars");
+        hideSideBarsMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            if (!componentWithSidebars.isLeftBarMinimized()) {
+                componentWithSidebars.minimizeLeftBar();
+            }
+            if (!componentWithSidebars.isRightBarMinimized()) {
+                componentWithSidebars.minimizeRightBar();
+            }
+        }));
+
+        new MenuItem(windowMenu, SEPARATOR);
+
+        final MenuItem clearSceneMenuItem = new MenuItem(windowMenu, PUSH);
+        clearSceneMenuItem.setText("Clear Scene");
+        clearSceneMenuItem.addSelectionListener(new DefaultSelectionListener(event -> clearScene()));
+
+        final MenuItem focusSceneMenuItem = new MenuItem(windowMenu, PUSH);
+        focusSceneMenuItem.setText("Focus Scene");
+        focusSceneMenuItem.addSelectionListener(new DefaultSelectionListener(event -> getScene().forceFocus()));
+
+
+        final MenuItem debugMenuHeader = new MenuItem(menuBar, CASCADE);
+        debugMenuHeader.setText("Debug");
+
+        final Menu debugMenu = new Menu(shell, DROP_DOWN);
+        debugMenuHeader.setMenu(debugMenu);
+
+        final MenuItem spectrumJsonMenuItem = new MenuItem(debugMenu, PUSH);
+        spectrumJsonMenuItem.setText("Inspect JSON");
+        spectrumJsonMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
+            if (fileName != null) {
+                new DebugFunction().execute(new File(fileName)); // TODO: refactor this
+            }
+        }));
+
+        final MenuItem exceptionMenuItem = new MenuItem(debugMenu, PUSH);
+        exceptionMenuItem.setText("Throw an Exception");
+        exceptionMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            throw new RuntimeException("This is a debug exception");
+        }));
+
 
         // Top level
 
@@ -93,15 +204,9 @@ public class ComponentManager extends UtilityClass {
                 .layout(new GridLayout())
                 .build();
 
-        pushButton(rightBarComposite)
-                .layoutData(new GridData(CENTER, TOP, true, false))
-                .text("Clear scene")
-                .onSelection(event -> ComponentManager.clearScene());
-
-        pushButton(rightBarComposite)
-                .layoutData(new GridData(CENTER, TOP, true, false))
-                .text("Focus scene")
-                .onSelection(event -> ComponentManager.getScene().forceFocus());
+        label(rightBarComposite, CENTER)
+                .layoutData(new GridData(GridData.FILL_BOTH))
+                .text("This toolbar is empty");
 
         // componentWithBottomBar -> bottom bar
 
@@ -139,7 +244,7 @@ public class ComponentManager extends UtilityClass {
                 .layoutData(new GridData(LEFT, CENTER, false, false))
                 .build();
         bottomLogLabel.addListener(MouseDown, event -> bottomToggle.toggle());
-        Log.registerListener(new LabelLogListener(bottomLogLabel));
+        Log.registerListener(new LabelLogListener(bottomLogLabel, () -> !bottomToggle.isToggled()));
 
         bottomToggle.setToggleAction(toggled -> {
             componentWithBottomBar.toggleScene();
@@ -166,13 +271,13 @@ public class ComponentManager extends UtilityClass {
 
         // left
 
-        LabelButton leftMinimize = new LabelButton(leftTopBar.getToolbox(), NONE);
-        leftMinimize.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
-        leftMinimize.onClick(leftToggle::toggle);
-        leftMinimize.setToolTipText("Minimize");
+        LabelButton leftHide = new LabelButton(leftTopBar.getToolbox(), NONE);
+        leftHide.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
+        leftHide.onClick(leftToggle::toggle);
+        leftHide.setToolTipText("Hide");
 
         label(leftTopBar.getToolbox(), VERTICAL | SEPARATOR)
-                .layoutData(new RowData(DEFAULT, leftMinimize.computeSize(DEFAULT, DEFAULT).y))
+                .layoutData(new RowData(DEFAULT, leftHide.computeSize(DEFAULT, DEFAULT).y))
                 .build();
 
         LabelButton collapse = new LabelButton(leftTopBar.getToolbox(), NONE);
@@ -192,17 +297,17 @@ public class ComponentManager extends UtilityClass {
 
         // right
 
-        LabelButton rightMinimize = new LabelButton(rightTopBar.getToolbox(), NONE);
-        rightMinimize.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
-        rightMinimize.onClick(rightToggle::toggle);
-        rightMinimize.setToolTipText("Minimize");
+        LabelButton rightHide = new LabelButton(rightTopBar.getToolbox(), NONE);
+        rightHide.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
+        rightHide.onClick(rightToggle::toggle);
+        rightHide.setToolTipText("Hide");
 
         // bottom
 
-        LabelButton bottomMinimize = new LabelButton(bottomTopBar.getToolbox(), NONE);
-        bottomMinimize.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
-        bottomMinimize.onClick(bottomToggle::toggle);
-        bottomMinimize.setToolTipText("Minimize");
+        LabelButton bottomHide = new LabelButton(bottomTopBar.getToolbox(), NONE);
+        bottomHide.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
+        bottomHide.onClick(bottomToggle::toggle);
+        bottomHide.setToolTipText("Hide");
 
         // Final stuff
 

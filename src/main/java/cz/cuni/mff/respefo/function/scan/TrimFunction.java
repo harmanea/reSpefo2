@@ -9,7 +9,6 @@ import cz.cuni.mff.respefo.function.asset.trim.TrimAsset;
 import cz.cuni.mff.respefo.function.asset.trim.TrimDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.util.Message;
-import org.eclipse.swt.SWT;
 
 import java.io.File;
 
@@ -32,7 +31,7 @@ public class TrimFunction implements SingleFileFunction {
         TrimDialog dialog = new TrimDialog();
         dialog.setMin(asset.getMin());
         dialog.setMax(asset.getMax());
-        if (dialog.open() != SWT.OK) {
+        if (dialog.openIsNotOk()) {
             return;
         }
 

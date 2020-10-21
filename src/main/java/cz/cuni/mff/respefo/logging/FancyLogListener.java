@@ -29,6 +29,9 @@ public class FancyLogListener implements LogListener {
 
         // Handle clicks on actions
         textField.addListener(MouseDown, this::handleMouseDownEvent);
+
+        // Scroll to end
+        textField.addModifyListener(event -> textField.setTopIndex(textField.getLineCount() - 1));
     }
 
     public void setLayoutData(Object layoutData) {
@@ -68,7 +71,7 @@ public class FancyLogListener implements LogListener {
         }
 
         if (entry.getCause() != null) {
-            addStackTraceAction(entry.getCause());
+            textField.append(ExceptionUtils.getStackTrace(entry.getCause()));
         }
 
         textField.append("\n");
@@ -81,16 +84,6 @@ public class FancyLogListener implements LogListener {
                 null);
 
         textField.setStyleRange(styleRange);
-    }
-
-    private void addStackTraceAction(Throwable cause) {
-        final int index = textField.getCharCount();
-        String actionText = "Show stacktrace";
-        addAction(actionText, () -> {
-            String stackTrace = ExceptionUtils.getStackTrace(cause).trim();
-            textField.replaceTextRange(index, actionText.length(), stackTrace);
-            textField.setStyleRange(new StyleRange(index, stackTrace.length(), null, null));
-        }, true);
     }
 
     @SuppressWarnings("unused")

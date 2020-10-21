@@ -13,12 +13,11 @@ import cz.cuni.mff.respefo.function.asset.port.FileExtensionDialog;
 import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
-import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import javafx.util.Pair;
-import org.eclipse.swt.SWT;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -71,7 +70,7 @@ public class ExportFunction implements SingleOrMultiFileFunction {
         List<ExportFileFormat> fileFormats = FormatManager.getExportFileFormats(fileName);
 
         FileFormatSelectionDialog<ExportFileFormat> dialog = new FileFormatSelectionDialog<>(fileFormats, "Export");
-        if (dialog.open() == SWT.OK) {
+        if (dialog.openIsOk()) {
             dialog.getFileFormat().exportTo(spectrum, fileName);
         }
         return true;
@@ -80,7 +79,7 @@ public class ExportFunction implements SingleOrMultiFileFunction {
     @Override
     public void execute(List<File> spectrumFiles) {
         FileExtensionDialog dialog = new FileExtensionDialog();
-        if (dialog.open() != SWT.OK) {
+        if (dialog.openIsNotOk()) {
             return;
         }
         String fileExtension = dialog.getFileExtension();
@@ -94,7 +93,7 @@ public class ExportFunction implements SingleOrMultiFileFunction {
         }
 
         FileFormatSelectionDialog<ExportFileFormat> formatDialog = new FileFormatSelectionDialog<>(fileFormats, "Export");
-        if (formatDialog.open() != SWT.OK) {
+        if (formatDialog.openIsNotOk()) {
             return;
         }
         ExportFileFormat exportFormat = formatDialog.getFileFormat();

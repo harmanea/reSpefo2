@@ -4,6 +4,7 @@ import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
+import cz.cuni.mff.respefo.function.asset.port.ChironDialog;
 import cz.cuni.mff.respefo.util.DoubleArrayList;
 import nom.tam.fits.FitsFactory;
 import nom.tam.fits.ImageHDU;
@@ -25,10 +26,19 @@ public class ChironFitsFormat extends ImportFitsFormat {
         try {
             float[][][] data = (float[][][]) imageHdu.getKernel();
 
+            ChironDialog dialog = new ChironDialog(data.length);
+            int from = 0;
+            int to = data.length - 1;
+            if (dialog.openIsOk()) {
+                from = dialog.getFrom() - 1;
+                to = dialog.getTo() - 1;
+            }
+
             DoubleArrayList xList = new DoubleArrayList();
             DoubleArrayList yList = new DoubleArrayList();
 
-            for (float[][] matrix : data) {
+            for (int i = from; i <= to; i++) {
+                float[][] matrix = data[i];
                 for (float[] row : matrix) {
                     int k = 0;
                     while (k < row.length) {

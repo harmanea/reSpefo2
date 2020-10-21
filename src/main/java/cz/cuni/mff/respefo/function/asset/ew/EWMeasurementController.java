@@ -107,7 +107,7 @@ public class EWMeasurementController {
 
                     case SWT.INSERT:
                         MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
-                        if (dialog.open() == SWT.OK) {
+                        if (dialog.openIsOk()) {
                             Range xRange = chart.getAxisSet().getXAxis(0).getRange();
                             int newIndex = ArrayUtils.findClosest(series.getXSeries(), (xRange.upper + xRange.lower) / 2);
 

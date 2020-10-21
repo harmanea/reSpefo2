@@ -13,7 +13,6 @@ import cz.cuni.mff.respefo.function.asset.ew.MeasureEWDialog;
 import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResults;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.util.Message;
-import org.eclipse.swt.SWT;
 
 import java.io.File;
 import java.util.Optional;
@@ -34,7 +33,7 @@ public class MeasureEWFunction implements SingleFileFunction {
         }
 
         MeasureEWDialog dialog = new MeasureEWDialog();
-        if (dialog.open() != SWT.OK) {
+        if (dialog.openIsNotOk()) {
             return;
         }
 

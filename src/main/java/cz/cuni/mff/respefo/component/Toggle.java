@@ -54,6 +54,10 @@ public class Toggle extends Composite {
         }
     }
 
+    public boolean isToggled() {
+        return toggled;
+    }
+
     public void setText(String text) {
         label.setText(text);
     }

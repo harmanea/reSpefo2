@@ -15,10 +15,10 @@ import cz.cuni.mff.respefo.function.asset.port.PostImportAsset;
 import cz.cuni.mff.respefo.function.asset.port.RVCorrectionDialog;
 import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
-import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import javafx.util.Pair;
 import org.eclipse.swt.SWT;
@@ -43,7 +43,7 @@ public class ImportFunction implements SingleOrMultiFileFunction {
             List<ImportFileFormat> fileFormats = FormatManager.getImportFileFormats(file.getPath());
 
             FileFormatSelectionDialog<ImportFileFormat> dialog = new FileFormatSelectionDialog<>(fileFormats, "Import");
-            if (dialog.open() == SWT.OK) {
+            if (dialog.openIsOk()) {
                 spectrum = dialog.getFileFormat().importFrom(file.getPath());
             } else {
                 return;
@@ -109,8 +109,7 @@ public class ImportFunction implements SingleOrMultiFileFunction {
             }
 
             if (applicableFormats == null || applicableFormats.isEmpty()) {
-                Message.warning("There is no import format applicable to the whole selection.");
-                return null;
+                throw new IllegalStateException("There is no import format applicable to the whole selection.");
             }
 
             List<ImportFileFormat> applicableFormatsList = new ArrayList<>(applicableFormats);
@@ -199,7 +198,7 @@ public class ImportFunction implements SingleOrMultiFileFunction {
     private static void checkRVCorrection(Spectrum spectrum) {
         if (Double.isNaN(spectrum.getRvCorrection())) {
             RVCorrectionDialog dialog = new RVCorrectionDialog();
-            spectrum.setRvCorrection(dialog.open() == SWT.OK ? dialog.getRvCorr() : 0);
+            spectrum.setRvCorrection(dialog.openIsOk() ? dialog.getRvCorr() : 0);
         }
     }
 

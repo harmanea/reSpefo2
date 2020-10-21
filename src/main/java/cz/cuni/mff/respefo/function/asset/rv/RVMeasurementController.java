@@ -80,7 +80,7 @@ public class RVMeasurementController {
                 switch (e.keyCode) {
                     case SWT.CR:
                         MeasurementInputDialog dialog = new MeasurementInputDialog(measurement.isCorrection());
-                        if (dialog.open() == SWT.OK) {
+                        if (dialog.openIsOk()) {
                             MeasureRVResult result = new MeasureRVResult(
                                     deltaRV * (shift / 2),
                                     shift,

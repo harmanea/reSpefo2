@@ -116,12 +116,20 @@ public abstract class SpefoDialog {
 
         shell.pack();
         shell.open();
-        Display display = Display.getCurrent();
+        Display display = ComponentManager.getDisplay();
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch())
                 display.sleep();
         }
 
         return returnCode;
+    }
+
+    public final boolean openIsOk() {
+        return open() == SWT.OK;
+    }
+
+    public final boolean openIsNotOk() {
+        return open() != SWT.OK;
     }
 }

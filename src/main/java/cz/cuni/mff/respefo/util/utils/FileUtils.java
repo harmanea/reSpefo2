@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.io.File;

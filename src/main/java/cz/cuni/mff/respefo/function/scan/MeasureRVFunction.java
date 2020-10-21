@@ -15,7 +15,6 @@ import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.util.DoubleArrayList;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
-import org.eclipse.swt.SWT;
 
 import java.io.File;
 import java.util.Optional;
@@ -38,16 +37,16 @@ public class MeasureRVFunction implements SingleFileFunction {
         }
 
         MeasureRVDialog dialog = new MeasureRVDialog();
-        if (dialog.open() != SWT.OK) {
+        if (dialog.openIsNotOk()) {
             return;
         }
 
         Measurements measurements = new Measurements();
-
-        String[] lstFileNames = dialog.getItems();
-        Boolean[] correctionFlags = dialog.getCorrectionFlags();
-        for (int i = 0; i < lstFileNames.length; i++) {
-            measurements.loadMeasurements(lstFileNames[i], correctionFlags[i]);
+        for (String lstFileName : dialog.getMeasurements()) {
+            measurements.loadMeasurements(lstFileName, false);
+        }
+        for (String lstFileName : dialog.getCorrections()) {
+            measurements.loadMeasurements(lstFileName, true);
         }
 
         XYSeries series = spectrum.getProcessedSeries();

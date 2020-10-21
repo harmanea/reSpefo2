@@ -2,8 +2,8 @@ package cz.cuni.mff.respefo.function.asset.dispersion;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.SpefoDialog;
+import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;

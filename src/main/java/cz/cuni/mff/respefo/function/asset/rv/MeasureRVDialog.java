@@ -1,15 +1,16 @@
 package cz.cuni.mff.respefo.function.asset.rv;
 
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
+import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.List;
 
-import java.util.Arrays;
+import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
@@ -19,19 +20,19 @@ import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 
 public class MeasureRVDialog extends TitleAreaDialog {
 
-    private String[] items;
-    private Boolean[] correctionFlags;
+    private String[] measurements = {};
+    private String[] corrections = {};
 
     public MeasureRVDialog() {
         super("Measure RV");
     }
 
-    public String[] getItems() {
-        return items;
+    public String[] getMeasurements() {
+        return measurements;
     }
 
-    public Boolean[] getCorrectionFlags() {
-        return correctionFlags;
+    public String[] getCorrections() {
+        return corrections;
     }
 
     @Override
@@ -43,35 +44,84 @@ public class MeasureRVDialog extends TitleAreaDialog {
                 .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(300))
                 .build();
 
+
+        // Measurements
+
+        Consumer<String[]> measurementsItemsConsumer = items -> measurements = items;
+
         label(topComposite)
                 .layoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1))
                 .text("Select .lst files with measurements:")
                 .build();
 
-        final Table table = new Table(topComposite, SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        table.setLayoutData(new GridData(GridData.FILL_BOTH));
-        table.addListener(SWT.Selection, event -> {
-            if (event.detail == SWT.CHECK) {
-                TableItem tableItem = (TableItem) event.item;
-                correctionFlags[table.indexOf(tableItem)] = tableItem.getChecked();
+        final List measurementsList = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
+        measurementsList.setLayoutData(new GridData(GridData.FILL_BOTH));
+        measurementsList.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.keyCode == SWT.DEL) {
+                    removeStlFile(measurementsList, measurementsItemsConsumer);
+                } else if (e.keyCode == SWT.INSERT) {
+                    addStlFile(measurementsList, measurementsItemsConsumer);
+                }
             }
         });
 
-        final Composite buttonsComposite = composite(topComposite)
+        final Composite measurementsButtonsComposite = composite(topComposite)
                 .layout(gridLayout().margins(0))
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING)
                 .build();
 
-        pushButton(buttonsComposite)
+        pushButton(measurementsButtonsComposite)
                 .text("Add")
                 .gridLayoutData(GridData.FILL_BOTH)
-                .onSelection(event -> addStlFile(table))
+                .onSelection(event -> addStlFile(measurementsList, measurementsItemsConsumer))
                 .build();
 
-        pushButton(buttonsComposite)
+        pushButton(measurementsButtonsComposite)
                 .text("Remove")
                 .gridLayoutData(GridData.FILL_BOTH)
-                .onSelection(event -> removeStlFile(table))
+                .onSelection(event -> removeStlFile(measurementsList, measurementsItemsConsumer))
+                .build();
+
+
+        // Correction measurements
+
+        Consumer<String[]> correctionsItemsConsumer = items -> corrections = items;
+
+        label(topComposite)
+                .layoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1))
+                .text("Select .lst files with correction measurements:")
+                .build();
+
+        final List correctionsList = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
+        correctionsList.setLayoutData(new GridData(GridData.FILL_BOTH));
+        correctionsList.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.keyCode == SWT.DEL) {
+                    removeStlFile(correctionsList, correctionsItemsConsumer);
+                } else if (e.keyCode == SWT.INSERT) {
+                    addStlFile(correctionsList, correctionsItemsConsumer);
+                }
+            }
+        });
+
+        final Composite correctionsButtonsComposite = composite(topComposite)
+                .layout(gridLayout().margins(0))
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING)
+                .build();
+
+        pushButton(correctionsButtonsComposite)
+                .text("Add")
+                .gridLayoutData(GridData.FILL_BOTH)
+                .onSelection(event -> addStlFile(correctionsList, correctionsItemsConsumer))
+                .build();
+
+        pushButton(correctionsButtonsComposite)
+                .text("Remove")
+                .gridLayoutData(GridData.FILL_BOTH)
+                .onSelection(event -> removeStlFile(correctionsList, correctionsItemsConsumer))
                 .build();
     }
 
@@ -82,33 +132,32 @@ public class MeasureRVDialog extends TitleAreaDialog {
         getButton(SWT.OK).setEnabled(false);
     }
 
-    private void addStlFile(Table table) {
+    private void addStlFile(List list, Consumer<String[]> itemsConsumer) {
         String fileName = FileDialogs.openFileDialog(FileType.STL, false);
         if (fileName != null) {
-            TableItem item = new TableItem(table, SWT.NONE);
-            item.setText(fileName);
+            list.add(fileName);
 
-            items = Arrays.stream(table.getItems()).map(TableItem::getText).toArray(String[]::new);
-            correctionFlags = Arrays.stream(table.getItems()).map(TableItem::getChecked).toArray(Boolean[]::new);
-
-            if (items.length == 1) {
-                setMessage("Measure radial velocities", SWT.ICON_INFORMATION);
-                getButton(SWT.OK).setEnabled(true);
-            }
+            itemsConsumer.accept(list.getItems());
+            verify();
         }
     }
 
-    private void removeStlFile(Table table) {
-        if (table.getSelectionIndex() != -1) {
-            table.remove(table.getSelectionIndex());
+    private void removeStlFile(List list, Consumer<String[]> itemsConsumer) {
+        if (list.getSelectionIndex() != -1) {
+            list.remove(list.getSelectionIndex());
 
-            items = Arrays.stream(table.getItems()).map(TableItem::getText).toArray(String[]::new);
-            correctionFlags = Arrays.stream(table.getItems()).map(TableItem::getChecked).toArray(Boolean[]::new);
+            itemsConsumer.accept(list.getItems());
+            verify();
+        }
+    }
 
-            if (items.length == 0) {
-                setMessage("Select at least one .stl file", SWT.ICON_WARNING);
-                getButton(SWT.OK).setEnabled(false);
-            }
+    private void verify() {
+        if (measurements.length == 0 && corrections.length == 0) {
+            setMessage("Select at least one .stl file", SWT.ICON_WARNING);
+            getButton(SWT.OK).setEnabled(false);
+        } else {
+            setMessage("Measure equivalent width and other spectrophotometric quantities", SWT.ICON_INFORMATION);
+            getButton(SWT.OK).setEnabled(true);
         }
     }
 }

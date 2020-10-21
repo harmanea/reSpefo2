@@ -1,8 +1,6 @@
-package cz.cuni.mff.respefo.util.utils;
+package cz.cuni.mff.respefo.util;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
-import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.UtilityClass;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
@@ -53,7 +51,7 @@ public class FileDialogs extends UtilityClass {
 
         dialog.setText("Select file");
         dialog.setFilterNames(new String[] {fileType.getFilterNames(), "All Files"});
-        dialog.setFilterExtensions(new String[] {fileType.getFilterExtensions(), "*"});
+        dialog.setFilterExtensions(new String[] {fileType.getFilterExtensions(), "*.*"});
 
         if (fileName != null) {
             dialog.setFileName(stripParent(fileName));
@@ -101,7 +99,7 @@ public class FileDialogs extends UtilityClass {
 
         dialog.setText("Select files");
         dialog.setFilterNames(new String[] {fileType.getFilterNames(), "All Files"});
-        dialog.setFilterExtensions(new String[] {fileType.getFilterExtensions(), "*"});
+        dialog.setFilterExtensions(new String[] {fileType.getFilterExtensions(), "*.*"});
         dialog.setFilterPath(getFilterPath());
 
         String filePath = dialog.open();

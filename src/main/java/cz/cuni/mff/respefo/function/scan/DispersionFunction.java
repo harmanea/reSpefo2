@@ -11,7 +11,6 @@ import cz.cuni.mff.respefo.function.asset.dispersion.DispersionDialog;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
 import cz.cuni.mff.respefo.util.DoubleArrayList;
 import cz.cuni.mff.respefo.util.Message;
-import org.eclipse.swt.SWT;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,7 +23,7 @@ public class DispersionFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {
         DispersionDialog dialog = new DispersionDialog();
-        if (dialog.open() != SWT.OK) {
+        if (dialog.openIsNotOk()) {
             return;
         }
 

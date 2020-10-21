@@ -2,8 +2,8 @@ package cz.cuni.mff.respefo.function.asset.ew;
 
 
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
+import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.utils.FileDialogs;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;

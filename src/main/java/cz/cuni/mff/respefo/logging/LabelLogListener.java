@@ -4,6 +4,7 @@ import cz.cuni.mff.respefo.util.utils.StringUtils;
 import org.eclipse.swt.widgets.Label;
 
 import java.time.format.DateTimeFormatter;
+import java.util.function.Supplier;
 
 public class LabelLogListener implements LogListener {
 
@@ -12,24 +13,30 @@ public class LabelLogListener implements LogListener {
 
     private final Label label;
     private final DateTimeFormatter formatter;
-    private final Runnable clearLabel = () -> setTextAndRequestLayout("");
+    private final Supplier<Boolean> shouldDisplay;
 
-    public LabelLogListener(Label label) {
+    public LabelLogListener(Label label, Supplier<Boolean> shouldDisplay) {
         this.label = label;
         this.formatter = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+        this.shouldDisplay = shouldDisplay;
     }
 
     @Override
     public void notify(LogEntry entry) {
-        if (entry.getLevel().isMoreImportantOrEqualTo(LogLevel.INFO)) {
-            setTextAndRequestLayout(entry.getDateTime().format(formatter) + " " + StringUtils.substringBefore(entry.getMessage(), '\n'));
+        if (Boolean.TRUE.equals(shouldDisplay.get()) && entry.getLevel().isMoreImportantOrEqualTo(LogLevel.INFO)) {
+            String formattedDate = entry.getDateTime().format(formatter);
+            setTextAndRequestLayout(formattedDate + " " + StringUtils.substringBefore(entry.getMessage(), '\n'));
 
-            label.getDisplay().timerExec(DECAY_TIME_IN_MILLISECONDS, clearLabel);
+            label.getDisplay().timerExec(DECAY_TIME_IN_MILLISECONDS, () -> {
+                if (!label.isDisposed() && label.getText().startsWith(formattedDate)) {
+                    setTextAndRequestLayout("");
+                }
+            });
         }
     }
 
     private void setTextAndRequestLayout(String text) {
-        label.setText(text.replaceAll("\n", " "));
+        label.setText(text);
         label.requestLayout();
     }
 }

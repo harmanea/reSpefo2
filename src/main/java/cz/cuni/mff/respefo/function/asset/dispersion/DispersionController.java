@@ -145,7 +145,7 @@ public class DispersionController {
 
                         } else {
                             NumberDialog dialog = new NumberDialog(measurements.size(), "Select line number", "Line number:");
-                            if (dialog.open() == SWT.OK) {
+                            if (dialog.openIsOk()) {
                                 ComparisonLineMeasurement measurement = measurements.getMeasurement(dialog.getNumber() - 1);
 
                                 measurementController.measure(measurement, newPoint, () -> {
@@ -320,7 +320,7 @@ public class DispersionController {
         polyButton.setText("Poly degree");
         polyButton.addListener(SWT.Selection, event -> {
             NumberDialog dialog = new NumberDialog(5, "Select poly degree", "Poly number:");
-            if (dialog.open() == SWT.OK) {
+            if (dialog.openIsOk()) {
                 results.setPolyDegree(dialog.getNumber());
                 results.calculateCoeffs();
                 results.calculateValues();
