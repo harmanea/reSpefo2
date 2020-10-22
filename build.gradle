@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'cz.cuni.mff'
-version gitVersion()
+version gitVersion().replace('.dirty', '') // There is a JGit bug
 
 sourceCompatibility = 1.8
 
@@ -23,7 +23,7 @@ eclipseMavenCentral {
 
 repositories {
     mavenCentral()
-    maven { url 'http://buchen.github.io/maven-repo' } // for swtchart
+    maven { url 'https://buchen.github.io/maven-repo' } // for swtchart
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } // for nom-tam-fits snapshot
 }
 
@@ -36,14 +36,14 @@ configurations.all {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
     implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.15.3-SNAPSHOT' // snapshot necessary for header repairs
     implementation 'org.swtchart:org.swtchart:0.10.0'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.4.1'
-    compile 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.4.1'
-    compile 'org.reflections:reflections:0.9.11'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.4.1'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.4.1'
+    implementation 'org.reflections:reflections:0.9.11'
 }
 
 tasks.withType(JavaExec) {
@@ -57,12 +57,14 @@ task fatJar(type: Jar) {
     manifest {
         attributes(
                 'Main-Class': 'cz.cuni.mff.respefo.ReSpefo',
-                'Implementation-Version': version
+                'Implementation-Version': project.version
         )
     }
 
-    baseName = 'reSpefo'
-    appendix = "$swtPlatform"
+    setArchivesBaseName('reSpefo')
+    setAppendix("$swtPlatform")
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar

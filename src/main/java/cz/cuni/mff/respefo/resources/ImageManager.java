@@ -10,10 +10,9 @@ import java.util.EnumMap;
 
 import static cz.cuni.mff.respefo.resources.ImageResource.*;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.getFileExtension;
-import static java.io.File.separator;
 
 public class ImageManager extends UtilityClass {
-    private static final String BASE_FOLDER = separator + "image" + separator;
+    private static final String BASE_FOLDER = "/image/";
 
     private static EnumMap<ImageResource, Image> imageMap;
 

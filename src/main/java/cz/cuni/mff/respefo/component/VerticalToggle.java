@@ -34,6 +34,8 @@ public class VerticalToggle extends Composite {
 
         up = (style & SWT.DOWN) == 0;
 
+        setDefaultBackground();
+        setBackgroundMode(SWT.INHERIT_FORCE);
         setLayout(gridLayout().marginTop(up ? 10 : 5).marginBottom(up ? 5 : 10).build());
 
         if (up) {
@@ -44,16 +46,15 @@ public class VerticalToggle extends Composite {
             canvas = new Canvas(this, SWT.NONE);
         }
 
+        canvas.setBackground(getDisplay().getSystemColor(SWT.COLOR_TRANSPARENT));
         canvas.addPaintListener(event -> {
-            event.gc.setBackground(getBackground());
-            event.gc.fillRectangle(0, 0, event.width, event.height);
-
             Transform transform = new Transform(event.display);
             transform.translate(up ? 0 : event.width, up ? event.height : 0);
             transform.rotate(up ? 270 : 90);
             event.gc.setTransform(transform);
 
-            event.gc.drawString(text, 0, 0);
+            event.gc.setFont(label.getFont());
+            event.gc.drawString(text, 0, 0, true);
             transform.dispose();
         });
         label.setLayoutData(new GridData());

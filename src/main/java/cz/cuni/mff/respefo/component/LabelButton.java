@@ -12,6 +12,8 @@ public class LabelButton extends Composite {
 
     public LabelButton(Composite parent, int style) {
         super(parent, style);
+
+        setBackgroundMode(SWT.INHERIT_FORCE);
         setLayout(fillLayout().margins(0).build());
 
         label = new CLabel(this, style);
@@ -33,10 +35,15 @@ public class LabelButton extends Composite {
     }
 
     private void setDefaultBackground() {
-        label.setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     }
 
     private void setHighlightedBackground() {
-        label.setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
+        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
+    }
+
+    @Override
+    public void setToolTipText(String string) {
+        label.setToolTipText(string);
     }
 }

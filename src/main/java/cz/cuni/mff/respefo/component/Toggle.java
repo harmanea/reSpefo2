@@ -22,6 +22,8 @@ public class Toggle extends Composite {
 
     protected Toggle(Composite parent, int style, int margin) {
         super(parent, style);
+
+        setBackgroundMode(SWT.INHERIT_FORCE);
         setLayout(fillLayout().margins(margin).build());
 
         toggled = false;
@@ -66,7 +68,8 @@ public class Toggle extends Composite {
         label.setImage(image);
     }
 
-    public void setTooltipText(String tooltipText) {
+    @Override
+    public void setToolTipText(String tooltipText) {
         label.setToolTipText(tooltipText);
     }
 
@@ -80,14 +83,14 @@ public class Toggle extends Composite {
     }
 
     private void setDefaultBackground() {
-        label.setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     }
 
     private void setHighlightedBackground() {
-        label.setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
+        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
     }
 
     private void setToggledBackground() {
-        label.setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
     }
 }

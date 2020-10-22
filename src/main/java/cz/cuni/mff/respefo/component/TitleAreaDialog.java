@@ -1,14 +1,11 @@
 package cz.cuni.mff.respefo.component;
 
-import cz.cuni.mff.respefo.resources.ColorManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import static cz.cuni.mff.respefo.resources.ColorResource.LIGHT_GRAY;
-import static cz.cuni.mff.respefo.resources.ColorResource.WHITE;
 import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
@@ -48,14 +45,8 @@ public abstract class TitleAreaDialog extends SpefoDialog {
                 .layoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false))
                 .layout(gridLayout(2, false).margins(15))
                 .build();
-        composite.addPaintListener(e -> {
-            e.gc.setBackground(ColorManager.getColor(WHITE));
-            e.gc.fillRectangle(0, 0, e.width, e.height);
-
-            e.gc.setForeground(ColorManager.getColor(WHITE));
-            e.gc.setBackground(ColorManager.getColor(LIGHT_GRAY));
-            e.gc.fillGradientRectangle(e.width / 2, 0, e.width, e.height, false);
-        });
+        composite.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+        composite.setBackgroundMode(SWT.INHERIT_FORCE);
 
         label(composite)
                 .text(title)
