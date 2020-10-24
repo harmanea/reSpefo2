@@ -2,7 +2,6 @@ package cz.cuni.mff.respefo.util;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.SpefoDialog;
-import javafx.util.Pair;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -81,19 +80,6 @@ public class Progress {
         display.asyncExec(runnable);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends SpefoDialog> Pair<Integer, T> syncOpenDialog(Supplier<T> dialogSupplier) {
-        SpefoDialog[] dialogs = new SpefoDialog[1];
-        int[] returnValues = new int[1];
-
-        display.syncExec(() -> {
-            dialogs[0] = dialogSupplier.get();
-            returnValues[0] = dialogs[0].open();
-        });
-
-        return new Pair<>(returnValues[0], (T) dialogs[0]);
-    }
-
     public void refresh(String label, int range) {
         selection = 0;
         this.range = range;
@@ -138,5 +124,36 @@ public class Progress {
     private static void updateLabel(String text) {
         progressLabel.setText(text);
         progressLabel.requestLayout();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <D extends SpefoDialog> DialogAndReturnCode<D> syncOpenDialog(Supplier<D> dialogSupplier) {
+        SpefoDialog[] dialogs = new SpefoDialog[1];
+        int[] returnValues = new int[1];
+
+        display.syncExec(() -> {
+            dialogs[0] = dialogSupplier.get();
+            returnValues[0] = dialogs[0].open();
+        });
+
+        return new DialogAndReturnCode<>((D) dialogs[0], returnValues[0]);
+    }
+
+    public static class DialogAndReturnCode<D extends SpefoDialog> {
+        private final D dialog;
+        private final int returnValue;
+
+        public DialogAndReturnCode(D dialog, int returnValue) {
+            this.dialog = dialog;
+            this.returnValue = returnValue;
+        }
+
+        public D getDialog() {
+            return dialog;
+        }
+
+        public int getReturnValue() {
+            return returnValue;
+        }
     }
 }

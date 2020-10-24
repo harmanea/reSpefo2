@@ -17,7 +17,6 @@ import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import javafx.util.Pair;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -153,9 +152,9 @@ public class ExportFunction implements SingleOrMultiFileFunction {
                 return applyToAllAction;
             }
 
-            Pair<Integer, OverwriteDialog> overwriteResponseAndDialog = p.syncOpenDialog(() -> new OverwriteDialog(new File(fileName)));
-            int response = overwriteResponseAndDialog.getKey();
-            OverwriteDialog dialog = overwriteResponseAndDialog.getValue();
+            Progress.DialogAndReturnCode<OverwriteDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(() -> new OverwriteDialog(new File(fileName)));
+            int response = overwriteDialogAndReturnCode.getReturnValue();
+            OverwriteDialog dialog = overwriteDialogAndReturnCode.getDialog();
 
             if (response == REPLACE) {
                 exportFormat.exportTo(spectrum, fileName);
@@ -166,7 +165,7 @@ public class ExportFunction implements SingleOrMultiFileFunction {
                 return exportTo(p, spectrum, Paths.get(fileName).resolveSibling(dialog.getNewName()).toString(), exportFormat, applyToAllAction);
 
             } else if (response == SKIP) {
-                if (overwriteResponseAndDialog.getValue().applyToAll()) {
+                if (overwriteDialogAndReturnCode.getDialog().applyToAll()) {
                     return SKIP;
                 }
             }  else /* response == CANCEL */ {

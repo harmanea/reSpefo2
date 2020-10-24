@@ -20,7 +20,6 @@ import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import javafx.util.Pair;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
@@ -113,16 +112,16 @@ public class ImportFunction implements SingleOrMultiFileFunction {
             }
 
             List<ImportFileFormat> applicableFormatsList = new ArrayList<>(applicableFormats);
-            Pair<Integer, FileFormatSelectionDialog<ImportFileFormat>> responseAndDialog =
+            Progress.DialogAndReturnCode<FileFormatSelectionDialog<ImportFileFormat>> dialogAndReturnCode =
                     p.syncOpenDialog(() -> new FileFormatSelectionDialog<>(applicableFormatsList, "Import"));
-            if (responseAndDialog.getKey() != SWT.OK) {
+            if (dialogAndReturnCode.getReturnValue() != SWT.OK) {
                 return null;
             }
 
             int applyToAllAction = 0;
             for (File file : files) {
                 try {
-                    Spectrum spectrum = responseAndDialog.getValue().getFileFormat().importFrom(file.getPath());
+                    Spectrum spectrum = dialogAndReturnCode.getDialog().getFileFormat().importFrom(file.getPath());
                     // Post-import check, this is a temporary solution
                     checkForNaNs(spectrum);
                     checkRVCorrection(p, spectrum);
@@ -162,9 +161,9 @@ public class ImportFunction implements SingleOrMultiFileFunction {
                 return applyToAllAction;
             }
 
-            Pair<Integer, OverwriteDialog> overwriteResponseAndDialog = p.syncOpenDialog(() -> new OverwriteDialog(file));
-            int response = overwriteResponseAndDialog.getKey();
-            OverwriteDialog dialog = overwriteResponseAndDialog.getValue();
+            Progress.DialogAndReturnCode<OverwriteDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(() -> new OverwriteDialog(file));
+            int response = overwriteDialogAndReturnCode.getReturnValue();
+            OverwriteDialog dialog = overwriteDialogAndReturnCode.getDialog();
 
             if (response == REPLACE) {
                 spectrum.saveAs(file);
@@ -175,7 +174,7 @@ public class ImportFunction implements SingleOrMultiFileFunction {
                 return saveAs(p, spectrum, file.toPath().resolveSibling(dialog.getNewName()).toFile(), applyToAllAction);
 
             } else if (response == SKIP) {
-                if (overwriteResponseAndDialog.getValue().applyToAll()) {
+                if (overwriteDialogAndReturnCode.getDialog().applyToAll()) {
                     return SKIP;
                 }
             }  else /* response == CANCEL */ {
@@ -204,9 +203,9 @@ public class ImportFunction implements SingleOrMultiFileFunction {
 
     private static void checkRVCorrection(Progress p, Spectrum spectrum) {
         if (Double.isNaN(spectrum.getRvCorrection())) {
-            Pair<Integer, RVCorrectionDialog> overwriteResponseAndDialog = p.syncOpenDialog(RVCorrectionDialog::new);
-            int response = overwriteResponseAndDialog.getKey();
-            RVCorrectionDialog dialog = overwriteResponseAndDialog.getValue();
+            Progress.DialogAndReturnCode<RVCorrectionDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(RVCorrectionDialog::new);
+            int response = overwriteDialogAndReturnCode.getReturnValue();
+            RVCorrectionDialog dialog = overwriteDialogAndReturnCode.getDialog();
 
             spectrum.setRvCorrection(response == SWT.OK ? dialog.getRvCorr() : 0);
         }
