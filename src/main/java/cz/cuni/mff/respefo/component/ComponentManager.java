@@ -231,18 +231,28 @@ public class ComponentManager extends UtilityClass {
         final MenuItem importMenuItem = new MenuItem(fileMenu, PUSH);
         importMenuItem.setText("Import");
         importMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            // TODO: refactor this
             java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.COMPATIBLE_SPECTRUM_FILES);
             if (!fileNames.isEmpty()) {
-                new ImportFunction().execute(fileNames.stream().map(File::new).collect(toList())); // TODO: refactor this
+                if (fileNames.size() > 1) {
+                    new ImportFunction().execute(fileNames.stream().map(File::new).collect(toList()));
+                } else {
+                    new ImportFunction().execute(new File(fileNames.get(0)));
+                }
             }
         }));
 
         final MenuItem exportMenuItem = new MenuItem(fileMenu, PUSH);
         exportMenuItem.setText("Export");
         exportMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            // TODO: refactor this
             java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.SPECTRUM);
             if (!fileNames.isEmpty()) {
-                new ExportFunction().execute(fileNames.stream().map(File::new).collect(toList())); // TODO: refactor this
+                if (fileNames.size() > 1) {
+                    new ExportFunction().execute(fileNames.stream().map(File::new).collect(toList()));
+                } else {
+                    new ExportFunction().execute(new File(fileNames.get(0)));
+                }
             }
         }));
 
