@@ -6,14 +6,15 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
-
-import java.util.function.Consumer;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Widget;
 
 import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 
-public class VerticalToggle extends Composite {
+public class VerticalToggle extends Toggle {
 
     private final boolean up;
 
@@ -21,20 +22,16 @@ public class VerticalToggle extends Composite {
     private final Label label;
 
     private String text;
-    private Consumer<Boolean> toggleAction = t -> {};
-
-    private boolean toggled;
 
     /**
      * @param parent a widget which will be the parent of the new instance (cannot be null)
      * @param style use either SWT.UP or SWT.DOWN for text orientation
      */
     public VerticalToggle(Composite parent, int style) {
-        super(parent, style);
+        super(parent, style & ~SWT.DOWN & ~SWT.UP);
 
         up = (style & SWT.DOWN) == 0;
 
-        setDefaultBackground();
         setBackgroundMode(SWT.INHERIT_FORCE);
         setLayout(gridLayout().marginTop(up ? 10 : 5).marginBottom(up ? 5 : 10).build());
 
@@ -59,24 +56,12 @@ public class VerticalToggle extends Composite {
         });
         label.setLayoutData(new GridData());
 
-        Listener mouseEnterListener = event -> {
-            if (!toggled) {
-                setHighlightedBackground();
-            }
-        };
-        Listener mouseExitListener = event -> {
-            if (!toggled) {
-                setDefaultBackground();
-            }
-        };
-        Listener mouseUpListener = event -> toggle();
         for (Widget widget : new Widget[] {this, label, canvas}) {
-            widget.addListener(SWT.MouseEnter, mouseEnterListener);
-            widget.addListener(SWT.MouseExit, mouseExitListener);
-            widget.addListener(SWT.MouseUp, mouseUpListener);
+            addListeners(widget);
         }
     }
 
+    @Override
     public void setText(String text) {
         this.text = text;
 
@@ -88,40 +73,8 @@ public class VerticalToggle extends Composite {
                 .widthHint(point.y).heightHint(point.x).build());
     }
 
+    @Override
     public void setImage(Image image) {
         label.setImage(image);
-    }
-
-    public void setToggleAction(Consumer<Boolean> toggleAction) {
-        this.toggleAction = toggleAction;
-    }
-
-    public void setToggled(boolean toggled) {
-        if (toggled != this.toggled) {
-            if (toggled) {
-                setToggledBackground();
-            } else {
-                setDefaultBackground();
-            }
-
-            this.toggled = toggled;
-        }
-    }
-
-    public void toggle() {
-        setToggled(!toggled);
-        toggleAction.accept(toggled);
-    }
-
-    private void setDefaultBackground() {
-        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-    }
-
-    private void setHighlightedBackground() {
-        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
-    }
-
-    private void setToggledBackground() {
-        setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
     }
 }

@@ -1,49 +1,48 @@
 package cz.cuni.mff.respefo.component;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Widget;
 
 import java.util.function.Consumer;
 
-import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
-
-public class Toggle extends Composite {
+public abstract class Toggle extends Composite {
 
     private boolean toggled;
-    private final CLabel label;
-
     private Consumer<Boolean> toggleAction = t -> {};
 
-    protected Toggle(Composite parent, int style) {
-        this(parent, style, 0);
-    }
-
-    protected Toggle(Composite parent, int style, int margin) {
+    public Toggle(Composite parent, int style) {
         super(parent, style);
 
-        setBackgroundMode(SWT.INHERIT_FORCE);
-        setLayout(fillLayout().margins(margin).build());
-
         toggled = false;
-        label = new CLabel(this, style);
-
-        label.addListener(SWT.MouseEnter, event -> {
-            if (!toggled) {
-                setHighlightedBackground();
-            }
-        });
-
-        label.addListener(SWT.MouseExit, event -> {
-            if (!toggled) {
-                setDefaultBackground();
-            }
-        });
-
-        label.addListener(SWT.MouseUp, event -> toggle());
+        setDefaultBackground();
     }
 
+    public abstract void setText(String text);
+
+    public abstract void setImage(Image image);
+
+    public void setToggleAction(Consumer<Boolean> toggleAction) {
+        this.toggleAction = toggleAction;
+    }
+
+    public void appendToggleAction(Consumer<Boolean> toggleAction) {
+        final Consumer<Boolean> oldToggleAction = this.toggleAction;
+
+        this.toggleAction = t -> {
+            oldToggleAction.accept(t);
+            toggleAction.accept(t);
+        };
+    }
+
+    public boolean isToggled() {
+        return toggled;
+    }
+
+    /**
+     * Unlike the function {@link #toggle()}, this will not trigger the toggle action
+     */
     public final void setToggled(boolean toggled) {
         if (toggled != this.toggled) {
             if (toggled) {
@@ -56,30 +55,25 @@ public class Toggle extends Composite {
         }
     }
 
-    public boolean isToggled() {
-        return toggled;
-    }
-
-    public void setText(String text) {
-        label.setText(text);
-    }
-
-    public void setImage(Image image) {
-        label.setImage(image);
-    }
-
-    @Override
-    public void setToolTipText(String tooltipText) {
-        label.setToolTipText(tooltipText);
-    }
-
-    public void setToggleAction(Consumer<Boolean> toggleAction) {
-        this.toggleAction = toggleAction;
-    }
-
     public void toggle() {
         setToggled(!toggled);
         toggleAction.accept(toggled);
+    }
+
+    protected void addListeners(Widget widget) {
+        widget.addListener(SWT.MouseEnter, event -> {
+            if (!toggled) {
+                setHighlightedBackground();
+            }
+        });
+
+        widget.addListener(SWT.MouseExit, event -> {
+            if (!toggled) {
+                setDefaultBackground();
+            }
+        });
+
+        widget.addListener(SWT.MouseUp, event -> toggle());
     }
 
     private void setDefaultBackground() {

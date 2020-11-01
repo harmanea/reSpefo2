@@ -8,13 +8,10 @@ import cz.cuni.mff.respefo.function.scan.OpenFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
-import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.*;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.*;
 
 import java.io.File;
@@ -23,6 +20,7 @@ import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.RowLayoutBuilder.rowLayout;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
@@ -31,7 +29,7 @@ public class ComponentManager extends UtilityClass {
     private static Shell shell;
 
     private static FileExplorer fileExplorer;
-    private static ComponentWithSidebars componentWithSidebars;
+    private static Composite scene;
 
     public static void init() {
         display = Display.getDefault();
@@ -50,10 +48,11 @@ public class ComponentManager extends UtilityClass {
 
         final Composite leftBar = composite(shell, BORDER)
                 .layoutData(new GridData(LEFT, FILL, false, true))
-                .layout(gridLayout().margins(0).spacings(0).build())
+                .layout(rowLayout(VERTICAL).margins(0).spacing(0))
                 .build();
 
         final ComponentWithBottomBar componentWithBottomBar = new ComponentWithBottomBar(shell);
+        componentWithBottomBar.setWeights(new int[]{70, 30});
         componentWithBottomBar.setLayoutData(new GridData(FILL, FILL, true, true));
         componentWithBottomBar.getScene().setLayout(fillLayout().margins(0).spacing(0).build()); // TEMPORARY
         componentWithBottomBar.getBottomBar().setLayout(gridLayout().margins(0).spacings(0).build()); // TEMPORARY
@@ -61,85 +60,101 @@ public class ComponentManager extends UtilityClass {
 
         final Composite rightBar = composite(shell, BORDER)
                 .layoutData(new GridData(RIGHT, FILL, false, true))
-                .layout(gridLayout().margins(0).spacings(0).build())
+                .layout(rowLayout(VERTICAL).margins(0).spacing(0))
                 .build();
 
         final Composite bottomBar = composite(shell, BORDER)
                 .layoutData(new GridData(FILL, BOTTOM, true, false, 3, 1))
-                .layout(gridLayout(4, false).margins(3).spacings(3).build())
+                .layout(gridLayout(4, false).margins(3).spacings(3))
                 .build();
 
 
         // componentWithBottomBar -> scene
 
-        componentWithSidebars = new ComponentWithSidebars(componentWithBottomBar.getScene());
+        final ComponentWithSidebars componentWithSidebars = new ComponentWithSidebars(componentWithBottomBar.getScene());
+        componentWithSidebars.setWeights(new int[]{20, 60, 20});
         componentWithSidebars.getLeftBar().setLayout(gridLayout().margins(0).spacings(0).build());
         componentWithSidebars.getScene().setLayout(gridLayout().margins(0).build());
         componentWithSidebars.getRightBar().setLayout(gridLayout().margins(0).spacings(0).build());
+        componentWithSidebars.minimizeLeftBar();
         componentWithSidebars.minimizeRightBar();
 
-        TopBar leftTopBar = new TopBar(componentWithSidebars.getLeftBar(), "Project");
-
-        fileExplorer = new FileExplorer(componentWithSidebars.getLeftBar());
-        fileExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));
-        fileExplorer.setRootDirectory(FileUtils.getUserDirectory());
+        scene = componentWithSidebars.getScene();
 
         label(componentWithSidebars.getScene(), CENTER)
                 .text("Welcome to reSpefo!") // TEMPORARY TEXT
                 .layoutData(new GridData(CENTER, CENTER, true, true))
                 .build();
 
-        TopBar rightTopBar = new TopBar(componentWithSidebars.getRightBar(), "Tools");
 
-        Composite rightBarComposite = composite(componentWithSidebars.getRightBar(), BORDER)
+        // Left Tool Bar
+
+        final Composite leftBarComposite = composite(componentWithSidebars.getLeftBar(), BORDER)
                 .layoutData(new GridData(GridData.FILL_BOTH))
-                .layout(new GridLayout())
+                .layout(gridLayout().margins(0).spacings(0))
                 .build();
 
-        label(rightBarComposite, CENTER)
+        ToolBar leftToolBar = new ToolBar(leftBarComposite, leftBar, componentWithSidebars::toggleLeftBar);
+
+        ToolBar.ToolBarTab projectTab = leftToolBar.addTab(parent -> new VerticalToggle(parent, UP),
+                "Project", "Project", ImageResource.FOLDER_LARGE);
+
+        fileExplorer = new FileExplorer(projectTab.getWindow());
+        fileExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));
+        fileExplorer.setRootDirectory(FileUtils.getUserDirectory());
+
+        projectTab.addTopBarButton("ChangeDirectory", ImageResource.OPENED_FOLDER, fileExplorer::changeDirectory);
+        projectTab.addTopBarButton("Refresh", ImageResource.REFRESH, fileExplorer::refresh);
+        projectTab.addTopBarButton("Collapse All", ImageResource.COLLAPSE, fileExplorer::collapseAll);
+
+        projectTab.show();
+
+
+        // Right Tool Bar
+
+        final Composite rightBarComposite = composite(componentWithSidebars.getRightBar(), BORDER)
+                .layoutData(new GridData(GridData.FILL_BOTH))
+                .layout(gridLayout().margins(0).spacings(0))
+                .build();
+
+        ToolBar rightToolBar = new ToolBar(rightBarComposite, rightBar, componentWithSidebars::toggleRightBar);
+
+        ToolBar.ToolBarTab toolsTab = rightToolBar.addTab(parent -> new VerticalToggle(parent, DOWN),
+                "Tools", "Tools", ImageResource.TOOLS_LARGE);
+
+        label(toolsTab.getWindow(), CENTER)
                 .layoutData(new GridData(GridData.FILL_BOTH))
                 .text("This toolbar is empty");
 
-        // componentWithBottomBar -> bottom bar
 
-        TopBar bottomTopBar = new TopBar(componentWithBottomBar.getBottomBar(), "Event Log");
+        // Bottom Tool Bar
 
-        final FancyLogListener fancyLogListener = new FancyLogListener(componentWithBottomBar.getBottomBar());
+        final Composite bottomBarComposite = composite(componentWithBottomBar.getBottomBar(), NONE)
+                .layoutData(new GridData(GridData.FILL_BOTH))
+                .layout(gridLayout().margins(0).spacings(0))
+                .build();
+
+        final Composite bottomBarTabsComposite = composite(bottomBar)
+                .layoutData(new GridData(LEFT, FILL, false, true))
+                .layout(rowLayout(HORIZONTAL).margins(0).spacing(0))
+                .build();
+
+        ToolBar bottomToolBar = new ToolBar(bottomBarComposite, bottomBarTabsComposite, componentWithBottomBar::toggleScene);
+
+        ToolBar.ToolBarTab eventLogTab = bottomToolBar.addTab(parent -> new HorizontalToggle(parent, NONE),
+                "", "Event Log", ImageResource.EVENT_LOG_LARGE);
+
+        final FancyLogListener fancyLogListener = new FancyLogListener(eventLogTab.getWindow());
         fancyLogListener.setLayoutData(new GridData(GridData.FILL_BOTH));
         Log.registerListener(fancyLogListener);
-
-
-        // Fill main sidebars
-
-        final VerticalToggle leftToggle = new VerticalToggle(leftBar, UP);
-        leftToggle.setLayoutData(new GridData(FILL, TOP, true, false));
-        leftToggle.setImage(ImageManager.getImage(ImageResource.FOLDER_LARGE));
-        leftToggle.setText("Project");
-        leftToggle.setToggleAction(toggled -> componentWithSidebars.toggleLeftBar());
-        leftToggle.setToggled(true);
-
-        final VerticalToggle rightToggle = new VerticalToggle(rightBar, DOWN);
-        rightToggle.setLayoutData(new GridData(FILL, TOP, true, false));
-        rightToggle.setImage(ImageManager.getImage(ImageResource.TOOLS_LARGE));
-        rightToggle.setText("Tools");
-        rightToggle.setToggleAction(toggled -> componentWithSidebars.toggleRightBar());
-        rightToggle.setToggled(false);
-
-        final Toggle bottomToggle = new Toggle(bottomBar, NONE);
-        bottomToggle.setToggled(false);
-        bottomToggle.setImage(ImageManager.getImage(ImageResource.EVENT_LOG_LARGE));
-        bottomToggle.setLayoutData(new GridData(LEFT, FILL, false, true));
-        bottomToggle.setToolTipText("Event Log");
 
         final Label bottomLogLabel = label(bottomBar, NONE)
                 .text("")
                 .layoutData(new GridData(LEFT, CENTER, false, false))
                 .build();
-        bottomLogLabel.addListener(MouseDown, event -> bottomToggle.toggle());
-        Log.registerListener(new LabelLogListener(bottomLogLabel, () -> !bottomToggle.isToggled()));
-
-        bottomToggle.setToggleAction(toggled -> {
-            componentWithBottomBar.toggleScene();
+        bottomLogLabel.addListener(MouseDown, event -> eventLogTab.show());
+        Log.registerListener(new LabelLogListener(bottomLogLabel, eventLogTab::isHidden));
+        eventLogTab.appendToggleAction(toggled -> {
             bottomLogLabel.setText("");
             bottomLogLabel.requestLayout();
         });
@@ -158,53 +173,6 @@ public class ComponentManager extends UtilityClass {
         progressBar.setVisible(false);
 
         Progress.init(progressBar, progressLabel);
-
-        // Top bars
-
-        // left
-
-        LabelButton leftHide = new LabelButton(leftTopBar.getToolbox(), NONE);
-        leftHide.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
-        leftHide.onClick(leftToggle::toggle);
-        leftHide.setToolTipText("Hide");
-
-        label(leftTopBar.getToolbox(), VERTICAL | SEPARATOR)
-                .layoutData(new RowData(DEFAULT, leftHide.computeSize(DEFAULT, DEFAULT).y))
-                .build();
-
-        LabelButton collapse = new LabelButton(leftTopBar.getToolbox(), NONE);
-        collapse.setImage(ImageManager.getImage(ImageResource.COLLAPSE));
-        collapse.onClick(fileExplorer::collapseAll);
-        collapse.setToolTipText("Collapse All");
-
-        LabelButton refresh = new LabelButton(leftTopBar.getToolbox(), NONE);
-        refresh.setImage(ImageManager.getImage(ImageResource.REFRESH));
-        refresh.onClick(fileExplorer::refresh);
-        refresh.setToolTipText("Refresh");
-
-        LabelButton changeDirectory = new LabelButton(leftTopBar.getToolbox(), NONE);
-        changeDirectory.setImage(ImageManager.getImage(ImageResource.OPENED_FOLDER));
-        changeDirectory.onClick(fileExplorer::changeDirectory);
-        changeDirectory.setToolTipText("Change Directory");
-
-        // right
-
-        LabelButton rightHide = new LabelButton(rightTopBar.getToolbox(), NONE);
-        rightHide.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
-        rightHide.onClick(rightToggle::toggle);
-        rightHide.setToolTipText("Hide");
-
-        // bottom
-
-        LabelButton bottomHide = new LabelButton(bottomTopBar.getToolbox(), NONE);
-        bottomHide.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
-        bottomHide.onClick(bottomToggle::toggle);
-        bottomHide.setToolTipText("Hide");
-
-        // Final stuff
-
-        componentWithBottomBar.setWeights(new int[]{70, 30});
-        componentWithSidebars.setWeights(new int[]{15, 70, 15});
 
         // Menu
 
@@ -269,18 +237,12 @@ public class ComponentManager extends UtilityClass {
         final Menu windowMenu = new Menu(shell, DROP_DOWN);
         windowMenuHeader.setMenu(windowMenu);
 
-        final MenuItem showSideBarsMenuItem = new MenuItem(windowMenu, PUSH);
-        showSideBarsMenuItem.setText("Show Sidebars");
-        showSideBarsMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            leftToggle.setToggled(true);
-            rightToggle.setToggled(true);
-        }));
-
         final MenuItem hideSideBarsMenuItem = new MenuItem(windowMenu, PUSH);
-        hideSideBarsMenuItem.setText("Hide Sidebars");
+        hideSideBarsMenuItem.setText("Hide All Toolbars");
         hideSideBarsMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            leftToggle.setToggled(false);
-            rightToggle.setToggled(false);
+            leftToolBar.hide();
+            rightToolBar.hide();
+            bottomToolBar.hide();
         }));
 
         new MenuItem(windowMenu, SEPARATOR);
@@ -300,6 +262,7 @@ public class ComponentManager extends UtilityClass {
         final Menu debugMenu = new Menu(shell, DROP_DOWN);
         debugMenuHeader.setMenu(debugMenu);
 
+        // TODO: this sometimes freezes, investigate
         final MenuItem spectrumJsonMenuItem = new MenuItem(debugMenu, PUSH);
         spectrumJsonMenuItem.setText("Inspect JSON");
         spectrumJsonMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
@@ -314,6 +277,12 @@ public class ComponentManager extends UtilityClass {
         exceptionMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
             throw new RuntimeException("This is a debug exception");
         }));
+
+//        final MenuItem placeHolderMenuItem = new MenuItem(debugMenu, PUSH);
+//        placeHolderMenuItem.setText("Placeholder text");
+//        placeHolderMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+//            // Placeholder action
+//        }));
     }
 
     public static void open() {
@@ -343,18 +312,18 @@ public class ComponentManager extends UtilityClass {
     }
 
     public static Composite getScene() {
-        return componentWithSidebars.getScene();
+        return scene;
     }
 
     public static void clearScene() {
-        for (Control control : getScene().getChildren()) {
+        for (Control control : scene.getChildren()) {
             control.dispose();
         }
     }
 
     public static Composite clearAndGetScene() {
         clearScene();
-        return getScene();
+        return scene;
     }
 
     public static FileExplorer getFileExplorer() {

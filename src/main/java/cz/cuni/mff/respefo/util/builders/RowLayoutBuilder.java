@@ -26,7 +26,7 @@ public class RowLayoutBuilder extends LayoutBuilder<RowLayout> {
     }
 
     public RowLayoutBuilder margins(int value) {
-        return this.marginHeight(value).marginWidth(value);
+        return this.marginTop(value).marginBottom(value).marginLeft(value).marginRight(value);
     }
 
     public RowLayoutBuilder marginWidth(int value) {
