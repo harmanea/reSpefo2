@@ -28,7 +28,7 @@ public class ToolBar {
 
     private final Runnable toggleAction;
 
-    private ToolBarTab activeTab;
+    private Tab activeTab;
 
     public ToolBar(Composite window, Composite bar, Runnable toggleAction) {
         this.bar = bar;
@@ -43,7 +43,7 @@ public class ToolBar {
     /**
      * This will not set any layout data for the created toggle
      */
-    public ToolBarTab addTab(Function<Composite, Toggle> toggleCreator, String label, String topBarLabelText, ImageResource icon) {
+    public Tab addTab(Function<Composite, Toggle> toggleCreator, String label, String topBarLabelText, ImageResource icon) {
         final Composite iconsComposite = composite(topBarContextIconsComposite)
                 .layout(rowLayout(HORIZONTAL).margins(0).build())
                 .build();
@@ -57,7 +57,7 @@ public class ToolBar {
         toggle.setText(label);
         toggle.setToggled(false);
 
-        ToolBarTab tab = new ToolBarTab(iconsComposite, windowComposite, toggle, topBarLabelText);
+        Tab tab = new Tab(iconsComposite, windowComposite, toggle, topBarLabelText);
 
         toggle.setToggleAction(toggled -> {
             if (TRUE.equals(toggled)) {
@@ -71,7 +71,7 @@ public class ToolBar {
         return tab;
     }
 
-    private void showTab(ToolBarTab tab) {
+    private void showTab(Tab tab) {
         if (activeTab == null) {
             toggleAction.run();
         } else {
@@ -130,7 +130,7 @@ public class ToolBar {
                 .build();
     }
 
-    public class ToolBarTab {
+    public class Tab {
         private final Composite iconsComposite;
         private final Composite windowComposite;
         private final Toggle toggle;
@@ -139,7 +139,7 @@ public class ToolBar {
 
         private boolean hasTopBarButtons;
 
-        private ToolBarTab(Composite iconsComposite, Composite windowComposite, Toggle toggle, String toolBarLabelText) {
+        private Tab(Composite iconsComposite, Composite windowComposite, Toggle toggle, String toolBarLabelText) {
             this.iconsComposite = iconsComposite;
             this.windowComposite = windowComposite;
             this.toggle = toggle;

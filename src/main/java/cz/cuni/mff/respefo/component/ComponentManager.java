@@ -31,6 +31,12 @@ public class ComponentManager extends UtilityClass {
     private static FileExplorer fileExplorer;
     private static Composite scene;
 
+    // TODO: handle tool bar disposing on scene clear
+    // TODO: maybe add a notification for lost work
+    private static ToolBar leftToolBar;
+    private static ToolBar rightToolBar;
+    private static ToolBar bottomToolBar;
+
     public static void init() {
         display = Display.getDefault();
         Display.setAppName("reSpefo");
@@ -94,9 +100,9 @@ public class ComponentManager extends UtilityClass {
                 .layout(gridLayout().margins(0).spacings(0))
                 .build();
 
-        ToolBar leftToolBar = new ToolBar(leftBarComposite, leftBar, componentWithSidebars::toggleLeftBar);
+        leftToolBar = new ToolBar(leftBarComposite, leftBar, componentWithSidebars::toggleLeftBar);
 
-        ToolBar.ToolBarTab projectTab = leftToolBar.addTab(parent -> new VerticalToggle(parent, UP),
+        ToolBar.Tab projectTab = leftToolBar.addTab(parent -> new VerticalToggle(parent, UP),
                 "Project", "Project", ImageResource.FOLDER_LARGE);
 
         fileExplorer = new FileExplorer(projectTab.getWindow());
@@ -117,9 +123,9 @@ public class ComponentManager extends UtilityClass {
                 .layout(gridLayout().margins(0).spacings(0))
                 .build();
 
-        ToolBar rightToolBar = new ToolBar(rightBarComposite, rightBar, componentWithSidebars::toggleRightBar);
+        rightToolBar = new ToolBar(rightBarComposite, rightBar, componentWithSidebars::toggleRightBar);
 
-        ToolBar.ToolBarTab toolsTab = rightToolBar.addTab(parent -> new VerticalToggle(parent, DOWN),
+        ToolBar.Tab toolsTab = rightToolBar.addTab(parent -> new VerticalToggle(parent, DOWN),
                 "Tools", "Tools", ImageResource.TOOLS_LARGE);
 
         label(toolsTab.getWindow(), CENTER)
@@ -139,9 +145,9 @@ public class ComponentManager extends UtilityClass {
                 .layout(rowLayout(HORIZONTAL).margins(0).spacing(0))
                 .build();
 
-        ToolBar bottomToolBar = new ToolBar(bottomBarComposite, bottomBarTabsComposite, componentWithBottomBar::toggleScene);
+        bottomToolBar = new ToolBar(bottomBarComposite, bottomBarTabsComposite, componentWithBottomBar::toggleScene);
 
-        ToolBar.ToolBarTab eventLogTab = bottomToolBar.addTab(parent -> new HorizontalToggle(parent, NONE),
+        ToolBar.Tab eventLogTab = bottomToolBar.addTab(parent -> new HorizontalToggle(parent, NONE),
                 "", "Event Log", ImageResource.EVENT_LOG_LARGE);
 
         final FancyLogListener fancyLogListener = new FancyLogListener(eventLogTab.getWindow());
@@ -328,6 +334,18 @@ public class ComponentManager extends UtilityClass {
 
     public static FileExplorer getFileExplorer() {
         return fileExplorer;
+    }
+
+    public static ToolBar getLeftToolBar() {
+        return leftToolBar;
+    }
+
+    public static ToolBar getRightToolBar() {
+        return rightToolBar;
+    }
+
+    public static ToolBar getBottomToolBar() {
+        return bottomToolBar;
     }
 
     protected ComponentManager() throws IllegalAccessException {

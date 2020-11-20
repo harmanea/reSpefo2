@@ -5,7 +5,8 @@ import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.Fun;
-import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
+import cz.cuni.mff.respefo.function.MultiFileFunction;
+import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResult;
 import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResultPointCategory;
 import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResults;
@@ -36,7 +37,7 @@ import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static java.lang.Double.isNaN;
 
 @Fun(name = "EW Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
-public class EWResultsFunction implements SingleOrMultiFileFunction {
+public class EWResultsFunction implements SingleFileFunction, MultiFileFunction {
     @Override
     public void execute(File file) {
         Spectrum spectrum;

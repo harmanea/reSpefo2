@@ -4,7 +4,8 @@ import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
-import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
+import cz.cuni.mff.respefo.function.MultiFileFunction;
+import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.rv.MeasureRVResult;
 import cz.cuni.mff.respefo.function.asset.rv.MeasureRVResults;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
@@ -40,7 +41,7 @@ import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static java.lang.Double.isNaN;
 
 @Fun(name = "RV Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
-public class RVResultsFunction implements SingleOrMultiFileFunction {
+public class RVResultsFunction implements SingleFileFunction, MultiFileFunction {
 
     @Override
     public void execute(File file) {

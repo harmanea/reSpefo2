@@ -8,8 +8,9 @@ import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.UnknownFileFormatException;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.function.Fun;
+import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.Serialize;
-import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
+import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.function.asset.port.PostImportAsset;
 import cz.cuni.mff.respefo.function.asset.port.RVCorrectionDialog;
@@ -31,7 +32,7 @@ import static org.eclipse.swt.SWT.CANCEL;
 
 @Fun(name = "Import", fileFilter = CompatibleFormatFileFilter.class)
 @Serialize(key = ImportFunction.SERIALIZE_KEY, assetClass = PostImportAsset.class)
-public class ImportFunction implements SingleOrMultiFileFunction {
+public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
     public static final String SERIALIZE_KEY = "import";
 

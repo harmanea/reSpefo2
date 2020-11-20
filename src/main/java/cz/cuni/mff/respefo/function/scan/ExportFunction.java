@@ -8,7 +8,8 @@ import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.UnknownFileFormatException;
 import cz.cuni.mff.respefo.format.formats.ExportFileFormat;
 import cz.cuni.mff.respefo.function.Fun;
-import cz.cuni.mff.respefo.function.SingleOrMultiFileFunction;
+import cz.cuni.mff.respefo.function.MultiFileFunction;
+import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.port.FileExtensionDialog;
 import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
@@ -31,7 +32,7 @@ import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static org.eclipse.swt.SWT.CANCEL;
 
 @Fun(name = "Export", fileFilter = SpefoFormatFileFilter.class)
-public class ExportFunction implements SingleOrMultiFileFunction {
+public class ExportFunction implements SingleFileFunction, MultiFileFunction {
 
     @Override
     public void execute(File spectrumFile) {
