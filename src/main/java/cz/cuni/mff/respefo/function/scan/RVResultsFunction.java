@@ -79,7 +79,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
 
         label(composite, SWT.LEFT)
                 .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                .text("RV correction: " + results.getRvCorrection());
+                .text("RV correction: " + spectrum.getRvCorrection());
 
         composite.setBackground(titleLabel.getBackground());
 
@@ -383,7 +383,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
 
                 writer.print(formatDouble(spectrum.getHjd().getRJD(), 5, 4, false));
 
-                double rvCorr = results.getRvCorrection() - results.getRvOfCategory("corr");
+                double rvCorr = spectrum.getRvCorrection() - results.getRvOfCategory("corr");
                 for (String category : categories) {
                     double result = results.getRvOfCategory(category);
                     if (isNotNaN(result)) {

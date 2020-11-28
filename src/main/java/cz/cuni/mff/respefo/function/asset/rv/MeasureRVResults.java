@@ -9,7 +9,6 @@ import java.util.List;
 
 public class MeasureRVResults implements FunctionAsset {
     private final List<MeasureRVResult> results;
-    private double rvCorrection; // TODO: do we need this here?
 
     public MeasureRVResults() {
         this.results = new ArrayList<>();
@@ -29,14 +28,6 @@ public class MeasureRVResults implements FunctionAsset {
 
     public void append(MeasureRVResults other) {
         results.addAll(other.results);
-    }
-
-    public void setRvCorrection(double rvCorrection) {
-        this.rvCorrection = rvCorrection;
-    }
-
-    public double getRvCorrection() {
-        return rvCorrection;
     }
 
     public String[] getCategories() {

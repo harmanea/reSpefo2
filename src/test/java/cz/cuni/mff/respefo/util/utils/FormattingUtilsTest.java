@@ -2,8 +2,7 @@ package cz.cuni.mff.respefo.util.utils;
 
 import org.junit.Test;
 
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
+import static cz.cuni.mff.respefo.util.utils.FormattingUtils.*;
 import static org.junit.Assert.assertEquals;
 
 public class FormattingUtilsTest {
@@ -26,6 +25,21 @@ public class FormattingUtilsTest {
         assertEquals(formatDouble(number, 3, 3), formatDouble(number, 3, 3, true));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testFormatDoubleNegativeBefore() {
+        formatDouble(42.0, -1, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testFormatDoubleZeroBefore() {
+        formatDouble(42.0, 0, 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testFormatDoubleNegativeAfter() {
+        formatDouble(42.0, 1, -1);
+    }
+
     @Test
     public void testFormatInteger() {
         int number = 12345;
@@ -43,5 +57,37 @@ public class FormattingUtilsTest {
         assertEquals("-123", formatInteger(number, 1, false));
 
         assertEquals(formatInteger(number, 8), formatInteger(number, 8, true));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testFormatIntegerNegativeDigits() {
+        formatInteger(42, -1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testFormatIntegerZeroDigits() {
+        formatInteger(42, 0);
+    }
+
+    @Test
+    public void testRound() {
+        double number = 123.456;
+
+        assertEquals("123", round(number, 0));
+        assertEquals("123.5", round(number, 1));
+        assertEquals("123.456", round(number, 3));
+        assertEquals("123.45600", round(number, 5));
+
+        number = -666_666.666_666;
+
+        assertEquals("-666667", round(number, 0));
+        assertEquals("-666666.667", round(number, 3));
+        assertEquals("-666666.666666", round(number, 6));
+        assertEquals("-666666.6666660000", round(number, 10));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRoundNegativeDigits() {
+        round(42.0, -1);
     }
 }

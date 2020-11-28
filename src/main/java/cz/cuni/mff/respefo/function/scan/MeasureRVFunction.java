@@ -60,10 +60,7 @@ public class MeasureRVFunction implements SingleFileFunction {
         series = transformToEquidistant(series, deltaRV);
 
         RVMeasurementController controller = new RVMeasurementController(series, deltaRV);
-        controller.measure(measurements, results -> {
-            results.setRvCorrection(spectrum.getRvCorrection());
-            saveResults(spectrum, results);
-        });
+        controller.measure(measurements, results -> saveResults(spectrum, results));
     }
 
     private static XYSeries transformToEquidistant(XYSeries series, double deltaRV) {
