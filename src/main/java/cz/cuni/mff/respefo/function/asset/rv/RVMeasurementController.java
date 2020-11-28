@@ -1,21 +1,33 @@
 package cz.cuni.mff.respefo.function.asset.rv;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.ToolBar;
+import cz.cuni.mff.respefo.component.VerticalToggle;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.HorizontalDragMouseListener;
 import cz.cuni.mff.respefo.function.asset.common.Measurement;
 import cz.cuni.mff.respefo.function.asset.common.Measurements;
+import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.DefaultSelectionListener;
+import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
@@ -23,6 +35,7 @@ import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
+import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
 
 public class RVMeasurementController {
@@ -31,8 +44,14 @@ public class RVMeasurementController {
     private final XYSeries series;
     private final double deltaRV;
 
+    private Measurements measurements;
+    private Consumer<MeasureRVResults> callback;
+
     private MeasureRVResults results;
+    private int index;
     private double shift;
+
+    private Table table;
 
     public RVMeasurementController(XYSeries series, double deltaRV) {
         this.series = series;
@@ -40,17 +59,101 @@ public class RVMeasurementController {
     }
 
     public void measure(Measurements measurements, Consumer<MeasureRVResults> callback) {
+        this.measurements = measurements;
+        this.callback = callback;
+
         results = new MeasureRVResults();
 
-        measureSingle(measurements.iterator(), callback);
+        ComponentManager.clearScene(true);
+
+        setUpLinesBar();
+        setUpRVStepBar();
+
+        index = 0;
+        measureSingle();
     }
 
-    private void measureSingle(Iterator<Measurement> measurements, Consumer<MeasureRVResults> callback) {
-        Measurement measurement = measurements.next();
+    // TODO: implement this
+    private void setUpRVStepBar() {
+        final ToolBar.Tab rvStepTab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
+                "RV Step", "RV Step", ImageResource.RULER_LARGE);
+
+        label(rvStepTab.getWindow(), SWT.CENTER)
+                .layoutData(new GridData(GridData.FILL_BOTH))
+                .text("Not yet implemented")
+                .build();
+    }
+
+    private void setUpLinesBar() {
+        final ToolBar.Tab linesTab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
+                "Lines", "Measurements", ImageResource.LINES_LARGE);
+
+        linesTab.addTopBarButton("Previous line", ImageResource.LEFT_ARROW, () -> {
+            if (index > 0) {
+                index--;
+                measureSingle();
+            }
+        });
+        linesTab.addTopBarButton("Next line", ImageResource.RIGHT_ARROW, () -> {
+            if (index + 1 < measurements.size()) {
+                index++;
+                measureSingle();
+            }
+        });
+        linesTab.addTopBarButton("Finish", ImageResource.CHECK, this::finish);
+
+        table = new Table(linesTab.getWindow(), SWT.SINGLE);
+        table.setLayoutData(new GridData(GridData.FILL_BOTH));
+        table.setHeaderVisible(false);
+        table.setLinesVisible(true);
+
+        TableColumn nameColumn = new TableColumn(table, SWT.LEFT);
+        TableColumn lZeroColumn = new TableColumn(table, SWT.RIGHT);
+
+        for (Measurement measurement : measurements) {
+            TableItem item = new TableItem(table, SWT.NONE);
+            item.setText(0, measurement.getName());
+            item.setText(1, Double.toString(measurement.getL0()));
+        }
+
+        table.getParent().addControlListener(ControlListener.controlResizedAdapter(e -> {
+            Rectangle area = table.getParent().getClientArea();
+            ScrollBar vBar = table.getVerticalBar();
+            int width = area.width - table.computeTrim(0, 0, 0, 0).width - vBar.getSize().x;
+            if (table.computeSize(SWT.DEFAULT, SWT.DEFAULT).y > area.height + table.getHeaderHeight()) {
+                // Subtract the scrollbar width from the total column width
+                Point vBarSize = vBar.getSize();
+                width -= vBarSize.x;
+            }
+
+            if (table.getSize().x > area.width) {
+                // Table is shrinking
+                lZeroColumn.setWidth(width / 3);
+                nameColumn.setWidth(width - lZeroColumn.getWidth());
+                table.setSize(area.width, area.height);
+
+            } else {
+                // Table is expanding
+                table.setSize(area.width, area.height);
+                lZeroColumn.setWidth(width / 3);
+                nameColumn.setWidth(width - lZeroColumn.getWidth());
+            }
+        }));
+
+        table.addSelectionListener(new DefaultSelectionListener(event -> {
+            index = table.getSelectionIndex();
+            measureSingle();
+        }));
+
+        linesTab.show();
+    }
+
+    private void measureSingle() {
+        Measurement measurement = measurements.get(index);
 
         shift = 0;
 
-        Chart chart = chart(ComponentManager.clearAndGetScene())
+        Chart chart = chart(ComponentManager.clearAndGetScene(false))
                 .title(measurement.getName() + " " + measurement.getL0())
                 .xAxisLabel("index")
                 .yAxisLabel(RELATIVE_FLUX)
@@ -94,11 +197,13 @@ public class RVMeasurementController {
                         }
                         break;
 
+                    case SWT.END:
                     case SWT.ESC:
-                        if (measurements.hasNext()) {
-                            ComponentManager.getDisplay().asyncExec(() -> measureSingle(measurements, callback));
+                        if (index + 1 < measurements.size()) {
+                            index += 1;
+                            ComponentManager.getDisplay().asyncExec(() -> measureSingle());
                         } else {
-                            callback.accept(results);
+                            finish();
                         }
                         break;
 
@@ -110,7 +215,7 @@ public class RVMeasurementController {
                         }
 
                         XYSeries newSeries = computeSeries(measurement);
-                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(newSeries.getXSeries());
+                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(ArrayUtils.addValueToArrayElements(newSeries.getXSeries(), shift));
                         chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
                         chart.redraw();
                         break;
@@ -129,6 +234,8 @@ public class RVMeasurementController {
 
         chart.redraw();
         chart.forceFocus();
+
+        table.setSelection(index);
     }
 
     private XYSeries computeSeries(Measurement measurement) {
@@ -145,16 +252,16 @@ public class RVMeasurementController {
         double[] mirroredYSeries = ArrayUtils.reverseArray(Arrays.copyOfRange(series.getYSeries(), from, to));
 
         double mid;
-        int index = Arrays.binarySearch(series.getXSeries(), measurement.getL0());
-        if (index < 0) {
-            index = -index - 1;
+        int midIndex = Arrays.binarySearch(series.getXSeries(), measurement.getL0());
+        if (midIndex < 0) {
+            midIndex = -midIndex - 1;
 
-            double low = series.getX(index - 1);
-            double high = series.getX(index);
+            double low = series.getX(midIndex - 1);
+            double high = series.getX(midIndex);
 
-            mid = index - 1 + ((measurement.getL0() - low) / (high - low));
+            mid = midIndex - 1 + ((measurement.getL0() - low) / (high - low));
         } else {
-            mid = index;
+            mid = midIndex;
         }
 
         double[] mirroredXSeries = new double[mirroredYSeries.length];
@@ -173,5 +280,18 @@ public class RVMeasurementController {
 
         chart.redraw();
         chart.forceFocus();
+    }
+
+    private void finish() {
+        if (results.isEmpty()){
+            if (!Message.question("No measurements were performed, are you sure you want to finish?")) {
+                return;
+            }
+        } else if (!Message.question("Are you sure you want to finish?")) {
+            return;
+        }
+
+        ComponentManager.clearScene(true);
+        callback.accept(results);
     }
 }

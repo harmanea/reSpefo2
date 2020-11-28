@@ -1,19 +1,31 @@
 package cz.cuni.mff.respefo.function.asset.ew;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.ToolBar;
+import cz.cuni.mff.respefo.component.VerticalToggle;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.Measurement;
 import cz.cuni.mff.respefo.function.asset.common.Measurements;
 import cz.cuni.mff.respefo.resources.ColorManager;
+import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.DefaultSelectionListener;
+import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.Range;
 
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
@@ -26,23 +38,96 @@ import static cz.cuni.mff.respefo.util.utils.MathUtils.DOUBLE_PRECISION;
 public class EWMeasurementController {
     private final XYSeries series;
 
-    private MeasureEWResults results;
+    private Measurements measurements;
+    private Consumer<MeasureEWResults> callback;
 
+    private MeasureEWResults results;
+    private int index;
     private double shift;
     private int activeLine = -2;
+
+    private Table table;
 
     public EWMeasurementController(XYSeries series) {
         this.series = series;
     }
 
     public void measure(Measurements measurements, Consumer<MeasureEWResults> callback) {
+        this.measurements = measurements;
+        this.callback = callback;
+
         results = new MeasureEWResults();
 
-        measureSingle(measurements.iterator(), callback);
+        ComponentManager.clearScene(true);
+
+        setUpLinesTab();
+
+        index = 0;
+        measureSingle();
     }
 
-    public void measureSingle(Iterator<Measurement> measurements, Consumer<MeasureEWResults> callback) {
-        Measurement measurement = measurements.next();
+    private void setUpLinesTab() {
+        final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
+                "Lines", "Measurements", ImageResource.LINES_LARGE);
+
+        tab.addTopBarButton("Previous line", ImageResource.LEFT_ARROW, () -> {
+            if (index > 0) {
+                index--;
+                measureSingle();
+            }
+        });
+        tab.addTopBarButton("Next line", ImageResource.RIGHT_ARROW, () -> {
+            if (index + 1 < measurements.size()) {
+                index++;
+                measureSingle();
+            }
+        });
+
+        table = new Table(tab.getWindow(), SWT.SINGLE);
+        table.setLayoutData(new GridData(GridData.FILL_BOTH));
+        table.setHeaderVisible(false);
+        table.setLinesVisible(true);
+
+        TableColumn nameColumn = new TableColumn(table, SWT.LEFT);
+        TableColumn lZeroColumn = new TableColumn(table, SWT.RIGHT);
+
+        for (Measurement measurement : measurements) {
+            TableItem item = new TableItem(table, SWT.NONE);
+            item.setText(0, measurement.getName());
+            item.setText(1, Double.toString(measurement.getL0()));
+        }
+
+        table.getParent().addControlListener(ControlListener.controlResizedAdapter(e -> {
+            Rectangle area = table.getParent().getClientArea();
+            ScrollBar vBar = table.getVerticalBar();
+            int width = area.width - table.computeTrim(0, 0, 0, 0).width - vBar.getSize().x;
+            if (table.computeSize(SWT.DEFAULT, SWT.DEFAULT).y > area.height + table.getHeaderHeight()) {
+                // Subtract the scrollbar width from the total column width
+                Point vBarSize = vBar.getSize();
+                width -= vBarSize.x;
+            }
+
+            if (table.getSize().x > area.width) {
+                // Table is shrinking
+                lZeroColumn.setWidth(width / 3);
+                nameColumn.setWidth(width - lZeroColumn.getWidth());
+                table.setSize(area.width, area.height);
+
+            } else {
+                // Table is expanding
+                table.setSize(area.width, area.height);
+                lZeroColumn.setWidth(width / 3);
+                nameColumn.setWidth(width - lZeroColumn.getWidth());
+            }
+        }));
+
+        table.addSelectionListener(new DefaultSelectionListener(event -> table.setSelection(index)));
+
+        tab.show();
+    }
+
+    private void measureSingle() {
+        Measurement measurement = measurements.get(index);
 
         shift = 0;
 
@@ -54,7 +139,7 @@ public class EWMeasurementController {
                 ArrayUtils.findClosest(series.getXSeries(), measurement.getUpperBound())
         );
 
-        Chart chart = chart(ComponentManager.clearAndGetScene())
+        Chart chart = chart(ComponentManager.clearAndGetScene(false))
                 .title(measurement.getName() + " " + measurement.getL0())
                 .xAxisLabel(WAVELENGTH)
                 .yAxisLabel(RELATIVE_FLUX)
@@ -98,10 +183,11 @@ public class EWMeasurementController {
                 switch (e.keyCode) {
                     case SWT.CR:
                         results.add(result);
-                        if (measurements.hasNext()) {
-                            ComponentManager.getDisplay().asyncExec(() -> measureSingle(measurements, callback));
+                        if (index + 1 < measurements.size()) {
+                            index += 1;
+                            ComponentManager.getDisplay().asyncExec(() -> measureSingle());
                         } else {
-                            callback.accept(results);
+                            finish();
                         }
                         break;
 
@@ -129,6 +215,8 @@ public class EWMeasurementController {
         });
 
         adjustView(chart, result);
+
+        table.setSelection(index);
     }
 
     private void adjustView(Chart chart, MeasureEWResult result) {
@@ -168,5 +256,14 @@ public class EWMeasurementController {
         }
 
         shift = 0;
+    }
+
+    private void finish() {
+        if (!Message.question("Are you sure you want to finish?")) {
+            return;
+        }
+
+        ComponentManager.clearScene(true);
+        callback.accept(results);
     }
 }

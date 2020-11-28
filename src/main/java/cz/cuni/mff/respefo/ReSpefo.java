@@ -11,8 +11,6 @@ public class ReSpefo {
 
     public static void main(String[] args) throws Exception {
 
-        // TODO: OS detection and handling
-
         // Scan for annotations -> fill function managers
         FunctionManager.scan();
         FormatManager.scan();
@@ -29,6 +27,5 @@ public class ReSpefo {
         // Main loop
         ComponentManager.open();
 
-        // TODO: Cleanup
     }
 }

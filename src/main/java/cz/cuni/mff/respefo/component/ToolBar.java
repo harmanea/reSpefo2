@@ -8,6 +8,8 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -28,6 +30,7 @@ public class ToolBar {
 
     private final Runnable toggleAction;
 
+    private final List<Tab> tabs;
     private Tab activeTab;
 
     public ToolBar(Composite window, Composite bar, Runnable toggleAction) {
@@ -37,6 +40,7 @@ public class ToolBar {
         createTopBar(window);
         createBarWindow(window);
 
+        tabs = new ArrayList<>();
         activeTab = null;
     }
 
@@ -58,6 +62,7 @@ public class ToolBar {
         toggle.setToggled(false);
 
         Tab tab = new Tab(iconsComposite, windowComposite, toggle, topBarLabelText);
+        tabs.add(tab);
 
         toggle.setToggleAction(toggled -> {
             if (TRUE.equals(toggled)) {
@@ -79,6 +84,13 @@ public class ToolBar {
         }
         activeTab = tab;
         activeTab.bringToTop();
+    }
+
+    public void disposeTabs() {
+        for (Tab tab : tabs) {
+            tab.dispose();
+        }
+        tabs.clear();
     }
 
     private void createTopBar(Composite window) {
@@ -110,7 +122,7 @@ public class ToolBar {
                 .layoutData(new RowData(DEFAULT, hideButton.computeSize(DEFAULT, DEFAULT).y))
                 .build();
 
-        topBarContextIconsComposite = composite(iconsComposite, RIGHT_TO_LEFT)
+        topBarContextIconsComposite = composite(iconsComposite, LEFT_TO_RIGHT)
                 .layout(new StackLayout())
                 .build();
     }
@@ -153,9 +165,6 @@ public class ToolBar {
             return windowComposite;
         }
 
-        /**
-         * Filled from right to left
-         */
         public void addTopBarButton(String toolTip, ImageResource icon, Runnable onClickAction) {
             final LabelButton topBarButton = new LabelButton(iconsComposite, NONE);
             topBarButton.setImage(ImageManager.getImage(icon));
@@ -169,7 +178,7 @@ public class ToolBar {
             toggle.appendToggleAction(toggleAction);
         }
 
-        public void dispose() {
+        private void dispose() {
             if (activeTab == this) {
                 hide();
             }

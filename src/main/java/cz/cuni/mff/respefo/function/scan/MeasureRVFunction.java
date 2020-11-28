@@ -1,7 +1,6 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.Fun;
@@ -81,6 +80,10 @@ public class MeasureRVFunction implements SingleFileFunction {
     }
 
     private static void saveResults(Spectrum spectrum, MeasureRVResults results) {
+        if (results.isEmpty()) {
+            return;
+        }
+
         Optional<MeasureRVResults> oldResults = spectrum.getFunctionAsset(SERIALIZE_KEY, MeasureRVResults.class);
         if (oldResults.isPresent()
                 && Message.question("Measurements of this type is already saved in this file.\n\nDo you want to append to it?")) {
@@ -94,7 +97,6 @@ public class MeasureRVFunction implements SingleFileFunction {
         try {
             spectrum.save();
 
-            ComponentManager.clearScene();
             Message.info("Measurements saved successfully.");
         } catch (SpefoException exception) {
             Message.error("Spectrum file couldn't be saved.", exception);

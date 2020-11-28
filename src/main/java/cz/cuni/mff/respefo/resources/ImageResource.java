@@ -13,6 +13,10 @@ public enum ImageResource {
     MINIMIZE("minimize.png"),
     COLLAPSE("collapse.png"),
 
+    LEFT_ARROW("left_arrow.png"),
+    RIGHT_ARROW("right_arrow.png"),
+    CHECK("check.png"),
+
     COPY("copy.png"),
     DELETE("delete.png"),
     PASTE("paste.png"),
@@ -23,7 +27,10 @@ public enum ImageResource {
     KEYBOARD_LARGE("keyboard_large.png"),
     HELP_LARGE("help_large.png"),
     INFO_LARGE("info_large.png"),
-    EVENT_LOG_LARGE("event_log_large.png");
+    EVENT_LOG_LARGE("event_log_large.png"),
+
+    LINES_LARGE("lines_large.png"),
+    RULER_LARGE("ruler_large.png");
 
     private final String fileName;
 

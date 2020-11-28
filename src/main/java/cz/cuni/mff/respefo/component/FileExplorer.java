@@ -57,7 +57,7 @@ public class FileExplorer {
     private File rootDirectory;
 
     public FileExplorer(Composite parent) {
-        tree = new Tree(parent, BORDER | MULTI | V_SCROLL);
+        tree = new Tree(parent, BORDER | MULTI | V_SCROLL | VIRTUAL);
 
         treeEditor = new TreeEditor(tree);
         treeEditor.horizontalAlignment = LEFT;
@@ -90,7 +90,7 @@ public class FileExplorer {
         File[] children = listFiles(file);
         Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         for (File child : children) {
-            TreeItem item = new TreeItem(tree, 0);
+            TreeItem item = new TreeItem(tree, NONE);
             setUpChildItem(item, child);
         }
 
@@ -122,7 +122,7 @@ public class FileExplorer {
     public void refresh() {
         TreeItem[] items = tree.getItems();
 
-        refreshItems(items, rootDirectory, index -> new TreeItem(tree, 0, index));
+        refreshItems(items, rootDirectory, index -> new TreeItem(tree, NONE, index));
     }
 
     private void refreshNested(TreeItem item, File file) {
@@ -143,12 +143,12 @@ public class FileExplorer {
             } else if (item.getExpanded()) {
                 // recursively refresh the file's children
 
-                refreshItems(item.getItems(), file, index -> new TreeItem(item, 0, index));
+                refreshItems(item.getItems(), file, index -> new TreeItem(item, NONE, index));
 
             } else if (nestedFileCount > 0 && item.getItemCount() == 0) {
                 // the file now has some children, might not have been a folder before
 
-                new TreeItem(item, 0);
+                new TreeItem(item, NONE);
                 item.setImage(getImage(FOLDER));
             }
         } else {
@@ -315,7 +315,7 @@ public class FileExplorer {
         File[] children = listFiles(file);
         Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         for (File child : children) {
-            TreeItem childItem = new TreeItem(item, 0);
+            TreeItem childItem = new TreeItem(item, NONE);
             setUpChildItem(childItem, child);
         }
 
@@ -329,7 +329,7 @@ public class FileExplorer {
         item.setData(file);
 
         if (file.isDirectory() && listFiles(file).length > 0) {
-            new TreeItem(item, 0);
+            new TreeItem(item, NONE);
         }
 
         item.setImage(getIconForFile(file));

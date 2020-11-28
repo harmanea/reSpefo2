@@ -31,7 +31,6 @@ public class ComponentManager extends UtilityClass {
     private static FileExplorer fileExplorer;
     private static Composite scene;
 
-    // TODO: handle tool bar disposing on scene clear
     // TODO: maybe add a notification for lost work
     private static ToolBar leftToolBar;
     private static ToolBar rightToolBar;
@@ -60,8 +59,8 @@ public class ComponentManager extends UtilityClass {
         final ComponentWithBottomBar componentWithBottomBar = new ComponentWithBottomBar(shell);
         componentWithBottomBar.setWeights(new int[]{70, 30});
         componentWithBottomBar.setLayoutData(new GridData(FILL, FILL, true, true));
-        componentWithBottomBar.getScene().setLayout(fillLayout().margins(0).spacing(0).build()); // TEMPORARY
-        componentWithBottomBar.getBottomBar().setLayout(gridLayout().margins(0).spacings(0).build()); // TEMPORARY
+        componentWithBottomBar.getScene().setLayout(fillLayout().margins(0).spacing(0).build());
+        componentWithBottomBar.getBottomBar().setLayout(gridLayout().margins(0).spacings(0).build());
         componentWithBottomBar.maximizeScene();
 
         final Composite rightBar = composite(shell, BORDER)
@@ -88,7 +87,7 @@ public class ComponentManager extends UtilityClass {
         scene = componentWithSidebars.getScene();
 
         label(componentWithSidebars.getScene(), CENTER)
-                .text("Welcome to reSpefo!") // TEMPORARY TEXT
+                .text("Welcome to reSpefo!")
                 .layoutData(new GridData(CENTER, CENTER, true, true))
                 .build();
 
@@ -125,13 +124,8 @@ public class ComponentManager extends UtilityClass {
 
         rightToolBar = new ToolBar(rightBarComposite, rightBar, componentWithSidebars::toggleRightBar);
 
-        ToolBar.Tab toolsTab = rightToolBar.addTab(parent -> new VerticalToggle(parent, DOWN),
-                "Tools", "Tools", ImageResource.TOOLS_LARGE);
-
-        label(toolsTab.getWindow(), CENTER)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .text("This toolbar is empty");
-
+        // Make sure the right bar is visible even if there are no tabs
+        ((GridData) rightBar.getLayoutData()).widthHint = leftBar.computeSize(DEFAULT, DEFAULT).x;
 
         // Bottom Tool Bar
 
@@ -255,7 +249,7 @@ public class ComponentManager extends UtilityClass {
 
         final MenuItem clearSceneMenuItem = new MenuItem(windowMenu, PUSH);
         clearSceneMenuItem.setText("Clear Scene");
-        clearSceneMenuItem.addSelectionListener(new DefaultSelectionListener(event -> clearScene()));
+        clearSceneMenuItem.addSelectionListener(new DefaultSelectionListener(event -> clearScene(true)));
 
         final MenuItem focusSceneMenuItem = new MenuItem(windowMenu, PUSH);
         focusSceneMenuItem.setText("Focus Scene");
@@ -321,14 +315,22 @@ public class ComponentManager extends UtilityClass {
         return scene;
     }
 
-    public static void clearScene() {
+    public static void clearScene(boolean clearToolsTab) {
         for (Control control : scene.getChildren()) {
             control.dispose();
+        }
+
+        if (clearToolsTab) {
+            rightToolBar.disposeTabs();
         }
     }
 
     public static Composite clearAndGetScene() {
-        clearScene();
+        return clearAndGetScene(true);
+    }
+
+    public static Composite clearAndGetScene(boolean clearToolsTab) {
+        clearScene(clearToolsTab);
         return scene;
     }
 

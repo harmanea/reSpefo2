@@ -33,7 +33,7 @@ public class VerticalToggle extends Toggle {
         up = (style & SWT.DOWN) == 0;
 
         setBackgroundMode(SWT.INHERIT_FORCE);
-        setLayout(gridLayout().marginTop(up ? 10 : 5).marginBottom(up ? 5 : 10).build());
+        setLayout(gridLayout().marginWidth(3).marginTop(up ? 8 : 3).marginBottom(up ? 3 : 8).build());
 
         if (up) {
             canvas = new Canvas(this, SWT.NONE);

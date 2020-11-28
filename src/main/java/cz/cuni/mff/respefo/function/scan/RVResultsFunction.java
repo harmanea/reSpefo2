@@ -36,7 +36,6 @@ import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static java.lang.Double.isNaN;
 
@@ -309,7 +308,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
         try (PrintWriter writer = new PrintWriter(fileName)) {
             writer.println("Summary of radial velocities\n");
 
-            writer.print("  N. Jul. date RVCorr ");
+            writer.print("Jul. date  RVCorr");
 
             String[] categories = spectra.stream()
                     .map(spectrum -> spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get())
@@ -323,10 +322,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
             }
             writer.println();
 
-            for (int i = 0; i < spectra.size(); i++) {
-                Spectrum spectrum = spectra.get(i);
-
-                writer.print(formatInteger(i + 1, 3, false) + " ");
+            for (Spectrum spectrum : spectra) {
                 writer.print(formatDouble(spectrum.getHjd().getRJD(), 5, 4, false) + " ");
                 writer.print(formatDouble(spectrum.getRvCorrection(), 2, 2, true));
 
@@ -362,7 +358,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
         try (PrintWriter writer = new PrintWriter(fileName)) {
             writer.println("Summary of radial velocities\n");
 
-            writer.print("  N. Jul. date ");
+            writer.print("Jul. date ");
 
             String[] categories = spectra.stream()
                     .map(spectrum -> spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get())
@@ -377,8 +373,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
             }
             writer.println();
 
-            for (int i = 0; i < spectra.size(); i++) {
-                Spectrum spectrum = spectra.get(i);
+            for (Spectrum spectrum : spectra) {
                 MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
 
                 if (isNaN(results.getRvOfCategory("corr"))) {
@@ -386,7 +381,6 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
                     continue;
                 }
 
-                writer.print(formatInteger(i + 1, 3, false) + " ");
                 writer.print(formatDouble(spectrum.getHjd().getRJD(), 5, 4, false));
 
                 double rvCorr = results.getRvCorrection() - results.getRvOfCategory("corr");

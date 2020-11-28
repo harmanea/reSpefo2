@@ -72,8 +72,8 @@ public class Measurements implements Iterable<Measurement> {
         return elements.get(index);
     }
 
-    public List<Measurement> getElements() {
-        return elements;
+    public int size() {
+        return elements.size();
     }
 
     @Override
