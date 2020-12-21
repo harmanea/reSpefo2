@@ -13,15 +13,14 @@ import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.DefaultSelectionListener;
 import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.builders.GridDataBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 import org.swtchart.Chart;
@@ -32,13 +31,15 @@ import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.radioButton;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.newChart;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.round;
 
 public class RVMeasurementController {
@@ -82,90 +83,79 @@ public class RVMeasurementController {
         final ToolBar.Tab rvStepTab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "RV Step", "RV Step", ImageResource.RULER_LARGE);
 
-        final Composite relativeStepComposite = composite(rvStepTab.getWindow())
-                .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                .layout(gridLayout(2, false).marginWidth(3).marginHeight(5).horizontalSpacing(5))
-                .build();
-
-        final Button relativeStepButton = radioButton(relativeStepComposite)
-                .layoutData(GridDataBuilder.gridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING).horizontalSpan(2))
-                .text("Relative")
-                .selection(true)
-                .build();
-
-        relativeStepText = new Text(relativeStepComposite, SWT.SINGLE | SWT.READ_ONLY | SWT.RIGHT);
-        relativeStepText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END));
-
-        final Label relativeStepUnitsLabel = label(relativeStepComposite, SWT.NONE)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER))
+        CompositeBuilder stepCompositeBuilder = newComposite()
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING)
+                .layout(gridLayout(2, false).marginWidth(3).marginHeight(5).horizontalSpacing(5));
+        ButtonBuilder stepButtonBuilder = newButton(SWT.RADIO)
+                .gridLayoutData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1);
+        LabelBuilder stepUnitsLabelBuilder = newLabel(SWT.CENTER)
                 .text("km/s")
-                .build();
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER);
+        LabelBuilder stepLabelBuilder = newLabel(SWT.CENTER | SWT.WRAP)
+                .gridLayoutData(SWT.FILL, SWT.FILL, true, false, 2, 1);
+        LabelBuilder horizontalSeparator = newLabel(SWT.SEPARATOR | SWT.HORIZONTAL)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
 
-        final Label relativeStepLabel = label(relativeStepComposite, SWT.CENTER | SWT.WRAP)
-                .layoutData(GridDataBuilder.gridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL).horizontalSpan(2))
+        final Composite relativeStepComposite = stepCompositeBuilder.build(rvStepTab.getWindow());
+
+        final Button relativeStepButton = stepButtonBuilder.text("Relative").selection(true).build(relativeStepComposite);
+
+        relativeStepText = newText(SWT.SINGLE | SWT.READ_ONLY | SWT.RIGHT)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END)
+                .build(relativeStepComposite);
+
+        final Label relativeStepUnitsLabel = stepUnitsLabelBuilder.build(relativeStepComposite);
+
+        final Label relativeStepLabel = stepLabelBuilder
                 .text("The step size is computed relatively based on the current zoom.")
-                .build();
+                .build(relativeStepComposite);
 
-        label(rvStepTab.getWindow(), SWT.SEPARATOR | SWT.HORIZONTAL)
-                .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER))
-                .build();
 
-        final Composite manualStepComposite = composite(rvStepTab.getWindow())
-                .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                .layout(gridLayout(2, false).marginWidth(3).marginHeight(5).horizontalSpacing(5))
-                .build();
+        horizontalSeparator.build(rvStepTab.getWindow());
 
-        final Button manualStepButton = radioButton(manualStepComposite)
-                .layoutData(GridDataBuilder.gridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING).horizontalSpan(2))
-                .text("Manual")
-                .selection(false)
-                .build();
 
-        final Text manualStepText = new Text(manualStepComposite, SWT.SINGLE | SWT.RIGHT);
-        manualStepText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END));
-        manualStepText.setText("1.0");
-        manualStepText.setEnabled(false);
+        final Composite manualStepComposite = stepCompositeBuilder.build(rvStepTab.getWindow());
 
-        final Runnable verifyManualStepText = () -> {
+        final Button manualStepButton = stepButtonBuilder.text("Manual").selection(false).build(manualStepComposite);
+
+        final Consumer<Text> verifyManualStepText = (Text text) -> {
             try {
-                double newRvStep = Double.parseDouble(manualStepText.getText());
+                double newRvStep = Double.parseDouble(text.getText());
 
                 if (newRvStep <= 0 || !Double.isFinite(newRvStep)) {
                     throw new NumberFormatException();
                 }
 
                 rvStep = 2 * newRvStep / deltaRV;
-                manualStepText.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+                text.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 
             } catch (NumberFormatException exception) {
-                manualStepText.setForeground(ColorManager.getColor(ColorResource.RED));
+                text.setForeground(ColorManager.getColor(ColorResource.RED));
             }
         };
 
-        manualStepText.addModifyListener(event -> verifyManualStepText.run());
-
-        // This is a hacky way to force focus the chart
-        manualStepText.addTraverseListener(event -> {
-            if (event.detail == SWT.TRAVERSE_ESCAPE || event.detail == SWT.TRAVERSE_RETURN) {
-                ComponentManager.getScene().getChildren()[0].forceFocus();
-            }
-        });
-
-        final Label manualStepUnitLabel = label(manualStepComposite, SWT.NONE)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER))
-                .text("km/s")
+        final Text manualStepText = newText(SWT.SINGLE | SWT.RIGHT)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END)
+                .text("1.0")
                 .enabled(false)
-                .build();
+                .onModify(event -> verifyManualStepText.accept((Text) event.widget))
+                .listener(SWT.Traverse, event -> {
+                    // This is a hacky way to force focus the chart
+                    if (event.detail == SWT.TRAVERSE_ESCAPE || event.detail == SWT.TRAVERSE_RETURN) {
+                        ComponentManager.getScene().getChildren()[0].forceFocus();
+                    }
+                })
+                .build(manualStepComposite);
 
-        final Label manualStepLabel = label(manualStepComposite, SWT.CENTER | SWT.WRAP)
-                .layoutData(GridDataBuilder.gridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL).horizontalSpan(2))
+        final Label manualStepUnitLabel = stepUnitsLabelBuilder.build(manualStepComposite);
+
+        final Label manualStepLabel = stepLabelBuilder
                 .text("The step size is manually selected.")
                 .enabled(false)
-                .build();
+                .build(manualStepComposite);
 
-        label(rvStepTab.getWindow(), SWT.SEPARATOR | SWT.HORIZONTAL)
-                .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER))
-                .build();
+
+        horizontalSeparator.build(rvStepTab.getWindow());
 
 
         relativeStepButton.addSelectionListener(new DefaultSelectionListener(event -> {
@@ -183,7 +173,7 @@ public class RVMeasurementController {
         }));
 
         manualStepButton.addSelectionListener(new DefaultSelectionListener(event -> {
-            verifyManualStepText.run();
+            verifyManualStepText.accept(manualStepText);
 
             relativeStepButton.setSelection(false);
 
@@ -215,48 +205,22 @@ public class RVMeasurementController {
         });
         linesTab.addTopBarButton("Finish", ImageResource.CHECK, this::finish);
 
-        table = new Table(linesTab.getWindow(), SWT.SINGLE);
-        table.setLayoutData(new GridData(GridData.FILL_BOTH));
-        table.setHeaderVisible(false);
-        table.setLinesVisible(true);
-
-        TableColumn nameColumn = new TableColumn(table, SWT.LEFT);
-        TableColumn lZeroColumn = new TableColumn(table, SWT.RIGHT);
-
-        for (Measurement measurement : measurements) {
-            TableItem item = new TableItem(table, SWT.NONE);
-            item.setText(0, measurement.getName());
-            item.setText(1, Double.toString(measurement.getL0()));
-        }
-
-        table.getParent().addControlListener(ControlListener.controlResizedAdapter(e -> {
-            Rectangle area = table.getParent().getClientArea();
-            ScrollBar vBar = table.getVerticalBar();
-            int width = area.width - table.computeTrim(0, 0, 0, 0).width - vBar.getSize().x;
-            if (table.computeSize(SWT.DEFAULT, SWT.DEFAULT).y > area.height + table.getHeaderHeight()) {
-                // Subtract the scrollbar width from the total column width
-                Point vBarSize = vBar.getSize();
-                width -= vBarSize.x;
-            }
-
-            if (table.getSize().x > area.width) {
-                // Table is shrinking
-                lZeroColumn.setWidth(width / 3);
-                nameColumn.setWidth(width - lZeroColumn.getWidth());
-                table.setSize(area.width, area.height);
-
-            } else {
-                // Table is expanding
-                table.setSize(area.width, area.height);
-                lZeroColumn.setWidth(width / 3);
-                nameColumn.setWidth(width - lZeroColumn.getWidth());
-            }
-        }));
-
-        table.addSelectionListener(new DefaultSelectionListener(event -> {
-            index = table.getSelectionIndex();
-            measureSingle();
-        }));
+        table = newTable(SWT.SINGLE)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .headerVisible(false)
+                .linesVisible(true)
+                .onSelection(event -> {
+                    index = table.getSelectionIndex();
+                    measureSingle();
+                })
+                .columns(2)
+                .fixedAspectColumns(3, 1)
+                .items(measurements, measurement -> new String[]{
+                        measurement.getName(),
+                        Double.toString(measurement.getL0())
+                })
+                .build(linesTab.getWindow());
+        table.getColumn(1).setAlignment(SWT.RIGHT);
 
         linesTab.show();
     }
@@ -266,7 +230,7 @@ public class RVMeasurementController {
 
         shift = 0;
 
-        Chart chart = chart(ComponentManager.clearAndGetScene(false))
+        final Chart chart = newChart()
                 .title(measurement.getName() + " " + measurement.getL0())
                 .xAxisLabel("index")
                 .yAxisLabel(RELATIVE_FLUX)
@@ -286,8 +250,8 @@ public class RVMeasurementController {
                 }))
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, value -> applyShift(ch, value)))
                 .centerAroundSeries(MIRRORED_SERIES_NAME)
-                .forceFocus()
-                .build();
+                .focus()
+                .build(ComponentManager.clearAndGetScene(false));
 
         chart.getAxisSet().zoomOut();
 

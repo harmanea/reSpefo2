@@ -10,17 +10,18 @@ import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.*;
+import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
 import java.io.File;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 import static cz.cuni.mff.respefo.util.builders.RowLayoutBuilder.rowLayout;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
@@ -51,10 +52,12 @@ public class ComponentManager extends UtilityClass {
 
         // Top level
 
-        final Composite leftBar = composite(shell, BORDER)
-                .layoutData(new GridData(LEFT, FILL, false, true))
-                .layout(rowLayout(VERTICAL).margins(0).spacing(0))
-                .build();
+        CompositeBuilder sideBarsBuilder = newComposite(BORDER)
+                .layout(rowLayout(VERTICAL).margins(0).spacing(0));
+
+        final Composite leftBar = sideBarsBuilder
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.FILL_VERTICAL)
+                .build(shell);
 
         final ComponentWithBottomBar componentWithBottomBar = new ComponentWithBottomBar(shell);
         componentWithBottomBar.setWeights(new int[]{70, 30});
@@ -63,15 +66,14 @@ public class ComponentManager extends UtilityClass {
         componentWithBottomBar.getBottomBar().setLayout(gridLayout().margins(0).spacings(0).build());
         componentWithBottomBar.maximizeScene();
 
-        final Composite rightBar = composite(shell, BORDER)
-                .layoutData(new GridData(RIGHT, FILL, false, true))
-                .layout(rowLayout(VERTICAL).margins(0).spacing(0))
-                .build();
+        final Composite rightBar = sideBarsBuilder
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.FILL_VERTICAL)
+                .build(shell);
 
-        final Composite bottomBar = composite(shell, BORDER)
-                .layoutData(new GridData(FILL, BOTTOM, true, false, 3, 1))
+        final Composite bottomBar = newComposite(BORDER)
+                .gridLayoutData(FILL, BOTTOM, true, false, 3, 1)
                 .layout(gridLayout(4, false).margins(3).spacings(3))
-                .build();
+                .build(shell);
 
 
         // componentWithBottomBar -> scene
@@ -86,18 +88,19 @@ public class ComponentManager extends UtilityClass {
 
         scene = componentWithSidebars.getScene();
 
-        label(componentWithSidebars.getScene(), CENTER)
+        newLabel(CENTER)
                 .text("Welcome to reSpefo!")
-                .layoutData(new GridData(CENTER, CENTER, true, true))
-                .build();
+                .gridLayoutData(CENTER, CENTER, true, true)
+                .build(componentWithSidebars.getScene());
 
 
         // Left Tool Bar
 
-        final Composite leftBarComposite = composite(componentWithSidebars.getLeftBar(), BORDER)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .layout(gridLayout().margins(0).spacings(0))
-                .build();
+        CompositeBuilder toolBarCompositeBuilder = newComposite(BORDER)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .layout(gridLayout().margins(0).spacings(0));
+
+        final Composite leftBarComposite = toolBarCompositeBuilder.build(componentWithSidebars.getLeftBar());
 
         leftToolBar = new ToolBar(leftBarComposite, leftBar, componentWithSidebars::toggleLeftBar);
 
@@ -117,10 +120,7 @@ public class ComponentManager extends UtilityClass {
 
         // Right Tool Bar
 
-        final Composite rightBarComposite = composite(componentWithSidebars.getRightBar(), BORDER)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .layout(gridLayout().margins(0).spacings(0))
-                .build();
+        final Composite rightBarComposite = toolBarCompositeBuilder.build(componentWithSidebars.getRightBar());
 
         rightToolBar = new ToolBar(rightBarComposite, rightBar, componentWithSidebars::toggleRightBar);
 
@@ -129,15 +129,12 @@ public class ComponentManager extends UtilityClass {
 
         // Bottom Tool Bar
 
-        final Composite bottomBarComposite = composite(componentWithBottomBar.getBottomBar(), NONE)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .layout(gridLayout().margins(0).spacings(0))
-                .build();
+        final Composite bottomBarComposite = toolBarCompositeBuilder.build(componentWithBottomBar.getBottomBar());
 
-        final Composite bottomBarTabsComposite = composite(bottomBar)
-                .layoutData(new GridData(LEFT, FILL, false, true))
+        final Composite bottomBarTabsComposite = newComposite()
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.FILL_VERTICAL)
                 .layout(rowLayout(HORIZONTAL).margins(0).spacing(0))
-                .build();
+                .build(bottomBar);
 
         bottomToolBar = new ToolBar(bottomBarComposite, bottomBarTabsComposite, componentWithBottomBar::toggleScene);
 
@@ -148,26 +145,26 @@ public class ComponentManager extends UtilityClass {
         fancyLogListener.setLayoutData(new GridData(GridData.FILL_BOTH));
         Log.registerListener(fancyLogListener);
 
-        final Label bottomLogLabel = label(bottomBar, NONE)
+        final Label bottomLogLabel = newLabel()
                 .text("")
-                .layoutData(new GridData(LEFT, CENTER, false, false))
-                .build();
-        bottomLogLabel.addListener(MouseDown, event -> eventLogTab.show());
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER)
+                .listener(MouseDown, event -> eventLogTab.show())
+                .build(bottomBar);
         Log.registerListener(new LabelLogListener(bottomLogLabel, eventLogTab::isHidden));
         eventLogTab.appendToggleAction(toggled -> {
             bottomLogLabel.setText("");
             bottomLogLabel.requestLayout();
         });
 
-        final Label progressLabel = label(bottomBar, RIGHT)
-                .layoutData(new GridData(RIGHT, CENTER, true, true))
+        final Label progressLabel = newLabel(RIGHT)
+                .gridLayoutData(RIGHT, CENTER, true, true)
                 .visible(false)
-                .build();
+                .build(bottomBar);
 
-        final Composite progressBarComposite = composite(bottomBar)
-                .layoutData(new GridData(RIGHT, CENTER, false, true))
+        final Composite progressBarComposite = newComposite()
+                .gridLayoutData(RIGHT, CENTER, false, true)
                 .layout(fillLayout().marginWidth(10).marginHeight(0).build())
-                .build();
+                .build(bottomBar);
 
         final ProgressBar progressBar = new ProgressBar(progressBarComposite, SMOOTH);
         progressBar.setVisible(false);

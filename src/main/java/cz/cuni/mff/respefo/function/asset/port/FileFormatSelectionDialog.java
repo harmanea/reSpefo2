@@ -11,10 +11,10 @@ import org.eclipse.swt.widgets.Label;
 import java.util.Comparator;
 import java.util.List;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 
 public class FileFormatSelectionDialog<T extends FileFormat> extends SpefoDialog {
     private int selectionIndex;
@@ -36,18 +36,18 @@ public class FileFormatSelectionDialog<T extends FileFormat> extends SpefoDialog
 
     @Override
     protected void createDialogArea(Composite parent) {
-        Composite composite = composite(parent)
+        final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).spacings(15))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(400))
-                .build();
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(450).build())
+                .build(parent);
 
-        label(composite)
+        newLabel()
                 .text("Select an " + type.toLowerCase() + " format:")
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER))
-                .build();
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER)
+                .build(composite);
 
         final Combo formatSelector = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
-        formatSelector.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_VERTICAL));
+        formatSelector.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, true));
         String[] items = fileFormats.stream().map(FileFormat::name).toArray(String[]::new);
         formatSelector.setItems(items);
         for (int i = 0; i < fileFormats.size(); i++) {
@@ -58,16 +58,17 @@ public class FileFormatSelectionDialog<T extends FileFormat> extends SpefoDialog
             }
         }
 
-        final Label descriptionLabel = label(composite, SWT.WRAP)
+        final Label descriptionLabel = newLabel(SWT.WRAP)
                 .text(selectionIndex >= 0 ? getFileFormat().description() : "")
-                .layoutData(new GridData(SWT.CENTER, SWT.BOTTOM, true, true, 2, 1))
-                .build();
+                .gridLayoutData(SWT.CENTER, SWT.BOTTOM, true, true, 2, 1)
+                .build(composite);
 
         formatSelector.addListener(SWT.Selection, event -> {
             selectionIndex = formatSelector.getSelectionIndex();
             if (selectionIndex >= 0) {
                 descriptionLabel.setText(getFileFormat().description());
                 descriptionLabel.getShell().pack();
+                descriptionLabel.getShell().layout();
             }
         });
     }

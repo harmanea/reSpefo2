@@ -13,6 +13,7 @@ import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResults;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -28,13 +29,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static java.lang.Double.isNaN;
+import static org.eclipse.swt.SWT.COLOR_WIDGET_BACKGROUND;
 
 @Fun(name = "EW Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
 public class EWResultsFunction implements SingleFileFunction, MultiFileFunction {
@@ -60,53 +63,47 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction 
         MeasureEWResults results = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get();
         XYSeries series = spectrum.getProcessedSeries();
 
-        ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
         scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         scrolledComposite.setLayout(new GridLayout());
 
-        final Composite composite = composite(scrolledComposite)
-                .layoutData(new GridData(GridData.FILL_BOTH))
+        final Composite composite = newComposite()
+                .gridLayoutData(GridData.FILL_BOTH)
                 .layout(gridLayout().margins(10).spacings(10))
-                .build();
+                .background(ComponentManager.getDisplay().getSystemColor(COLOR_WIDGET_BACKGROUND))
+                .build(scrolledComposite);
 
-        final Label titleLabel = label(composite, SWT.LEFT)
-                .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
+        LabelBuilder labelBuilder = newLabel(SWT.LEFT)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
+
+        labelBuilder
                 .text("Summary of equivalent widths etc. measured on " + FileUtils.stripFileExtension(spectrum.getFile().getName()))
-                .build();
-
-        composite.setBackground(titleLabel.getBackground());
+                .build(composite);
 
         for (MeasureEWResult result : results) {
-            Group group = new Group(composite, SWT.NONE);
+            final Group group = new Group(composite, SWT.NONE);
             group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER));
             group.setLayout(gridLayout().margins(10).build());
             group.setText("Results for measurement " + result.getName());
 
-            label(group, SWT.LEFT)
-                    .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                    .text("EW: " + formatDouble(result.getEW(series), 4, 4))
-                    .build();
+            labelBuilder.text("EW: " + formatDouble(result.getEW(series), 4, 4)).build(group);
 
             if (result.containsCategory(MeasureEWResultPointCategory.Ic)) {
                 double fwhm = result.getFWHM(series);
                 if (isNaN(fwhm)) {
                     Log.warning("Couldn't compute FWHM for measurement " + result.getName());
                 } else {
-                    label(group, SWT.LEFT)
-                            .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                            .text("FWHM: " + formatDouble(fwhm, 4, 4))
-                            .build();
+                    labelBuilder.text("FWHM: " + formatDouble(fwhm, 4, 4)).build(group);
                 }
             }
 
             for (int i = 0; i < result.pointsCount(); i++) {
-                label(group, SWT.LEFT)
-                        .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
+                labelBuilder
                         .text(result.getCategory(i).name() + ": " + formatDouble(series.getY(result.getPoint(i)), 4, 4))
-                        .build();
+                        .build(group);
             }
 
-            pushButton(group)
+            newButton(SWT.PUSH)
                     .text("Delete")
                     .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END))
                     .onSelection(event -> {
@@ -126,7 +123,7 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction 
                             Message.error("Couldn't save changes", exception);
                         }
                     })
-                    .build();
+                    .build(group);
         }
 
         scrolledComposite.setContent(composite);
@@ -164,21 +161,20 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction 
     }
 
     private static void displayResults(List<Spectrum> spectra) {
-        ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
         scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         scrolledComposite.setLayout(new GridLayout());
 
-        final Composite composite = composite(scrolledComposite)
-                .layoutData(new GridData(GridData.FILL_BOTH))
+        final Composite composite = newComposite()
+                .gridLayoutData(GridData.FILL_BOTH)
                 .layout(gridLayout().margins(10).spacings(10))
-                .build();
+                .background(ComponentManager.getDisplay().getSystemColor(COLOR_WIDGET_BACKGROUND))
+                .build(scrolledComposite);
 
-        final Label titleLabel = label(composite, SWT.LEFT)
-                .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
-                .text("Summary of equivalent widths etc.")
-                .build();
+        LabelBuilder labelBuilder = newLabel(SWT.LEFT)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
 
-        composite.setBackground(titleLabel.getBackground());
+        labelBuilder.text("Summary of equivalent widths etc.").build(composite);
 
         String[] names = spectra.stream()
                 .map(spectrum -> spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get())
@@ -189,22 +185,18 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction 
                 .toArray(String[]::new);
 
         for (String name : names) {
-            Group group = new Group(composite, SWT.NONE);
+            final Group group = new Group(composite, SWT.NONE);
             group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER));
             group.setLayout(gridLayout().margins(10).build());
             group.setText("Results for measurement " + name);
 
-            Table table = new Table(group, SWT.BORDER);
-            table.setLayoutData(new GridData(GridData.FILL_BOTH));
-            table.setLinesVisible(true);
-            table.setHeaderVisible(true);
-            table.addListener(SWT.Selection, event -> table.deselectAll());
-
-            String[] titles = {"Julian date", "EW", "FWHM", "V", "R", "Ic", "V/R", "(V+R)/2"};
-            for (String title : titles) {
-                TableColumn tableColumn = new TableColumn(table, SWT.NONE);
-                tableColumn.setText(title);
-            }
+            Table table = newTable(SWT.BORDER)
+                    .gridLayoutData(GridData.FILL_BOTH)
+                    .linesVisible(true)
+                    .headerVisible(true)
+                    .unselectable()
+                    .columns("Julian date", "EW", "FWHM", "V", "R", "Ic", "V/R", "(V+R)/2")
+                    .build(group);
 
             for (Spectrum spectrum : spectra) {
                 MeasureEWResults results = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get();
@@ -212,7 +204,7 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction 
                     MeasureEWResult result = results.getResultForName(name);
                     XYSeries series = spectrum.getProcessedSeries();
 
-                    TableItem tableItem = new TableItem(table, SWT.NONE);
+                    final TableItem tableItem = new TableItem(table, SWT.NONE);
                     tableItem.setText(0, String.format(Locale.US, "%8.4f", spectrum.getHjd().getJD()));
                     tableItem.setText(1, String.format(Locale.US, "%4.4f", result.getEW(series)));
 
@@ -244,15 +236,16 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction 
             }
         }
 
-        Composite buttonComposite = composite(composite)
-                .layoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false))
+        Composite buttonComposite = newComposite()
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END)
                 .layout(gridLayout().margins(10).spacings(10))
-                .build();
+                .build(composite);
 
-        pushButton(buttonComposite)
-                .layoutData(new GridData(GridData.FILL_BOTH))
+        newButton(SWT.PUSH)
+                .gridLayoutData(GridData.FILL_BOTH)
                 .text("Print to file")
-                .onSelection(event -> printToFile(spectra));
+                .onSelection(event -> printToFile(spectra))
+                .build(buttonComposite);
 
         scrolledComposite.setContent(composite);
         scrolledComposite.setExpandHorizontal(true);

@@ -5,6 +5,7 @@ import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.PlainTextFileFilter;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -17,7 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static org.eclipse.swt.SWT.*;
 
 @Fun(name = "Open plain text", fileFilter = PlainTextFileFilter.class)
@@ -27,26 +30,25 @@ public class OpenPlainTextFunction implements SingleFileFunction {
         try {
             String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
 
-            Composite topComposite = new Composite(ComponentManager.clearAndGetScene(), BORDER);
-            topComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-            topComposite.setLayout(new GridLayout());
+            CompositeBuilder compositeBuilder = newComposite(BORDER).gridLayoutData(GridData.FILL_BOTH);
 
-            label(topComposite, CENTER)
+            final Composite topComposite = compositeBuilder.layout(new GridLayout()).build(ComponentManager.clearAndGetScene());
+
+            newLabel(CENTER)
+                    .gridLayoutData(GridData.FILL_HORIZONTAL)
                     .text(FileUtils.getRelativePath(file).toString())
                     .bold()
-                    .layoutData(new GridData(GridData.FILL_HORIZONTAL))
-                    .build();
+                    .build(topComposite);
 
-            Composite textComposite = new Composite(topComposite, BORDER);
-            textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-            textComposite.setLayout(gridLayout().margins(0).marginLeft(5).build());
+            final Composite textComposite = compositeBuilder
+                    .layout(gridLayout().margins(0).marginLeft(5))
+                    .background(ComponentManager.getDisplay().getSystemColor(COLOR_WIDGET_BACKGROUND))
+                    .build(topComposite);
 
-            Text text = new Text(textComposite, MULTI | READ_ONLY | WRAP | V_SCROLL);
-            text.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-            textComposite.setBackground(text.getBackground());
-
-            text.setText(content);
+            final Text text = newText(MULTI | READ_ONLY | WRAP | V_SCROLL)
+                    .gridLayoutData(GridData.FILL_BOTH)
+                    .text(content)
+                    .build(textComposite);
             text.requestLayout();
 
         } catch (IOException exception) {

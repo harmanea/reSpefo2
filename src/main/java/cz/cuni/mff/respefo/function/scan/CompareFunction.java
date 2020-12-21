@@ -12,14 +12,14 @@ import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
-import cz.cuni.mff.respefo.util.builders.ChartBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
 
 @Fun(name = "Compare", fileFilter = SpefoFormatFileFilter.class)
 public class CompareFunction implements MultiFileFunction {
@@ -53,7 +53,7 @@ public class CompareFunction implements MultiFileFunction {
     }
 
     private void displaySpectra(List<Spectrum> spectra) {
-        ChartBuilder chartBuilder = ChartBuilder.chart(ComponentManager.clearAndGetScene())
+        ChartBuilder chartBuilder = ChartBuilder.newChart()
                 .title("Compare")
                 .xAxisLabel("X Axis")
                 .yAxisLabel("Y Axis");
@@ -73,6 +73,6 @@ public class CompareFunction implements MultiFileFunction {
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .makeAllSeriesEqualRange()
-                .build();
+                .build(ComponentManager.clearAndGetScene());
     }
 }

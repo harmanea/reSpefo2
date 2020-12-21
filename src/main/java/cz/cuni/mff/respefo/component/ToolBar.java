@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
 import static cz.cuni.mff.respefo.util.builders.RowLayoutBuilder.rowLayout;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 import static java.lang.Boolean.TRUE;
 import static org.eclipse.swt.SWT.*;
 
@@ -48,13 +48,13 @@ public class ToolBar {
      * This will not set any layout data for the created toggle
      */
     public Tab addTab(Function<Composite, Toggle> toggleCreator, String label, String topBarLabelText, ImageResource icon) {
-        final Composite iconsComposite = composite(topBarContextIconsComposite)
+        final Composite iconsComposite = newComposite()
                 .layout(rowLayout(HORIZONTAL).margins(0).build())
-                .build();
+                .build(topBarContextIconsComposite);
 
-        final Composite windowComposite = composite(barWindow)
+        final Composite windowComposite = newComposite()
                 .layout(gridLayout().margins(0).spacings(0))
-                .build();
+                .build(barWindow);
 
         final Toggle toggle = toggleCreator.apply(bar);
         toggle.setImage(ImageManager.getImage(icon));
@@ -94,37 +94,35 @@ public class ToolBar {
     }
 
     private void createTopBar(Composite window) {
-        final Composite composite = composite(window, BORDER)
+        final Composite composite = newComposite(BORDER)
                 .layout(gridLayout(2, false).margins(0).spacings(0).build())
-                .layoutData(new GridData(FILL, TOP, true, false))
-                .build();
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_BEGINNING)
+                .build(window);
 
-        final Composite labelComposite = composite(composite, NONE)
+        final Composite labelComposite = newComposite()
                 .layout(rowLayout(HORIZONTAL).margins(3).build())
-                .layoutData(new GridData(FILL, CENTER, true, true))
-                .build();
+                .gridLayoutData(FILL, CENTER, true, true)
+                .build(composite);
 
-        topBarLabel = label(labelComposite)
-                .bold()
-                .build();
+        topBarLabel = newLabel().bold().build(labelComposite);
 
-        final Composite iconsComposite = composite(composite, RIGHT_TO_LEFT)
+        final Composite iconsComposite = newComposite(RIGHT_TO_LEFT)
                 .layout(rowLayout(HORIZONTAL).margins(0).build())
-                .layoutData(new GridData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END))
-                .build();
+                .gridLayoutData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END)
+                .build(composite);
 
         final LabelButton hideButton = new LabelButton(iconsComposite, NONE);
         hideButton.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
         hideButton.onClick(this::hide);
         hideButton.setToolTipText("Hide");
 
-        topBarSeparator = label(iconsComposite, VERTICAL | SEPARATOR)
+        topBarSeparator = newLabel(VERTICAL | SEPARATOR)
                 .layoutData(new RowData(DEFAULT, hideButton.computeSize(DEFAULT, DEFAULT).y))
-                .build();
+                .build(iconsComposite);
 
-        topBarContextIconsComposite = composite(iconsComposite, LEFT_TO_RIGHT)
+        topBarContextIconsComposite = newComposite(LEFT_TO_RIGHT)
                 .layout(new StackLayout())
-                .build();
+                .build(iconsComposite);
     }
 
     public void hide() {
@@ -136,10 +134,10 @@ public class ToolBar {
     }
 
     private void createBarWindow(Composite window) {
-        barWindow = composite(window)
-                .layoutData(new GridData(GridData.FILL_BOTH))
+        barWindow = newComposite()
+                .gridLayoutData(GridData.FILL_BOTH)
                 .layout(new StackLayout())
-                .build();
+                .build(window);
     }
 
     public class Tab {

@@ -9,30 +9,24 @@ import cz.cuni.mff.respefo.function.asset.common.Measurement;
 import cz.cuni.mff.respefo.function.asset.common.Measurements;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
-import cz.cuni.mff.respefo.util.DefaultSelectionListener;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.Range;
 
 import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.WAVELENGTH;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.WAVELENGTH;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.newChart;
+import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.DOUBLE_PRECISION;
 
 public class EWMeasurementController {
@@ -83,45 +77,19 @@ public class EWMeasurementController {
             }
         });
 
-        table = new Table(tab.getWindow(), SWT.SINGLE);
-        table.setLayoutData(new GridData(GridData.FILL_BOTH));
-        table.setHeaderVisible(false);
-        table.setLinesVisible(true);
-
-        TableColumn nameColumn = new TableColumn(table, SWT.LEFT);
-        TableColumn lZeroColumn = new TableColumn(table, SWT.RIGHT);
-
-        for (Measurement measurement : measurements) {
-            TableItem item = new TableItem(table, SWT.NONE);
-            item.setText(0, measurement.getName());
-            item.setText(1, Double.toString(measurement.getL0()));
-        }
-
-        table.getParent().addControlListener(ControlListener.controlResizedAdapter(e -> {
-            Rectangle area = table.getParent().getClientArea();
-            ScrollBar vBar = table.getVerticalBar();
-            int width = area.width - table.computeTrim(0, 0, 0, 0).width - vBar.getSize().x;
-            if (table.computeSize(SWT.DEFAULT, SWT.DEFAULT).y > area.height + table.getHeaderHeight()) {
-                // Subtract the scrollbar width from the total column width
-                Point vBarSize = vBar.getSize();
-                width -= vBarSize.x;
-            }
-
-            if (table.getSize().x > area.width) {
-                // Table is shrinking
-                lZeroColumn.setWidth(width / 3);
-                nameColumn.setWidth(width - lZeroColumn.getWidth());
-                table.setSize(area.width, area.height);
-
-            } else {
-                // Table is expanding
-                table.setSize(area.width, area.height);
-                lZeroColumn.setWidth(width / 3);
-                nameColumn.setWidth(width - lZeroColumn.getWidth());
-            }
-        }));
-
-        table.addSelectionListener(new DefaultSelectionListener(event -> table.setSelection(index)));
+        table = newTable(SWT.SINGLE)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .headerVisible(false)
+                .linesVisible(true)
+                .onSelection(event -> table.setSelection(index))
+                .columns(2)
+                .fixedAspectColumns(3, 1)
+                .items(measurements, measurement -> new String[]{
+                        measurement.getName(),
+                        Double.toString(measurement.getL0())
+                })
+                .build(tab.getWindow());
+        table.getColumn(1).setAlignment(SWT.RIGHT);
 
         tab.show();
     }
@@ -139,7 +107,7 @@ public class EWMeasurementController {
                 ArrayUtils.findClosest(series.getXSeries(), measurement.getUpperBound())
         );
 
-        Chart chart = chart(ComponentManager.clearAndGetScene(false))
+        final Chart chart = newChart()
                 .title(measurement.getName() + " " + measurement.getL0())
                 .xAxisLabel(WAVELENGTH)
                 .yAxisLabel(RELATIVE_FLUX)
@@ -157,8 +125,8 @@ public class EWMeasurementController {
                     activeLine = i;
                     ch.redraw();
                 }))
-                .forceFocus()
-                .build();
+                .focus()
+                .build(ComponentManager.clearAndGetScene(false));
 
         chart.getPlotArea().addPaintListener(event -> {
             Range range = chart.getAxisSet().getXAxis(0).getRange();

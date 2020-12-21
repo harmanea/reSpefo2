@@ -1,15 +1,18 @@
 package cz.cuni.mff.respefo.function.asset.rv;
 
 import cz.cuni.mff.respefo.component.SpefoDialog;
+import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.TextBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 
 public class MeasurementInputDialog extends SpefoDialog {
 
@@ -33,18 +36,16 @@ public class MeasurementInputDialog extends SpefoDialog {
 
     @Override
     protected void createDialogArea(Composite parent) {
-        Composite composite = composite(parent)
+        final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).marginBottom(25).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(250).heightHint(80))
-                .build();
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(250).heightHint(80).build())
+                .build(parent);
 
-        label(composite)
-                .text("Category:")
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING))
-                .build();
+        LabelBuilder labelBuilder = newLabel().gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+        TextBuilder textBuilder = newText(SWT.SINGLE | SWT.BORDER).gridLayoutData(GridData.FILL_HORIZONTAL);
 
-        final Text categoryText = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        categoryText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        labelBuilder.text("Category:").build(composite);
+        final Text categoryText = textBuilder.build(composite);
         if (category.equals("corr")) {
             categoryText.setText("corr");
             categoryText.setEnabled(false);
@@ -55,14 +56,8 @@ public class MeasurementInputDialog extends SpefoDialog {
             });
         }
 
-        label(composite)
-                .text("Comment:")
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING))
-                .build();
-
-        final Text commentText = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        commentText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        commentText.addListener(SWT.Modify, event -> comment = commentText.getText());
+        labelBuilder.text("Comment:").build(composite);
+        textBuilder.onModify(event -> comment = ((Text) event.widget).getText()).build(composite);
     }
 
     @Override

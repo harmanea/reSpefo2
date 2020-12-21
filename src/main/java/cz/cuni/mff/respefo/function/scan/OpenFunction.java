@@ -13,8 +13,8 @@ import cz.cuni.mff.respefo.util.Message;
 
 import java.io.File;
 
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.newChart;
 
 @Fun(name = "Open", fileFilter = SpefoFormatFileFilter.class)
 public class OpenFunction implements SingleFileFunction {
@@ -30,7 +30,7 @@ public class OpenFunction implements SingleFileFunction {
     }
 
     public static void displaySpectrum(Spectrum spectrum) {
-        chart(ComponentManager.clearAndGetScene())
+        newChart()
                 .title(spectrum.getFile().getName())
                 .xAxisLabel("X axis")
                 .yAxisLabel("Y axis")
@@ -40,6 +40,7 @@ public class OpenFunction implements SingleFileFunction {
                 .keyListener(ChartKeyListener::defaultBehaviour)
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
-                .build();
+                .adjustRange()
+                .build(ComponentManager.clearAndGetScene());
     }
 }

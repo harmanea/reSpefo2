@@ -10,13 +10,18 @@ import cz.cuni.mff.respefo.function.asset.common.HorizontalDragMouseListener;
 import cz.cuni.mff.respefo.function.scan.OpenFunction;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.IAxis;
 import org.swtchart.Range;
@@ -28,13 +33,16 @@ import java.util.Locale;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.PIXELS;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.WAVELENGTH;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.PIXELS;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.WAVELENGTH;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.newChart;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
@@ -71,7 +79,7 @@ public class DispersionController {
     }
 
     private void firstStage() {
-        Chart chart = chart(ComponentManager.clearAndGetScene())
+        Chart chart = newChart()
                 .title("Derive dispersion")
                 .xAxisLabel(PIXELS)
                 .hideYAxis()
@@ -90,8 +98,8 @@ public class DispersionController {
                         ch.redraw();
                     }
                 }))
-                .forceFocus()
-                .build();
+                .focus()
+                .build(ComponentManager.clearAndGetScene());
 
         chart.getAxisSet().adjustRange();
         stackAbove(chart);
@@ -212,17 +220,18 @@ public class DispersionController {
         double[] actualY = results.getActualY();
         double[] residuals = results.getResiduals();
 
-        Composite composite = composite(ComponentManager.clearAndGetScene())
-                .layoutData(new GridData(GridData.FILL_BOTH))
+        final Composite composite = newComposite()
+                .gridLayoutData(GridData.FILL_BOTH)
                 .layout(gridLayout(2, true).margins(0).spacings(1))
-                .build();
+                .build(ComponentManager.clearAndGetScene());
 
-        Composite chartsComposite = composite(composite)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .layout(gridLayout().margins(0).spacings(0))
-                .build();
+        CompositeBuilder fillBothNoMarginsNoSpacingsComposite = newComposite()
+                .gridLayoutData(GridData.FILL_BOTH)
+                .layout(gridLayout().margins(0).spacings(0));
 
-        chart(chartsComposite)
+        final Composite chartsComposite = fillBothNoMarginsNoSpacingsComposite.build(composite);
+
+        newChart()
                 .title("Dispersion function")
                 .xAxisLabel(PIXELS)
                 .yAxisLabel(WAVELENGTH)
@@ -231,9 +240,10 @@ public class DispersionController {
                         .ySeries(actualY)
                         .color(GREEN)
                         .symbolSize(3))
-                .build();
+                .adjustRange()
+                .build(chartsComposite);
 
-        chart(chartsComposite)
+        newChart()
                 .title("Residuals")
                 .xAxisLabel(PIXELS)
                 .yAxisLabel("error")
@@ -256,26 +266,19 @@ public class DispersionController {
                         .color(GRAY)
                 )
                 .centerAroundSeries("points")
-                .build();
+                .build(chartsComposite);
 
-        Composite tableComposite = composite(composite)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .layout(gridLayout().margins(0).spacings(0))
-                .build();
+        final Composite tableComposite = fillBothNoMarginsNoSpacingsComposite.build(composite);
 
-        Table table = new Table(tableComposite, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-        table.setLayoutData(new GridData(GridData.FILL_BOTH));
-        table.setLinesVisible(true);
-        table.setHeaderVisible(true);
-
-        String[] titles = {"N.", "x up", "x down", "x mean", "lab.", "comp.", "error"};
-        for (String title : titles) {
-            TableColumn tableColumn = new TableColumn(table, SWT.NONE);
-            tableColumn.setText(title);
-        }
+        final Table table = newTable(SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .linesVisible(true)
+                .headerVisible(true)
+                .columns("N.", "x up", "x down", "x mean", "lab.", "comp.", "error")
+                .build(tableComposite);
 
         for (ComparisonLineResults.ComparisonLineResult result : results) {
-            TableItem tableItem = new TableItem(table, SWT.NONE);
+            final TableItem tableItem = new TableItem(table, SWT.NONE);
             tableItem.setText(0, Integer.toString(result.getIndex() + 1));
             tableItem.setText(1, String.format(Locale.US, "%5.3f", result.getXUp()));
             tableItem.setText(2, String.format(Locale.US, "%5.3f", result.getXDown()));
@@ -289,11 +292,11 @@ public class DispersionController {
             }
         }
 
-        TableItem tableItem = new TableItem(table, SWT.NONE);
+        final TableItem tableItem = new TableItem(table, SWT.NONE);
         tableItem.setText(6, String.format(Locale.US, "%5.3f", MathUtils.rmse(actualY, laboratoryValues)));
 
-        for (int i = 0; i < titles.length; i++) {
-            table.getColumn(i).pack();
+        for (TableColumn column : table.getColumns()) {
+            column.pack();
         }
 
         table.addListener(SWT.KeyDown, event -> {
@@ -306,37 +309,40 @@ public class DispersionController {
             }
         });
 
-        Text text = new Text(tableComposite, SWT.MULTI | SWT.READ_ONLY);
-        text.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
-        text.setText("Coefficients of dispersion polynomial:\n\n" + stream(coeffs).mapToObj(Double::toString).collect(joining("\n")));
+        newText(SWT.MULTI | SWT.READ_ONLY)
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_END)
+                .text("Coefficients of dispersion polynomial:\n\n" + stream(coeffs).mapToObj(Double::toString).collect(joining("\n")))
+                .build(tableComposite);
 
-        Composite buttonsComposite = composite(tableComposite)
-                .layoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false))
+        final Composite buttonsComposite = newComposite()
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END)
                 .layout(gridLayout(3, true).margins(10).spacings(10))
-                .build();
+                .build(tableComposite);
 
-        Button polyButton = new Button(buttonsComposite, SWT.PUSH);
-        polyButton.setLayoutData(new GridData(GridData.FILL_BOTH));
-        polyButton.setText("Poly degree");
-        polyButton.addListener(SWT.Selection, event -> {
-            NumberDialog dialog = new NumberDialog(5, "Select poly degree", "Poly number:");
-            if (dialog.openIsOk()) {
-                results.setPolyDegree(dialog.getNumber());
-                results.calculateCoeffs();
-                results.calculateValues();
-                thirdStage(results);
-            }
-        });
+        ButtonBuilder buttonBuilder = newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);
 
-        Button printButton = new Button(buttonsComposite, SWT.PUSH);
-        printButton.setLayoutData(new GridData(GridData.FILL_BOTH));
-        printButton.setText("Print to file");
-        printButton.addListener(SWT.Selection, event -> printResults(results));
+        buttonBuilder
+                .text("Poly degree")
+                .onSelection(event -> {
+                    NumberDialog dialog = new NumberDialog(5, "Select poly degree", "Poly number:");
+                    if (dialog.openIsOk()) {
+                        results.setPolyDegree(dialog.getNumber());
+                        results.calculateCoeffs();
+                        results.calculateValues();
+                        thirdStage(results);
+                    }
+                })
+                .build(buttonsComposite);
 
-        Button finishButton = new Button(buttonsComposite, SWT.PUSH);
-        finishButton.setLayoutData(new GridData(GridData.FILL_BOTH));
-        finishButton.setText("Finish");
-        finishButton.addListener(SWT.Selection, event -> fourthStage(coeffs));
+        buttonBuilder
+                .text("Print to file")
+                .onSelection(event -> printResults(results))
+                .build(buttonsComposite);
+
+        buttonBuilder
+                .text("Finish")
+                .onSelection(event -> fourthStage(coeffs))
+                .build(buttonsComposite);
 
         ComponentManager.getScene().layout();
     }
@@ -396,7 +402,7 @@ public class DispersionController {
                     xSeries[i] += spectrum.getRvCorrection() * (xSeries[i] / SPEED_OF_LIGHT);
                 }
             }
-            spectrum.getSeries().setXSeries(xSeries);
+            spectrum.getSeries().updateXSeries(xSeries);
             spectrum.saveAs(new File(FileUtils.replaceFileExtension(file.getPath(), "spf")));
             ComponentManager.getFileExplorer().refresh();
 

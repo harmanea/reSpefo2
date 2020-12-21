@@ -6,9 +6,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 
 public class FileExtensionDialog extends SpefoDialog {
 
@@ -28,19 +29,16 @@ public class FileExtensionDialog extends SpefoDialog {
 
     @Override
     protected void createDialogArea(Composite parent) {
-        Composite composite = composite(parent)
+        final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(10).verticalSpacing(10).horizontalSpacing(10))
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .build();
+                .gridLayoutData(GridData.FILL_BOTH)
+                .build(parent);
 
-        label(composite)
-                .text("File extension:")
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-
-        final Text text = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        text.setText(DEFAULT_FILE_EXTENSION);
-        text.setLayoutData(new GridData(GridData.FILL_BOTH));
-        text.addModifyListener(event -> fileExtension = text.getText());
-        text.setFocus();
+        newLabel().text("File extension:").gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);
+        newText(SWT.SINGLE | SWT.BORDER)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .onModify(event -> fileExtension = ((Text) event.widget).getText())
+                .focus()
+                .build(composite);
     }
 }

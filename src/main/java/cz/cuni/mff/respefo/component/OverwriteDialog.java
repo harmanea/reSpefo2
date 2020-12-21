@@ -1,10 +1,11 @@
 package cz.cuni.mff.respefo.component;
 
+import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
 import cz.cuni.mff.respefo.util.utils.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.ExpandListener;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
@@ -13,12 +14,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static cz.cuni.mff.respefo.resources.ImageManager.getIconForFile;
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.checkButton;
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
-import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
+import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 
 public class OverwriteDialog extends TitleAreaDialog {
 
@@ -109,88 +110,91 @@ public class OverwriteDialog extends TitleAreaDialog {
                     "Replacing it will overwrite its content.", SWT.ICON_WARNING);
         }
 
-        final Composite topComposite = composite(parent)
+        final Composite topComposite = newComposite()
                 .layout(gridLayout().margins(5).verticalSpacing(5))
-                .layoutData(gridData(GridData.FILL_BOTH))
-                .build();
+                .gridLayoutData(GridData.FILL_BOTH)
+                .build(parent);
 
 
-        final Composite fileDetailsComposite = composite(topComposite)
-                .layoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING))
+        final Composite fileDetailsComposite = newComposite()
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING)
                 .layout(gridLayout(2, false).margins(10).spacings(10))
-                .build();
+                .build(topComposite);
 
-        label(fileDetailsComposite)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER))
-                .image(getIconForFile(originalFile));
+        LabelBuilder iconLabelBuilder = newLabel()
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER);
 
-        final Composite originalFileComposite = composite(fileDetailsComposite)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .layout(new FillLayout(SWT.VERTICAL))
-                .build();
+        CompositeBuilder fileCompositeBuilder = newComposite()
+                .gridLayoutData(GridData.FILL_BOTH)
+                .layout(fillLayout(SWT.VERTICAL));
 
-        label(originalFileComposite)
-                .text("Original file")
-                .bold();
+        LabelBuilder fileLabel = newLabel().bold();
 
-        label(originalFileComposite).text(
+
+        iconLabelBuilder.image(getIconForFile(originalFile)).build(fileDetailsComposite);
+
+        final Composite originalFileComposite = fileCompositeBuilder.build(fileDetailsComposite);
+
+        fileLabel.text("Original file").build(originalFileComposite);
+
+        newLabel().text(
                 originalFileisDirectory
                         ? "Contents: " + directoryContents(originalFile) + " items"
-                        : "Size: " + StringUtils.humanReadableByteCountSI(originalFile.length()));
-        label(originalFileComposite).text("Last modified: " + dateFormat.format(new Date(originalFile.lastModified())));
+                        : "Size: " + StringUtils.humanReadableByteCountSI(originalFile.length()))
+                .build(originalFileComposite);
+        newLabel().text("Last modified: " + dateFormat.format(new Date(originalFile.lastModified())))
+                .build(originalFileComposite);
 
         if (replaceWith != null) {
-            label(fileDetailsComposite)
-                    .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER))
-                    .image(getIconForFile(replaceWith));
+            iconLabelBuilder.image(getIconForFile(replaceWith)).build(fileDetailsComposite);
 
-            final Composite replaceWithComposite = composite(fileDetailsComposite)
-                    .layout(new FillLayout(SWT.VERTICAL))
-                    .build();
+            final Composite replaceWithComposite = fileCompositeBuilder.build(fileDetailsComposite);
 
-            label(replaceWithComposite)
-                    .text(originalFileisDirectory && replaceWithIsDirectory ? "Merge" : "Replace" + " with")
-                    .bold();
+            fileLabel.text(originalFileisDirectory && replaceWithIsDirectory ? "Merge" : "Replace" + " with")
+                    .build(replaceWithComposite);
 
-            label(replaceWithComposite).text(replaceWithIsDirectory
+            newLabel().text(replaceWithIsDirectory
                     ? "Contents: " + directoryContents(replaceWith) + " items"
-                    : "Size: " + StringUtils.humanReadableByteCountSI(replaceWith.length()));
-            label(replaceWithComposite).text("Last modified: " + dateFormat.format(new Date(replaceWith.lastModified())));
+                    : "Size: " + StringUtils.humanReadableByteCountSI(replaceWith.length()))
+            .build(replaceWithComposite);
+            newLabel().text("Last modified: " + dateFormat.format(new Date(replaceWith.lastModified()))).build(replaceWithComposite);
         }
 
-        final Composite expandBarComposite = composite(topComposite)
+        final Composite expandBarComposite = newComposite()
                 .layout(gridLayout().margins(5))
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .build();
+                .gridLayoutData(GridData.FILL_BOTH)
+                .build(topComposite);
 
         ExpandBar bar = new ExpandBar(expandBarComposite, SWT.NONE);
 
-        final Composite expandComposite = composite(bar)
+        final Composite expandComposite = newComposite()
                 .layout(gridLayout(2, false).margins(10))
-                .build();
+                .build(bar);
 
-        final Text newNameText = new Text(expandComposite, SWT.SINGLE);
-        newNameText.setLayoutData(new GridData(GridData.FILL_BOTH));
-        newNameText.setText(originalFile.getName());
+        final Text newNameText = newText(SWT.SINGLE)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text(originalFile.getName())
+                .build(expandComposite);
 
-        pushButton(expandComposite)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_FILL))
+        newButton(SWT.PUSH)
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_FILL)
                 .text("Reset")
                 .onSelection(event -> {
                     newNameText.setText(originalFile.getName());
                     newNameText.setSelection(0, originalFile.getName().lastIndexOf('.'));
                     newNameText.forceFocus();
-                });
+                })
+        .build(expandComposite);
 
         ExpandItem expandItem = new ExpandItem(bar, SWT.NONE);
         expandItem.setText("Select a new name for the destination");
         expandItem.setHeight(expandComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
         expandItem.setControl(expandComposite);
 
-        final Button applyToAllButton = checkButton(topComposite)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_END))
+        final Button applyToAllButton = newButton(SWT.CHECK)
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_END)
                 .text("Apply this action to all files and folders")
-                .build();
+                .build(topComposite);
 
         bar.addExpandListener(new ExpandListener() {
             @Override

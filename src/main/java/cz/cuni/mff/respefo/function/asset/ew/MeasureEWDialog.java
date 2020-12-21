@@ -4,6 +4,7 @@ package cz.cuni.mff.respefo.function.asset.ew;
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
+import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -11,11 +12,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.List;
 
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 
 public class MeasureEWDialog extends TitleAreaDialog {
 
@@ -33,15 +33,15 @@ public class MeasureEWDialog extends TitleAreaDialog {
     protected void createDialogArea(Composite parent) {
         setMessage("Measure equivalent width and other spectrophotometric quantities", SWT.ICON_INFORMATION);
 
-        final Composite topComposite = composite(parent)
+        final Composite topComposite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(300))
-                .build();
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(300).build())
+                .build(parent);
 
-        label(topComposite)
-                .layoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1))
+        newLabel()
+                .gridLayoutData(SWT.FILL, SWT.TOP, true, false, 2, 1)
                 .text("Select .lst files with measurements:")
-                .build();
+                .build(topComposite);
 
         final List list = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
         list.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -56,22 +56,15 @@ public class MeasureEWDialog extends TitleAreaDialog {
             }
         });
 
-        final Composite buttonsComposite = composite(topComposite)
+        final Composite buttonsComposite = newComposite()
                 .layout(gridLayout().margins(0))
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING)
-                .build();
+                .build(topComposite);
 
-        pushButton(buttonsComposite)
-                .text("Add")
-                .gridLayoutData(GridData.FILL_BOTH)
-                .onSelection(event -> addStlFile(list))
-                .build();
+        ButtonBuilder buttonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);
 
-        pushButton(buttonsComposite)
-                .text("Remove")
-                .gridLayoutData(GridData.FILL_BOTH)
-                .onSelection(event -> removeStlFile(list))
-                .build();
+        buttonBuilder.text("Add").onSelection(event -> addStlFile(list)).build(buttonsComposite);
+        buttonBuilder.text("Remove").onSelection(event -> removeStlFile(list)).build(buttonsComposite);
     }
 
     @Override

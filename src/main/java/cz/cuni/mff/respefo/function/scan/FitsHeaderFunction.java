@@ -8,67 +8,46 @@ import cz.cuni.mff.respefo.util.Message;
 import nom.tam.fits.Fits;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
-import nom.tam.fits.HeaderCard;
-import nom.tam.util.Cursor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
 import static java.util.Optional.ofNullable;
 
-@Fun(name = "Inspect FITS Header", fileFilter = FitsFileFilter.class)
+@Fun(name = "Inspect FITS Header", fileFilter = FitsFileFilter.class, group = "FITS")
 public class FitsHeaderFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {
         try (Fits f = new Fits(file)) {
             Header header = f.getHDU(0).getHeader();
-
-            Table table = new Table(ComponentManager.clearAndGetScene(), SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-            table.setLayoutData(new GridData(GridData.FILL_BOTH));
-            table.setLinesVisible(true);
-            table.setHeaderVisible(true);
-
-            table.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                    if (e.stateMask == SWT.CTRL && (e.keyCode == 'c' || e.keyCode == 'C') && table.getSelectionCount() > 0) {
-                        Clipboard clipboard = new Clipboard(ComponentManager.getDisplay());
-                        clipboard.setContents(new Object[]{getTextFromSelectedRow(table)}, new Transfer[]{TextTransfer.getInstance()});
-                        clipboard.dispose();
-                    }
-                }
-            });
-
-            String[] titles = {"Key", "Value", "Comment"};
-            for (String title : titles) {
-                TableColumn tableColumn = new TableColumn(table, SWT.NONE);
-                tableColumn.setText(title);
-            }
-
-            for (Cursor<String, HeaderCard> it = header.iterator(); it.hasNext(); ) {
-                HeaderCard card = it.next();
-
-                TableItem tableItem = new TableItem(table, SWT.NONE);
-                tableItem.setText(0, ofNullable(card.getKey()).orElse(""));
-                tableItem.setText(1, ofNullable(card.getValue()).orElse(""));
-                tableItem.setText(2, ofNullable(card.getComment()).orElse(""));
-            }
-
-            for (int i = 0; i < titles.length; i++) {
-                table.getColumn(i).pack();
-            }
+            newTable(SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+                    .gridLayoutData(GridData.FILL_BOTH)
+                    .linesVisible(true)
+                    .headerVisible(true)
+                    .listener(SWT.KeyDown, event -> {
+                        if (event.stateMask == SWT.CTRL && (event.keyCode == 'c' || event.keyCode == 'C') && ((Table) event.widget).getSelectionCount() > 0) {
+                            Clipboard clipboard = new Clipboard(ComponentManager.getDisplay());
+                            clipboard.setContents(new Object[]{getTextFromSelectedRow(((Table) event.widget))}, new Transfer[]{TextTransfer.getInstance()});
+                            clipboard.dispose();
+                        }
+                    })
+                    .columns("Key", "Value", "Comment")
+                    .items(header::iterator, card -> new String[]{
+                            ofNullable(card.getKey()).orElse(""),
+                            ofNullable(card.getValue()).orElse(""),
+                            ofNullable(card.getComment()).orElse("")
+                    })
+                    .packColumns()
+                    .build(ComponentManager.clearAndGetScene());
 
             ComponentManager.getScene().layout();
 

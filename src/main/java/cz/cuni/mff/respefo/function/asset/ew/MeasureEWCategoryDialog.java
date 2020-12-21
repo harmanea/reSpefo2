@@ -10,9 +10,9 @@ import org.eclipse.swt.widgets.Composite;
 
 import java.util.Arrays;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 
 public class MeasureEWCategoryDialog extends SpefoDialog {
 
@@ -28,17 +28,14 @@ public class MeasureEWCategoryDialog extends SpefoDialog {
 
     @Override
     protected void createDialogArea(Composite parent) {
-        Composite composite = composite(parent)
+        final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .build();
+                .gridLayoutData(GridData.FILL_BOTH)
+                .build(parent);
 
-        label(composite)
-                .text("Category:")
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING))
-                .build();
+        newLabel().text("Category:").gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);
 
-        Combo combo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
+        final Combo combo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
         combo.setItems(Arrays.stream(MeasureEWResultPointCategory.values()).map(MeasureEWResultPointCategory::name).toArray(String[]::new));
         combo.addModifyListener(event -> {
             getButton(SWT.OK).setEnabled(!combo.getText().equals(""));

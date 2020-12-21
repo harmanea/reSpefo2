@@ -25,11 +25,11 @@ import org.swtchart.Range;
 
 import java.io.File;
 
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.WAVELENGTH;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.WAVELENGTH;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.newChart;
 
 @Fun(name = "Rectify", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = RectifyFunction.SERIALIZE_KEY, assetClass = RectifyAsset.class)
@@ -55,7 +55,7 @@ public class RectifyFunction implements SingleFileFunction {
 
         XYSeries series = spectrum.getProcessedSeriesWithout(asset);
 
-        Chart chart = chart(ComponentManager.clearAndGetScene())
+        final Chart chart = newChart()
                 .title(file.getName())
                 .xAxisLabel(WAVELENGTH)
                 .yAxisLabel(RELATIVE_FLUX)
@@ -101,8 +101,8 @@ public class RectifyFunction implements SingleFileFunction {
                         }))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .makeAllSeriesEqualRange()
-                .forceFocus()
-                .build();
+                .focus()
+                .build(ComponentManager.clearAndGetScene());
 
         chart.addKeyListener(new KeyAdapter() {
             @Override

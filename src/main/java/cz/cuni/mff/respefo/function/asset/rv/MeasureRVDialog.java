@@ -3,6 +3,9 @@ package cz.cuni.mff.respefo.function.asset.rv;
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
+import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -12,11 +15,9 @@ import org.eclipse.swt.widgets.List;
 
 import java.util.function.Consumer;
 
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
 
 public class MeasureRVDialog extends TitleAreaDialog {
 
@@ -39,20 +40,23 @@ public class MeasureRVDialog extends TitleAreaDialog {
     protected void createDialogArea(Composite parent) {
         setMessage("Measure radial velocities", SWT.ICON_INFORMATION);
 
-        final Composite topComposite = composite(parent)
+        final Composite topComposite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(300))
-                .build();
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(300).build())
+                .build(parent);
 
+        LabelBuilder labelBuilder = LabelBuilder.newLabel().gridLayoutData(SWT.FILL, SWT.TOP, true, false, 2, 1);
+        CompositeBuilder buttonsCompositeBuilder = CompositeBuilder.newComposite()
+                .layout(gridLayout().margins(0))
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
+        ButtonBuilder addButtonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH).text("Add");
+        ButtonBuilder removeButtonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH).text("Remove");
 
         // Measurements
 
         Consumer<String[]> measurementsItemsConsumer = items -> measurements = items;
 
-        label(topComposite)
-                .layoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1))
-                .text("Select .lst files with measurements:")
-                .build();
+        labelBuilder.text("Select .lst files with measurements:").build(topComposite);
 
         final List measurementsList = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
         measurementsList.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -67,32 +71,19 @@ public class MeasureRVDialog extends TitleAreaDialog {
             }
         });
 
-        final Composite measurementsButtonsComposite = composite(topComposite)
-                .layout(gridLayout().margins(0))
-                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING)
-                .build();
-
-        pushButton(measurementsButtonsComposite)
-                .text("Add")
-                .gridLayoutData(GridData.FILL_BOTH)
+        final Composite measurementsButtonsComposite = buttonsCompositeBuilder.build(topComposite);
+        addButtonBuilder
                 .onSelection(event -> addStlFile(measurementsList, measurementsItemsConsumer))
-                .build();
-
-        pushButton(measurementsButtonsComposite)
-                .text("Remove")
-                .gridLayoutData(GridData.FILL_BOTH)
+                .build(measurementsButtonsComposite);
+        removeButtonBuilder
                 .onSelection(event -> removeStlFile(measurementsList, measurementsItemsConsumer))
-                .build();
-
+                .build(measurementsButtonsComposite);
 
         // Correction measurements
 
         Consumer<String[]> correctionsItemsConsumer = items -> corrections = items;
 
-        label(topComposite)
-                .layoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1))
-                .text("Select .lst files with correction measurements:")
-                .build();
+        labelBuilder.text("Select .lst files with correction measurements:").build(topComposite);
 
         final List correctionsList = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
         correctionsList.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -107,22 +98,13 @@ public class MeasureRVDialog extends TitleAreaDialog {
             }
         });
 
-        final Composite correctionsButtonsComposite = composite(topComposite)
-                .layout(gridLayout().margins(0))
-                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING)
-                .build();
-
-        pushButton(correctionsButtonsComposite)
-                .text("Add")
-                .gridLayoutData(GridData.FILL_BOTH)
+        final Composite correctionsButtonsComposite = buttonsCompositeBuilder.build(topComposite);
+        addButtonBuilder
                 .onSelection(event -> addStlFile(correctionsList, correctionsItemsConsumer))
-                .build();
-
-        pushButton(correctionsButtonsComposite)
-                .text("Remove")
-                .gridLayoutData(GridData.FILL_BOTH)
+                .build(correctionsButtonsComposite);
+        removeButtonBuilder
                 .onSelection(event -> removeStlFile(correctionsList, correctionsItemsConsumer))
-                .build();
+                .build(correctionsButtonsComposite);
     }
 
     @Override

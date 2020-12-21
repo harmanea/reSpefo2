@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.util.builders;
+package cz.cuni.mff.respefo.util.builders.widgets;
 
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.resources.ColorResource;
@@ -14,154 +14,128 @@ import org.eclipse.swt.widgets.Composite;
 import org.swtchart.*;
 import org.swtchart.ILineSeries.PlotSymbolType;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 
-public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
+public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
 
     private static final ColorResource PRIMARY_COLOR = ColorResource.YELLOW;
     private static final ColorResource SECONDARY_COLOR = ColorResource.BLACK;
 
-    private boolean adjustRange = true;
-    private boolean layoutData = true;
-
-    private ChartBuilder(Chart chart) {
-        control = chart;
+    private ChartBuilder(int style) {
+        super((Composite parent) -> new Chart(parent, style));
+        addProperty(this::setTheme);
+        addProperty(ch -> ch.setLayoutData(new GridData(GridData.FILL_BOTH)));
+        addProperty(ch -> ch.getParent().layout());
     }
 
-    public static ChartBuilder chart(Composite parent) {
-        return new ChartBuilder(new Chart(parent, SWT.NONE));
+    public static ChartBuilder newChart() {
+        return new ChartBuilder(SWT.NONE);
     }
 
     public ChartBuilder title(String title) {
-        control.getTitle().setText(title);
+        addProperty(ch -> ch.getTitle().setText(title));
         return this;
     }
 
     public ChartBuilder xAxisLabel(String label) {
-        control.getAxisSet().getXAxis(0).getTitle().setText(label);
+        addProperty(ch -> ch.getAxisSet().getXAxis(0).getTitle().setText(label));
         return this;
     }
 
     public ChartBuilder xAxisLabel(AxisLabel axisLabel) {
-        control.getAxisSet().getXAxis(0).getTitle().setText(axisLabel.getLabel());
+        addProperty(ch -> ch.getAxisSet().getXAxis(0).getTitle().setText(axisLabel.getLabel()));
         return this;
     }
 
     public ChartBuilder yAxisLabel(String label) {
-        control.getAxisSet().getYAxis(0).getTitle().setText(label);
+        addProperty(ch -> ch.getAxisSet().getYAxis(0).getTitle().setText(label));
         return this;
     }
 
     public ChartBuilder yAxisLabel(AxisLabel axisLabel) {
-        control.getAxisSet().getYAxis(0).getTitle().setText(axisLabel.getLabel());
+        addProperty(ch -> ch.getAxisSet().getYAxis(0).getTitle().setText(axisLabel.getLabel()));
         return this;
     }
 
     public ChartBuilder hideYAxis() {
-        control.getAxisSet().getYAxis(0).getTick().setVisible(false);
-        control.getAxisSet().getYAxis(0).getTitle().setVisible(false);
+        addProperty(ch -> {
+            IAxis axis = ch.getAxisSet().getYAxis(0);
+            axis.getTick().setVisible(false);
+            axis.getTitle().setVisible(false);
+        });
         return this;
     }
 
     public ChartBuilder series(SeriesBuilder<?> seriesBuilder) {
-        ILineSeries lineSeries = (ILineSeries) control.getSeriesSet().createSeries(seriesBuilder.seriesType, seriesBuilder.name);
-        lineSeries.setXSeries(seriesBuilder.xSeries);
-        lineSeries.setYSeries(seriesBuilder.ySeries);
+        addProperty(ch -> {
+            ILineSeries lineSeries = (ILineSeries) ch.getSeriesSet().createSeries(seriesBuilder.seriesType, seriesBuilder.name);
+            lineSeries.setXSeries(seriesBuilder.xSeries);
+            lineSeries.setYSeries(seriesBuilder.ySeries);
 
-        lineSeries.setLineStyle(seriesBuilder.lineStyle);
-        lineSeries.setSymbolType(seriesBuilder.symbolType);
-        lineSeries.setLineColor(seriesBuilder.color);
-        lineSeries.setLineWidth(seriesBuilder.lineWidth);
-        lineSeries.setSymbolColor(seriesBuilder.color);
-        lineSeries.setSymbolSize(seriesBuilder.symbolSize);
+            lineSeries.setLineStyle(seriesBuilder.lineStyle);
+            lineSeries.setSymbolType(seriesBuilder.symbolType);
+            lineSeries.setLineColor(seriesBuilder.color);
+            lineSeries.setLineWidth(seriesBuilder.lineWidth);
+            lineSeries.setSymbolColor(seriesBuilder.color);
+            lineSeries.setSymbolSize(seriesBuilder.symbolSize);
 
-        adjustExtraSeries(lineSeries);
+            adjustExtraSeries(ch, lineSeries);
+        });
 
         return this;
     }
 
     public ChartBuilder keyListener(Function<Chart, KeyListener> keyListenerProvider) {
-        control.addKeyListener(keyListenerProvider.apply(control));
-
+        addProperty(ch -> ch.addKeyListener(keyListenerProvider.apply(ch)));
         return this;
     }
 
     public ChartBuilder mouseListener(Function<Chart, MouseListener> mouseListenerProvider) {
-        control.getPlotArea().addMouseListener(mouseListenerProvider.apply(control));
-
+        addProperty(ch -> ch.getPlotArea().addMouseListener(mouseListenerProvider.apply(ch)));
         return this;
     }
 
     public ChartBuilder mouseMoveListener(Function<Chart, MouseMoveListener> mouseMoveListenerProvider) {
-        control.getPlotArea().addMouseMoveListener(mouseMoveListenerProvider.apply(control));
-
+        addProperty(ch -> ch.getPlotArea().addMouseMoveListener(mouseMoveListenerProvider.apply(ch)));
         return this;
     }
 
     public <T extends MouseListener & MouseMoveListener> ChartBuilder mouseAndMouseMoveListener(Function<Chart, T> listenerProvider) {
-        T listener = listenerProvider.apply(control);
-
-        control.getPlotArea().addMouseListener(listener);
-        control.getPlotArea().addMouseMoveListener(listener);
-
+        addProperty(ch -> {
+            T listener = listenerProvider.apply(ch);
+            ch.getPlotArea().addMouseListener(listener);
+            ch.getPlotArea().addMouseMoveListener(listener);
+        });
         return this;
     }
 
     public ChartBuilder mouseWheelListener(Function<Chart, MouseWheelListener> mouseWheelListenerProvider) {
-        control.getPlotArea().addMouseWheelListener(mouseWheelListenerProvider.apply(control));
-
+        addProperty(ch -> ch.getPlotArea().addMouseWheelListener(mouseWheelListenerProvider.apply(ch)));
         return this;
     }
 
     public ChartBuilder makeAllSeriesEqualRange() {
-        ChartUtils.makeAllSeriesEqualRange(control);
-        adjustRange = false;
-
+        addProperty(ChartUtils::makeAllSeriesEqualRange);
         return this;
     }
 
     public ChartBuilder centerAroundSeries(String name) {
-        ChartUtils.centerAroundSeries(control, name);
-        adjustRange = false;
-
+        addProperty(ch -> ChartUtils.centerAroundSeries(ch, name));
         return this;
     }
 
-    public ChartBuilder forceFocus() {
-        control.forceFocus();
-
+    public ChartBuilder adjustRange() {
+        addProperty(ch -> ch.getAxisSet().adjustRange());
         return this;
     }
 
-    @Override
-    public ChartBuilder layoutData(Object data) {
-        layoutData = false;
-
-        return super.layoutData(data);
-    }
-
-    @Override
-    public Chart build() {
-        setTheme();
-
-        if (layoutData) {
-            control.setLayoutData(new GridData(GridData.FILL_BOTH));
-            control.getParent().layout();
-        }
-
-        if (adjustRange) {
-            control.getAxisSet().adjustRange();
-        }
-
-        return super.build();
-    }
-
-    private void adjustExtraSeries(ILineSeries lineSeries) {
-        if (control.getSeriesSet().getSeries().length > 1) {
-            int yAxisId = control.getAxisSet().createYAxis();
-            IAxis yAxis = control.getAxisSet().getYAxis(yAxisId);
+    private void adjustExtraSeries(Chart chart, ILineSeries lineSeries) {
+        if (chart.getSeriesSet().getSeries().length > 1) {
+            int yAxisId = chart.getAxisSet().createYAxis();
+            IAxis yAxis = chart.getAxisSet().getYAxis(yAxisId);
 
             yAxis.getTick().setVisible(false);
             yAxis.getTitle().setVisible(false);
@@ -169,8 +143,8 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
 
             lineSeries.setYAxisId(yAxisId);
 
-            int xAxisId = control.getAxisSet().createXAxis();
-            IAxis xAxis = control.getAxisSet().getXAxis(xAxisId);
+            int xAxisId = chart.getAxisSet().createXAxis();
+            IAxis xAxis = chart.getAxisSet().getXAxis(xAxisId);
 
             xAxis.getTick().setVisible(false);
             xAxis.getTitle().setVisible(false);
@@ -180,13 +154,13 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         }
     }
 
-    private void setTheme() {
-        control.getTitle().setForeground(getColor(PRIMARY_COLOR));
+    private void setTheme(Chart chart) {
+        chart.getTitle().setForeground(getColor(PRIMARY_COLOR));
 
-        control.setBackground(getColor(SECONDARY_COLOR));
-        control.setBackgroundInPlotArea(getColor(SECONDARY_COLOR));
+        chart.setBackground(getColor(SECONDARY_COLOR));
+        chart.setBackgroundInPlotArea(getColor(SECONDARY_COLOR));
 
-        IAxisSet axisset = control.getAxisSet();
+        IAxisSet axisset = chart.getAxisSet();
 
         axisset.getXAxis(0).getGrid().setForeground(getColor(SECONDARY_COLOR));
         axisset.getYAxis(0).getGrid().setForeground(getColor(SECONDARY_COLOR));
@@ -196,23 +170,26 @@ public class ChartBuilder extends ControlBuilder<Chart, ChartBuilder> {
         axisset.getXAxis(0).getTitle().setForeground(getColor(PRIMARY_COLOR));
         axisset.getYAxis(0).getTitle().setForeground(getColor(PRIMARY_COLOR));
 
-        control.getLegend().setVisible(false);
+        chart.getLegend().setVisible(false);
     }
 
     @SuppressWarnings("unchecked")
     public abstract static class SeriesBuilder<B extends SeriesBuilder<B>> {
+        static AtomicInteger nameCounter = new AtomicInteger();
+
         final ISeries.SeriesType seriesType;
         LineStyle lineStyle = LineStyle.NONE;
         PlotSymbolType symbolType = PlotSymbolType.NONE;
         int symbolSize = 1;
         int lineWidth = 1;
-        String name = "series";
+        String name;
         Color color = getColor(ColorResource.GREEN);
         double[] xSeries = {};
         double[] ySeries = {};
 
         private SeriesBuilder(ISeries.SeriesType seriesType) {
             this.seriesType = seriesType;
+            this.name = Integer.toString(nameCounter.addAndGet(1));
         }
 
         public B name(String name) {

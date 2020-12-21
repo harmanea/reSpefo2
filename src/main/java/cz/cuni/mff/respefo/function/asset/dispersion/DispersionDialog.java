@@ -1,20 +1,24 @@
 package cz.cuni.mff.respefo.function.asset.dispersion;
 
-import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.SpefoDialog;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
+import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.TextBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 
+// TODO: Make this more user friendly
 public class DispersionDialog extends SpefoDialog {
 
     private String labFileNameA;
@@ -39,63 +43,50 @@ public class DispersionDialog extends SpefoDialog {
 
     @Override
     protected void createDialogArea(Composite parent) {
-        Composite composite = composite(parent)
+        final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500))
-                .build();
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).build())
+                .build(parent);
 
-        label(composite)
-                .layoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1))
-                .text("File A:");
+        LabelBuilder labelBuilder = newLabel()
+                .gridLayoutData(SWT.LEFT, SWT.CENTER, true, true, 2, 1);
 
-        Text aText = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        aText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        aText.addListener(SWT.Modify, event -> labFileNameA = aText.getText());
+        TextBuilder textBuilder = newText(SWT.SINGLE | SWT.BORDER)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
 
-        Button aButton = new Button(composite, SWT.PUSH);
-        aButton.setText("Browse");
-        aButton.addListener(SWT.Selection, event -> {
-            String fileName = FileDialogs.openFileDialog(FileType.FITS);
-            if (fileName != null) {
-                aText.setText(fileName);
-            }
-            parent.getShell().moveAbove(ComponentManager.getShell());
-        });
+        ButtonBuilder buttonBuilder = newButton(SWT.PUSH)
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER)
+                .text("Browse");
 
-        label(composite)
-                .layoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1))
-                .text("File B:");
 
-        Text bText = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        bText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        bText.addListener(SWT.Modify, event -> labFileNameB = bText.getText());
+        labelBuilder.text("File A:").build(composite);
+        final Text aText = textBuilder.onModify(event -> labFileNameA = ((Text) event.widget).getText()).build(composite);
+        buttonBuilder
+                .onSelection(event -> {
+                    String fileName = FileDialogs.openFileDialog(FileType.FITS);
+                    if (fileName != null) {
+                        aText.setText(fileName);
+                    }
+                }).build(composite);
 
-        Button bButton = new Button(composite, SWT.PUSH);
-        bButton.setText("Browse");
-        bButton.addListener(SWT.Selection, event -> {
-            String fileName = FileDialogs.openFileDialog(FileType.FITS);
-            if (fileName != null) {
-                bText.setText(fileName);
-            }
-            parent.getShell().moveAbove(ComponentManager.getShell());
-        });
+        labelBuilder.text("File B:").build(composite);
+        final Text bText = textBuilder.onModify(event -> labFileNameB = ((Text) event.widget).getText()).build(composite);
+        buttonBuilder
+                .onSelection(event -> {
+                    String fileName = FileDialogs.openFileDialog(FileType.FITS);
+                    if (fileName != null) {
+                        bText.setText(fileName);
+                    }
+                }).build(composite);
 
-        label(composite)
-                .layoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1))
-                .text("CMP File:");
-
-        Text cText = new Text(composite, SWT.SINGLE | SWT.BORDER);
-        cText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        cText.addListener(SWT.Modify, event -> cmpFileName = cText.getText());
-
-        Button cButton = new Button(composite, SWT.PUSH);
-        cButton.setText("Browse");
-        cButton.addListener(SWT.Selection, event -> {
-            String fileName = FileDialogs.openFileDialog(FileType.CMP);
-            if (fileName != null) {
-                cText.setText(fileName);
-            }
-            parent.getShell().moveAbove(ComponentManager.getShell());
-        });
+        labelBuilder.text("CMP File:").build(composite);
+        final Text cText = textBuilder.onModify(event -> cmpFileName = ((Text) event.widget).getText()).build(composite);
+        buttonBuilder
+                .onSelection(event -> {
+                    String fileName = FileDialogs.openFileDialog(FileType.CMP);
+                    if (fileName != null) {
+                        cText.setText(fileName);
+                    }
+                }).build(composite);
     }
 }

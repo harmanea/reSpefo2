@@ -16,10 +16,10 @@ import java.util.function.DoubleConsumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.PIXELS;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.AxisLabel.RELATIVE_FLUX;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.LineSeriesBuilder.lineSeries;
-import static cz.cuni.mff.respefo.util.builders.ChartBuilder.chart;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.PIXELS;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
+import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.newChart;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
 
 public class DispersionMeasurementController {
@@ -49,7 +49,7 @@ public class DispersionMeasurementController {
         value = hint;
         radius = 10;
 
-        Chart chart = chart(ComponentManager.clearAndGetScene())
+        final Chart chart = newChart()
                 .title(label + " " + measurement.getLaboratoryValue())
                 .xAxisLabel(PIXELS)
                 .yAxisLabel(RELATIVE_FLUX)
@@ -64,8 +64,8 @@ public class DispersionMeasurementController {
                 .keyListener(ch -> ChartKeyListener.centerAroundSeries(ch, MIRRORED_SERIES_NAME))
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, shift -> applyShift(ch, shift)))
                 .centerAroundSeries(MIRRORED_SERIES_NAME)
-                .forceFocus()
-                .build();
+                .focus()
+                .build(ComponentManager.clearAndGetScene());
 
         chart.getAxisSet().zoomOut();
 

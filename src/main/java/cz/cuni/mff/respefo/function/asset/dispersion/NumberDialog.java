@@ -6,9 +6,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Spinner;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.SpinnerBuilder.newSpinner;
 
 public class NumberDialog extends SpefoDialog {
 
@@ -30,20 +31,20 @@ public class NumberDialog extends SpefoDialog {
 
     @Override
     protected void createDialogArea(Composite parent) {
-        Composite composite = composite(parent)
+        final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .build();
+                .gridLayoutData(GridData.FILL_BOTH)
+                .build(parent);
 
-        label(composite)
-                .text(labelText)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING))
-                .build();
-
-        Spinner spinner = new Spinner(composite, SWT.NONE);
-        spinner.setValues(1, 1, maximum, 0, 1, 1);
-        spinner.setLayoutData(new GridData(GridData.FILL_BOTH));
-        spinner.addModifyListener(event -> number = spinner.getSelection());
-        spinner.forceFocus();
+        newLabel().text(labelText).gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);
+        newSpinner(SWT.NONE)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .selection(1)
+                .bounds(1, maximum)
+                .digits(0)
+                .increment(1, 1)
+                .onModify(event -> number = ((Spinner) event.widget).getSelection())
+                .focus()
+                .build(composite);
     }
 }

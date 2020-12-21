@@ -13,9 +13,9 @@ import org.eclipse.swt.widgets.Shell;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cz.cuni.mff.respefo.util.builders.ButtonBuilder.pushButton;
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
 
 public abstract class SpefoDialog {
     private final String title;
@@ -46,10 +46,10 @@ public abstract class SpefoDialog {
     }
 
     void createContents(Shell shell) {
-        final Composite composite = composite(shell)
+        final Composite composite = newComposite()
                 .layout(gridLayout().margins(0).verticalSpacing(0))
                 .gridLayoutData(GridData.FILL_BOTH)
-                .build();
+                .build(shell);
 
         createDialogArea(composite);
         createButtonsArea(composite);
@@ -62,10 +62,10 @@ public abstract class SpefoDialog {
     protected abstract void createDialogArea(Composite parent);
 
     void createButtonsArea(Composite parent) {
-        final Composite composite = composite(parent)
+        final Composite composite = newComposite()
                 .layout(gridLayout(0, true).margins(10).horizontalSpacing(10))
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END)
-                .build();
+                .build(parent);
 
         createButtons(composite);
     }
@@ -83,11 +83,11 @@ public abstract class SpefoDialog {
     protected void createButton(Composite parent, int returnCode, String label, boolean defaultButton) {
         ((GridLayout) parent.getLayout()).numColumns++;
 
-        final Button button = pushButton(parent)
+        final Button button = newButton(SWT.PUSH)
                 .text(label)
-                .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL))
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL)
                 .onSelection(event -> buttonPressed(returnCode))
-                .build();
+                .build(parent);
 
         if (defaultButton) {
             shell.setDefaultButton(button);

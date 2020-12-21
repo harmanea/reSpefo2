@@ -6,9 +6,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import static cz.cuni.mff.respefo.util.builders.CompositeBuilder.composite;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.LabelBuilder.label;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 
 public abstract class TitleAreaDialog extends SpefoDialog {
     private final String title;
@@ -30,10 +30,10 @@ public abstract class TitleAreaDialog extends SpefoDialog {
 
     @Override
     void createContents(Shell shell) {
-        final Composite composite = composite(shell)
+        final Composite composite = newComposite()
                 .layout(gridLayout().margins(0).verticalSpacing(0))
                 .gridLayoutData(GridData.FILL_BOTH)
-                .build();
+                .build(shell);
 
         createTitleArea(composite);
         createDialogArea(composite);
@@ -41,25 +41,25 @@ public abstract class TitleAreaDialog extends SpefoDialog {
     }
 
     private void createTitleArea(Composite parent) {
-        final Composite composite = composite(parent)
-                .layoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false))
+        final Composite composite = newComposite()
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_BEGINNING)
                 .layout(gridLayout(2, false).margins(15))
-                .build();
+                .build(parent);
         composite.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
         composite.setBackgroundMode(SWT.INHERIT_FORCE);
 
-        label(composite)
-                .text(title)
+        newLabel()
                 .bold()
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .build();
+                .text(title)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .build(composite);
 
-        imageLabel = label(composite)
-                .layoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true, 1, 2))
-                .build();
+        imageLabel = newLabel()
+                .gridLayoutData(SWT.RIGHT, SWT.CENTER, false, true, 1, 2)
+                .build(composite);
 
-        messageLabel = label(composite)
-                .layoutData(new GridData(GridData.FILL_BOTH))
-                .build();
+        messageLabel = newLabel()
+                .gridLayoutData(GridData.FILL_BOTH)
+                .build(composite);
     }
 }

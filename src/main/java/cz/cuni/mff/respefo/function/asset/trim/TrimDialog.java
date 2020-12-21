@@ -1,22 +1,23 @@
 package cz.cuni.mff.respefo.function.asset.trim;
 
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
+import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.TextBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static java.lang.Double.isNaN;
 
 public class TrimDialog extends TitleAreaDialog {
     private double min = Double.NEGATIVE_INFINITY;
     private double max = Double.POSITIVE_INFINITY;
-
-    private Text minText;
-    private Text maxText;
 
     public double getMin() {
         return min;
@@ -42,36 +43,30 @@ public class TrimDialog extends TitleAreaDialog {
     protected void createDialogArea(Composite parent) {
         setMessage("Trim the spectrum x-values", SWT.ICON_INFORMATION);
 
-        Composite composite = new Composite(parent, SWT.NONE);
-        composite.setLayout(gridLayout(2, false).margins(7).build());
-        composite.setLayoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(80).build());
+        final Composite composite = newComposite()
+                .layout(gridLayout(2, false).margins(7))
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(80).build())
+                .build(parent);
 
-        final Label minLabel = new Label(composite, SWT.NONE);
-        minLabel.setText("Min:");
-        minLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+        LabelBuilder labelBuilder = newLabel().gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+        TextBuilder textBuilder = newText(SWT.BORDER | SWT.SINGLE).message("No limit").gridLayoutData(GridData.FILL_HORIZONTAL);
 
-        minText = new Text(composite, SWT.BORDER | SWT.SINGLE);
-        minText.setMessage("No limit");
+        labelBuilder.text("Min:").build(composite);
+
+        final Text minText = textBuilder.onModify(event -> validateMin((Text) event.widget)).build(composite);
         if (min != Double.NEGATIVE_INFINITY) {
             minText.setText(Double.toString(min));
         }
-        minText.addListener(SWT.Modify, event -> validateMin());
-        minText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        final Label maxLabel = new Label(composite, SWT.NONE);
-        maxLabel.setText("Max:");
-        maxLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+        labelBuilder.text("Max:").build(composite);
 
-        maxText = new Text(composite, SWT.BORDER | SWT.SINGLE);
-        maxText.setMessage("No limit");
+        final Text maxText = textBuilder.onModify(event -> validateMax((Text) event.widget)).build(composite);
         if (max != Double.POSITIVE_INFINITY) {
             maxText.setText(Double.toString(max));
         }
-        maxText.addListener(SWT.Modify, event -> validateMax());
-        maxText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     }
 
-    private void validateMin() {
+    private void validateMin(Text minText) {
         if (minText.getText().equals("")) {
             min = Double.NEGATIVE_INFINITY;
         } else {
@@ -85,7 +80,7 @@ public class TrimDialog extends TitleAreaDialog {
         validate();
     }
 
-    private void validateMax() {
+    private void validateMax(Text maxText) {
         if (maxText.getText().equals("")) {
             max = Double.POSITIVE_INFINITY;
         } else {
