@@ -2,11 +2,7 @@ package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.Point;
 import cz.cuni.mff.respefo.util.UtilityClass;
-import org.eclipse.swt.graphics.Rectangle;
-import org.swtchart.Chart;
-import org.swtchart.IAxis;
-import org.swtchart.ISeries;
-import org.swtchart.Range;
+import org.swtchart.*;
 
 import java.util.Objects;
 
@@ -113,15 +109,8 @@ public class ChartUtils extends UtilityClass {
     public static Point getRealValuesFromCoordinates(Chart chart, int x, int y) {
         Objects.requireNonNull(chart);
 
-        Range yRange = chart.getAxisSet().getYAxis(0).getRange();
-        Range xRange = chart.getAxisSet().getXAxis(0).getRange();
-
-        Rectangle bounds = chart.getPlotArea().getBounds();
-
-        double realX = xRange.lower + ((xRange.upper - xRange.lower) * ((double) x / bounds.width));
-        double realY = yRange.lower + ((yRange.upper - yRange.lower) * ((double) (bounds.height - y) / bounds.height));
-
-        return new Point(realX, realY);
+        IAxisSet axisSet = chart.getAxisSet();
+        return new Point(axisSet.getXAxis(0).getDataCoordinate(x), axisSet.getYAxis(0).getDataCoordinate(y));
     }
 
     /**

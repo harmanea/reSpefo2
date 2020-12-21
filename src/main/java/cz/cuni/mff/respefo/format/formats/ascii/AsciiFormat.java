@@ -2,11 +2,16 @@ package cz.cuni.mff.respefo.format.formats.ascii;
 
 import cz.cuni.mff.respefo.format.formats.FileFormat;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
+
 public class AsciiFormat implements FileFormat {
-    public static final String[] FILE_EXTENSIONS = { "", "txt", "asc", "ascii" };
+    public static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("", "txt", "asc", "ascii"));
 
     @Override
-    public String[] fileExtensions() {
+    public List<String> fileExtensions() {
         return FILE_EXTENSIONS;
     }
 

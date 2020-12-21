@@ -14,14 +14,17 @@ import cz.cuni.mff.respefo.util.utils.MathUtils;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 public class LegacySpefoFormat implements ImportFileFormat {
-    private static final String[] FILE_EXTENSIONS = new String[]{"uui", "rui", "rci"};
+    private static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("uui", "rui", "rci"));
 
     @Override
-    public String[] fileExtensions() {
+    public List<String> fileExtensions() {
         return FILE_EXTENSIONS;
     }
 

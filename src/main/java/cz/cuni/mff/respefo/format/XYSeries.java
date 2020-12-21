@@ -1,14 +1,23 @@
 package cz.cuni.mff.respefo.format;
 
+import java.util.Objects;
+
 public class XYSeries {
     private double[] xSeries;
     private double[] ySeries;
 
-    private XYSeries() {
-        // default empty constructor
+    public XYSeries() {
+        this(new double[0], new double[0]);
     }
 
     public XYSeries(double[] xSeries, double[] ySeries) {
+        Objects.requireNonNull(xSeries);
+        Objects.requireNonNull(ySeries);
+
+        if (xSeries.length != ySeries.length) {
+            throw new IllegalArgumentException("Both series must have equal length");
+        }
+
         this.xSeries = xSeries;
         this.ySeries = ySeries;
     }
@@ -17,7 +26,13 @@ public class XYSeries {
         return xSeries;
     }
 
-    public void setXSeries(double[] xSeries) {
+    public void updateXSeries(double[] xSeries) {
+        Objects.requireNonNull(xSeries);
+
+        if (xSeries.length != this.xSeries.length) {
+            throw new IllegalArgumentException("New series must have the same length");
+        }
+
         this.xSeries = xSeries;
     }
 
@@ -25,7 +40,13 @@ public class XYSeries {
         return ySeries;
     }
 
-    public void setYSeries(double[] ySeries) {
+    public void updateYSeries(double[] ySeries) {
+        Objects.requireNonNull(ySeries);
+
+        if (ySeries.length != this.ySeries.length) {
+            throw new IllegalArgumentException("New series must have the same length");
+        }
+
         this.ySeries = ySeries;
     }
 

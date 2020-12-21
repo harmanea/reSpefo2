@@ -1,7 +1,9 @@
 package cz.cuni.mff.respefo.format.formats;
 
+import java.util.List;
+
 public interface FileFormat {
-    String[] fileExtensions();
+    List<String> fileExtensions();
     String name();
     String description();
     boolean isDefault();

@@ -15,7 +15,7 @@ public class PlainTextFileFilter implements FileFilter {
     static {
         FILE_EXTENSIONS = new HashSet<>();
 
-        FILE_EXTENSIONS.addAll(Arrays.asList(AsciiFormat.FILE_EXTENSIONS));
+        FILE_EXTENSIONS.addAll(AsciiFormat.FILE_EXTENSIONS);
         FILE_EXTENSIONS.addAll(Arrays.asList("stl", "lst", "rvr", "dat", "rv", "ac", "cor", "rvs", "res", "inp", "par", "eqw", "cmf", "cmp"));
     }
 

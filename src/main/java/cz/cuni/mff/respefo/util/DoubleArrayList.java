@@ -2,7 +2,6 @@ package cz.cuni.mff.respefo.util;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 
 public class DoubleArrayList implements Iterable<Double> {
@@ -115,6 +114,11 @@ public class DoubleArrayList implements Iterable<Double> {
         return result;
     }
 
+    @Override
+    public Iterator<Double> iterator() {
+        return Arrays.stream(toArray()).iterator();
+    }
+
     private void ensureCapacity(int minCapacity) {
         int oldCapacity = elements.length;
         if (minCapacity > oldCapacity) {
@@ -133,26 +137,5 @@ public class DoubleArrayList implements Iterable<Double> {
         if (index >= size || index < 0) {
             throw new IndexOutOfBoundsException("Tried to access element with index [" + index + "] in a list of size [" + size + "]");
         }
-    }
-
-    @Override
-    public Iterator<Double> iterator() {
-        return new Iterator<Double>() {
-            int i = 0;
-
-            @Override
-            public boolean hasNext() {
-                return i < size;
-            }
-
-            @Override
-            public Double next() {
-                if (i >= size) {
-                    throw new NoSuchElementException();
-                }
-
-                return elements[i++];
-            }
-        };
     }
 }

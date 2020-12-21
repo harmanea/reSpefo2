@@ -141,13 +141,7 @@ public class ArrayUtils extends UtilityClass {
     public static double[] reverseArray(double[] array) {
         Objects.requireNonNull(array);
 
-        double[] newArray = new double[array.length];
-        for(int i = 0; i < newArray.length; i++)
-        {
-            newArray[i] = array[array.length - i - 1];
-        }
-
-        return newArray;
+        return IntStream.rangeClosed(1, array.length).mapToDouble(i -> array[array.length - i]).toArray();
     }
 
     /**
@@ -169,11 +163,7 @@ public class ArrayUtils extends UtilityClass {
     public static double[] applyBScale(double[] array, double bZero, double bScale) {
         Objects.requireNonNull(array);
 
-        for (int i = 0; i < array.length; i++) {
-            array[i] = array[i] * bScale + bZero;
-        }
-
-        return array;
+        return Arrays.stream(array).map(v -> v * bScale + bZero).toArray();
     }
 
     /**

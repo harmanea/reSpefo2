@@ -2,11 +2,16 @@ package cz.cuni.mff.respefo.format.formats.fits;
 
 import cz.cuni.mff.respefo.format.formats.FileFormat;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
+
 public class FitsFormat implements FileFormat {
-    public static final String[] FILE_EXTENSIONS = { "fits", "fts", "fit"};
+    public static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("fits", "fts", "fit"));
 
     @Override
-    public String[] fileExtensions() {
+    public List<String> fileExtensions() {
         return FILE_EXTENSIONS;
     }
 

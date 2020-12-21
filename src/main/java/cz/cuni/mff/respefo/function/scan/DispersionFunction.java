@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-@Fun(name = "Derive dispersion", fileFilter = FitsFileFilter.class)
+@Fun(name = "Derive dispersion", fileFilter = FitsFileFilter.class, group = "FITS")
 public class DispersionFunction implements SingleFileFunction {
 
     @Override

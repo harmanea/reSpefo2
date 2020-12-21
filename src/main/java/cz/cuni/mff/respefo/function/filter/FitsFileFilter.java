@@ -5,7 +5,6 @@ import cz.cuni.mff.respefo.util.utils.FileUtils;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Arrays;
 
 public class FitsFileFilter implements FileFilter {
     @Override
@@ -14,6 +13,6 @@ public class FitsFileFilter implements FileFilter {
             return false;
         }
 
-        return Arrays.asList(FitsFormat.FILE_EXTENSIONS).contains(FileUtils.getFileExtension(pathname));
+        return FitsFormat.FILE_EXTENSIONS.contains(FileUtils.getFileExtension(pathname));
     }
 }

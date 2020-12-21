@@ -30,10 +30,7 @@ public class FormatManager extends UtilityClass {
             try {
                 T instance = fileFormatClass.getDeclaredConstructor().newInstance();
                 for (String fileExtension : instance.fileExtensions()) {
-                    if (!fileFormatsMap.containsKey(fileExtension)) {
-                        fileFormatsMap.put(fileExtension, new ArrayList<>());
-                    }
-                    fileFormatsMap.get(fileExtension).add(instance);
+                    fileFormatsMap.computeIfAbsent(fileExtension, k -> new ArrayList<>()).add(instance);
                 }
 
             } catch (Exception exception) {
