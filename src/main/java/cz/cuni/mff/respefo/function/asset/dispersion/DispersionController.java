@@ -163,13 +163,13 @@ public class DispersionController {
                             }
                         }
                         break;
-                    case 'n':
+                    case 'j':
                         if (isNotNaN(newPoint)) {
                             newPoint -= getRelativeHorizontalStep(chart);
                             chart.redraw();
                         }
                         break;
-                    case 'm':
+                    case 'l':
                         if (isNotNaN(newPoint)) {
                             newPoint += getRelativeHorizontalStep(chart);
                             chart.redraw();

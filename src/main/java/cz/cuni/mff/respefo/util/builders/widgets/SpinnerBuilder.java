@@ -55,7 +55,6 @@ public final class SpinnerBuilder extends AbstractControlBuilder<SpinnerBuilder,
     }
 
     public SpinnerBuilder onModify(Listener listener) {
-        addProperty(s -> s.addListener(SWT.Modify, listener));
-        return this;
+        return listener(SWT.Modify, listener);
     }
 }

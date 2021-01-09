@@ -41,6 +41,7 @@ import static org.eclipse.swt.SWT.COLOR_WIDGET_BACKGROUND;
 
 @Fun(name = "EW Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
 public class EWResultsFunction implements SingleFileFunction, MultiFileFunction {
+
     @Override
     public void execute(File file) {
         Spectrum spectrum;

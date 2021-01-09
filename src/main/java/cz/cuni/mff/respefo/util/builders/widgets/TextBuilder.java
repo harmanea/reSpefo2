@@ -45,7 +45,6 @@ public final class TextBuilder extends AbstractControlBuilder<TextBuilder, Text>
     }
 
     public TextBuilder onModify(Listener listener) {
-        addProperty(t -> t.addListener(SWT.Modify, listener));
-        return this;
+        return listener(SWT.Modify, listener);
     }
 }

@@ -52,7 +52,7 @@ public class CleanFunction implements SingleFileFunction {
 
         XYSeries data = spectrum.getProcessedSeriesWithout(asset);
 
-        final Chart chart = newChart()
+        newChart()
                 .title(file.getName())
                 .xAxisLabel(WAVELENGTH)
                 .yAxisLabel(RELATIVE_FLUX)
@@ -72,6 +72,50 @@ public class CleanFunction implements SingleFileFunction {
                         .symbolSize(3)
                         .series(asset.mapActiveIndexToValues(data)))
                 .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
+                .keyListener(ch -> new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        switch (e.keyCode) {
+                            case SWT.DEL:
+                                asset.addActiveIndex();
+                                updateSeries(ch, data, asset);
+                                updateActivePoint(ch, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
+                                break;
+                            case SWT.INSERT:
+                                asset.removeActiveIndex();
+                                updateSeries(ch, data, asset);
+                                updateActivePoint(ch, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
+                                break;
+                            case 'n':
+                                if (asset.getActiveIndex() > 0) {
+                                    updateActivePoint(ch, asset, asset.getActiveIndex() - 1);
+                                }
+                                break;
+                            case 'm':
+                                if (asset.getActiveIndex() < data.getLength() - 1) {
+                                    updateActivePoint(ch, asset, asset.getActiveIndex() + 1);
+                                }
+                                break;
+                            case SWT.CR:
+                                if (asset.isEmpty()) {
+                                    spectrum.removeFunctionAsset(SERIALIZE_KEY);
+                                } else {
+                                    spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
+                                }
+
+                                try {
+                                    spectrum.save();
+
+                                    Message.info("Cleaned spectrum saved successfully.");
+                                    OpenFunction.displaySpectrum(spectrum);
+
+                                } catch (Exception exception) {
+                                    Message.error("Spectrum file couldn't be saved.", exception);
+                                }
+                                break;
+                        }
+                    }
+                })
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseMoveListener(ch -> new NearestPointMouseMoveListener(ch, POINTS_SERIES_NAME, index -> {
                     if (asset.getActiveIndex() != index) {
@@ -82,51 +126,6 @@ public class CleanFunction implements SingleFileFunction {
                 .makeAllSeriesEqualRange()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
-
-        chart.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.keyCode) {
-                    case SWT.DEL:
-                        asset.addActiveIndex();
-                        updateSeries(chart, data, asset);
-                        updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
-                        break;
-                    case SWT.INSERT:
-                        asset.removeActiveIndex();
-                        updateSeries(chart, data, asset);
-                        updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
-                        break;
-                    case 'n':
-                        if (asset.getActiveIndex() > 0) {
-                            updateActivePoint(chart, asset, asset.getActiveIndex() - 1);
-                        }
-                        break;
-                    case 'm':
-                        if (asset.getActiveIndex() < data.getLength() - 1) {
-                            updateActivePoint(chart, asset, asset.getActiveIndex() + 1);
-                        }
-                        break;
-                    case SWT.CR:
-                        if (asset.isEmpty()) {
-                            spectrum.removeFunctionAsset(SERIALIZE_KEY);
-                        } else {
-                            spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
-                        }
-
-                        try {
-                            spectrum.save();
-
-                            Message.info("Cleaned spectrum saved successfully.");
-                            OpenFunction.displaySpectrum(spectrum);
-
-                        } catch (Exception exception) {
-                            Message.error("Spectrum file couldn't be saved.", exception);
-                        }
-                        break;
-                }
-            }
-        });
     }
 
     private static void updateActivePoint(Chart chart, CleanAsset asset, int newIndex) {

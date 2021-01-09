@@ -13,11 +13,16 @@ import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder;
+import cz.cuni.mff.respefo.util.utils.FileUtils;
+import org.eclipse.swt.custom.StyleRange;
+import org.swtchart.Chart;
+import org.swtchart.ITitle;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.LineSeriesBuilder.lineSeries;
 
@@ -54,7 +59,6 @@ public class CompareFunction implements MultiFileFunction {
 
     private void displaySpectra(List<Spectrum> spectra) {
         ChartBuilder chartBuilder = ChartBuilder.newChart()
-                .title("Compare")
                 .xAxisLabel("X Axis")
                 .yAxisLabel("Y Axis");
 
@@ -68,11 +72,36 @@ public class CompareFunction implements MultiFileFunction {
             );
         }
 
-        chartBuilder
+        Chart chart = chartBuilder
                 .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .makeAllSeriesEqualRange()
                 .build(ComponentManager.clearAndGetScene());
+
+        setTitle(chart, spectra);
+    }
+
+    private void setTitle(Chart chart, List<Spectrum> spectra) {
+        ITitle title = chart.getTitle();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        StyleRange[] styleRanges = new StyleRange[spectra.size()];
+
+        int end = 0;
+        for (int i = 0; i < spectra.size(); i++) {
+            String name = FileUtils.stripFileExtension(spectra.get(i).getFile().getName());
+
+            stringBuilder.append(name);
+            styleRanges[i] = new StyleRange(end, name.length(), getColor(COLORS[i]), null);
+            if (i + 1 < spectra.size()) {
+                stringBuilder.append(" x ");
+            }
+
+            end += name.length() + 3;
+        }
+
+        title.setText(stringBuilder.toString());
+        title.setStyleRanges(styleRanges);
     }
 }
