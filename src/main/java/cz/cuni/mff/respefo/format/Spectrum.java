@@ -82,6 +82,7 @@ public class Spectrum {
 
     public void saveAs(File file) throws SpefoException {
         saveToFile(file);
+        setFile(file);
     }
 
     private void saveToFile(File destinationFile) throws SpefoException {
@@ -90,7 +91,7 @@ public class Spectrum {
             writer.writeValue(destinationFile, this);
 
         } catch (JsonGenerationException | JsonMappingException exception) {
-            throw new SpefoException("An error occurred while processing JSON", exception);
+            throw new SpefoException("An error occurred while generating JSON", exception);
         } catch (IOException exception) {
             throw new SpefoException("An error occurred while writing to file", exception);
         }

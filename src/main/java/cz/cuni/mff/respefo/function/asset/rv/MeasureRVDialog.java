@@ -6,9 +6,8 @@ import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
 import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
 import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.ListBuilder;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.List;
@@ -46,6 +45,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
                 .build(parent);
 
         LabelBuilder labelBuilder = LabelBuilder.newLabel().gridLayoutData(SWT.FILL, SWT.TOP, true, false, 2, 1);
+        ListBuilder listBuilder = ListBuilder.newList(SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL).gridLayoutData(GridData.FILL_BOTH);
         CompositeBuilder buttonsCompositeBuilder = CompositeBuilder.newComposite()
                 .layout(gridLayout().margins(0))
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
@@ -58,18 +58,13 @@ public class MeasureRVDialog extends TitleAreaDialog {
 
         labelBuilder.text("Select .lst files with measurements:").build(topComposite);
 
-        final List measurementsList = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
-        measurementsList.setLayoutData(new GridData(GridData.FILL_BOTH));
-        measurementsList.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.keyCode == SWT.DEL) {
-                    removeStlFile(measurementsList, measurementsItemsConsumer);
-                } else if (e.keyCode == SWT.INSERT) {
-                    addStlFile(measurementsList, measurementsItemsConsumer);
-                }
+        final List measurementsList = listBuilder.listener(SWT.KeyDown, e -> {
+            if (e.keyCode == SWT.DEL) {
+                removeStlFile((List) e.widget, measurementsItemsConsumer);
+            } else if (e.keyCode == SWT.INSERT) {
+                addStlFile((List) e.widget, measurementsItemsConsumer);
             }
-        });
+        }).build(topComposite);
 
         final Composite measurementsButtonsComposite = buttonsCompositeBuilder.build(topComposite);
         addButtonBuilder
@@ -85,18 +80,13 @@ public class MeasureRVDialog extends TitleAreaDialog {
 
         labelBuilder.text("Select .lst files with correction measurements:").build(topComposite);
 
-        final List correctionsList = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
-        correctionsList.setLayoutData(new GridData(GridData.FILL_BOTH));
-        correctionsList.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.keyCode == SWT.DEL) {
-                    removeStlFile(correctionsList, correctionsItemsConsumer);
-                } else if (e.keyCode == SWT.INSERT) {
-                    addStlFile(correctionsList, correctionsItemsConsumer);
-                }
+        final List correctionsList = listBuilder.listener(SWT.KeyDown, e -> {
+            if (e.keyCode == SWT.DEL) {
+                removeStlFile((List) e.widget, correctionsItemsConsumer);
+            } else if (e.keyCode == SWT.INSERT) {
+                addStlFile((List) e.widget, correctionsItemsConsumer);
             }
-        });
+        }).build(topComposite);
 
         final Composite correctionsButtonsComposite = buttonsCompositeBuilder.build(topComposite);
         addButtonBuilder

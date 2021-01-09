@@ -125,7 +125,7 @@ public class EWMeasurementController {
                     activeLine = i;
                     ch.redraw();
                 }))
-                .focus()
+                .forceFocus()
                 .build(ComponentManager.clearAndGetScene(false));
 
         chart.getPlotArea().addPaintListener(event -> {

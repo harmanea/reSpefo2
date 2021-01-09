@@ -60,12 +60,12 @@ public class CleanAsset implements FunctionAsset {
             return series;
         }
 
-        double[] remainingXSeries = IntStream.range(0, series.getXSeries().length)
+        double[] remainingXSeries = IntStream.range(0, series.getLength())
                 .filter(index -> !deletedIndexes.contains(index))
                 .mapToDouble(series::getX)
                 .toArray();
 
-        double[] remainingYSeries = IntStream.range(0, series.getYSeries().length)
+        double[] remainingYSeries = IntStream.range(0, series.getLength())
                 .filter(index -> !deletedIndexes.contains(index))
                 .mapToDouble(series::getY)
                 .toArray();

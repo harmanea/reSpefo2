@@ -47,7 +47,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
             double bZero = header.getDoubleValue(Standard.BZERO, 0);
             double bScale = header.getDoubleValue(Standard.BSCALE, 1);
             if (bZero != 0 || bScale != 1) {
-                series.setYSeries(ArrayUtils.applyBScale(series.getYSeries(), bZero, bScale));
+                series.updateYSeries(ArrayUtils.applyBScale(series.getYSeries(), bZero, bScale));
             }
 
             List<HeaderCard> headerCards = new ArrayList<>();

@@ -53,7 +53,7 @@ public class ChironFitsFormat extends ImportFitsFormat {
         return new XYSeries(xSeries, ySeries);
     }
 
-    protected float[][][] castData(ImageHDU imageHDU) throws InvalidFileFormatException {
+    private float[][][] castData(ImageHDU imageHDU) throws InvalidFileFormatException {
         try {
             return (float[][][]) imageHDU.getKernel();
         } catch (ClassCastException exception) {

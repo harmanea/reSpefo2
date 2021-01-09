@@ -5,9 +5,8 @@ import cz.cuni.mff.respefo.component.TitleAreaDialog;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
+import cz.cuni.mff.respefo.util.builders.widgets.ListBuilder;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.List;
@@ -43,18 +42,15 @@ public class MeasureEWDialog extends TitleAreaDialog {
                 .text("Select .lst files with measurements:")
                 .build(topComposite);
 
-        final List list = new List(topComposite, SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
-        list.setLayoutData(new GridData(GridData.FILL_BOTH));
-        list.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.keyCode == SWT.DEL) {
-                    removeStlFile(list);
-                } else if (e.keyCode == SWT.INSERT) {
-                    addStlFile(list);
-                }
-            }
-        });
+        final List list = ListBuilder.newList(SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .listener(SWT.KeyDown, e -> {
+                    if (e.keyCode == SWT.DEL) {
+                        removeStlFile((List) e.widget);
+                    } else if (e.keyCode == SWT.INSERT) {
+                        addStlFile((List) e.widget);
+                    }
+                }).build(topComposite);
 
         final Composite buttonsComposite = newComposite()
                 .layout(gridLayout().margins(0))

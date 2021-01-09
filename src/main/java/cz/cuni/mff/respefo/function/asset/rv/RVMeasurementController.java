@@ -4,7 +4,6 @@ import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.ToolBar;
 import cz.cuni.mff.respefo.component.VerticalToggle;
 import cz.cuni.mff.respefo.format.XYSeries;
-import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.HorizontalDragMouseListener;
 import cz.cuni.mff.respefo.function.asset.common.Measurement;
 import cz.cuni.mff.respefo.function.asset.common.Measurements;
@@ -236,82 +235,73 @@ public class RVMeasurementController {
                 .yAxisLabel(RELATIVE_FLUX)
                 .series(lineSeries()
                         .name("original")
-                        .xSeries(ArrayUtils.fillArray(series.getYSeries().length, 0, 1))
+                        .xSeries(ArrayUtils.fillArray(series.getLength(), 0, 1))
                         .ySeries(series.getYSeries())
                         .color(GREEN))
                 .series(lineSeries()
                         .name(MIRRORED_SERIES_NAME)
                         .series(computeSeries(measurement))
                         .color(BLUE))
-                .keyListener(ch -> ChartKeyListener.customAction(ch, ch2 -> {
-                    ChartUtils.centerAroundSeries(ch2, MIRRORED_SERIES_NAME);
-                    ch2.getAxisSet().zoomOut();
-                    updateRelativeStep(ch2);
-                }))
+                .keyListener(ch -> new MeasureRVKeyListener(ch, () -> updateRelativeStep(ch), MIRRORED_SERIES_NAME))
+                .keyListener(ch -> new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        switch (e.keyCode) {
+                            case SWT.CR:
+                                MeasurementInputDialog dialog = new MeasurementInputDialog(measurement.isCorrection());
+                                if (dialog.openIsOk()) {
+                                    MeasureRVResult result = new MeasureRVResult(
+                                            deltaRV * shift / 2,
+                                            shift,
+                                            measurement.getRadius(),
+                                            dialog.getCategory(),
+                                            measurement.getL0(),
+                                            measurement.getName(),
+                                            dialog.getComment()
+                                    );
+                                    results.add(result);
+                                }
+                                break;
+
+                            case SWT.END:
+                            case SWT.ESC:
+                                if (index + 1 < measurements.size()) {
+                                    index += 1;
+                                    ComponentManager.getDisplay().asyncExec(() -> measureSingle());
+                                } else {
+                                    finish();
+                                }
+                                break;
+
+                            case SWT.TAB:
+                                if (e.stateMask == SWT.CTRL) {
+                                    measurement.decreaseRadius();
+                                } else {
+                                    measurement.increaseRadius();
+                                }
+
+                                XYSeries newSeries = computeSeries(measurement);
+                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(ArrayUtils.addValueToArrayElements(newSeries.getXSeries(), shift));
+                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
+                                ch.redraw();
+                                break;
+
+                            case 'n':
+                                applyShift(ch, -rvStep);
+                                break;
+
+                            case 'm':
+                                applyShift(ch, rvStep);
+                                break;
+
+                        }
+                    }
+                })
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, value -> applyShift(ch, value)))
                 .centerAroundSeries(MIRRORED_SERIES_NAME)
-                .focus()
+                .zoomOut()
+                .forceFocus()
                 .build(ComponentManager.clearAndGetScene(false));
-
-        chart.getAxisSet().zoomOut();
-
-        chart.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.keyCode) {
-                    case SWT.CR:
-                        MeasurementInputDialog dialog = new MeasurementInputDialog(measurement.isCorrection());
-                        if (dialog.openIsOk()) {
-                            MeasureRVResult result = new MeasureRVResult(
-                                    deltaRV * shift / 2,
-                                    shift,
-                                    measurement.getRadius(),
-                                    dialog.getCategory(),
-                                    measurement.getL0(),
-                                    measurement.getName(),
-                                    dialog.getComment()
-                            );
-                            results.add(result);
-                        }
-                        break;
-
-                    case SWT.END:
-                    case SWT.ESC:
-                        if (index + 1 < measurements.size()) {
-                            index += 1;
-                            ComponentManager.getDisplay().asyncExec(() -> measureSingle());
-                        } else {
-                            finish();
-                        }
-                        break;
-
-                    case SWT.TAB:
-                        if (e.stateMask == SWT.CTRL) {
-                            measurement.decreaseRadius();
-                        } else {
-                            measurement.increaseRadius();
-                        }
-
-                        XYSeries newSeries = computeSeries(measurement);
-                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(ArrayUtils.addValueToArrayElements(newSeries.getXSeries(), shift));
-                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
-                        chart.redraw();
-                        break;
-
-                    case 'n':
-                        applyShift(chart, -rvStep);
-                        break;
-
-                    case 'm':
-                        applyShift(chart, rvStep);
-                        break;
-
-                }
-            }
-        });
-
-        chart.redraw();
-        chart.forceFocus();
 
         table.setSelection(index);
         updateRelativeStep(chart);

@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-@Fun(name = "Derive dispersion", fileFilter = FitsFileFilter.class, group = "FITS")
+@Fun(name = "Derive Dispersion", fileFilter = FitsFileFilter.class, group = "FITS")
 public class DispersionFunction implements SingleFileFunction {
 
     @Override
@@ -32,7 +32,7 @@ public class DispersionFunction implements SingleFileFunction {
             XYSeries seriesA = readFitsFile(dialog.getLabFileNameA());
             XYSeries seriesB = readFitsFile(dialog.getLabFileNameB());
 
-            new DispersionController(cmpValues, seriesA, seriesB, file).start();
+            new DispersionController(cmpValues, seriesA, seriesB, file).start(); // TODO: use a callback so that file doesn't need to be sent
 
         } catch (SpefoException e) {
             Message.error("An error occurred while reading files", e);
@@ -58,7 +58,7 @@ public class DispersionFunction implements SingleFileFunction {
         }
     }
 
-    private XYSeries readFitsFile(String fileName) throws SpefoException { // TODO: do this properly
+    private XYSeries readFitsFile(String fileName) throws SpefoException { // TODO: do this properly, replace with FitsUtils.extractData
         Spectrum spectrum = new ImportFitsFormat().importFrom(fileName);
         return spectrum.getSeries();
     }

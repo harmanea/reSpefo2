@@ -41,6 +41,7 @@ public class OpenFunction implements SingleFileFunction {
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .adjustRange()
+                .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
     }
 }

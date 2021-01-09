@@ -22,6 +22,10 @@ public class XYSeries {
         this.ySeries = ySeries;
     }
 
+    public int getLength() {
+        return xSeries.length;
+    }
+
     public double[] getXSeries() {
         return xSeries;
     }

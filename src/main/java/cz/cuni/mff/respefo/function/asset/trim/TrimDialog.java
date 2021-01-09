@@ -15,7 +15,8 @@ import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static java.lang.Double.isNaN;
 
-public class TrimDialog extends TitleAreaDialog {
+public class
+TrimDialog extends TitleAreaDialog {
     private double min = Double.NEGATIVE_INFINITY;
     private double max = Double.POSITIVE_INFINITY;
 
@@ -45,7 +46,7 @@ public class TrimDialog extends TitleAreaDialog {
 
         final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(7))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(80).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(400).heightHint(80).build())
                 .build(parent);
 
         LabelBuilder labelBuilder = newLabel().gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING);

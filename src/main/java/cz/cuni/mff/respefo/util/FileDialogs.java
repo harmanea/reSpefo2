@@ -15,31 +15,74 @@ import java.util.stream.Collectors;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.getParentDirectory;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripParent;
 
-// TODO: add javadoc
 public class FileDialogs extends UtilityClass {
 
     private static String filterPath;
 
+    /**
+     * Returns the static filter path currently used for dialogs in this class.
+     * @return filter path
+     */
     public static String getFilterPath() {
         return filterPath;
     }
 
+    /**
+     * Sets the static filter path to be used by dialogs in this class.
+     * @param filterPath new value
+     */
     public static void setFilterPath(String filterPath) {
         FileDialogs.filterPath = Objects.requireNonNull(filterPath);
     }
 
+    /**
+     * Open a standard file selection dialog for the selected file type.
+     * <br>
+     * This automatically sets the filter path to the parent of the selected file.
+     *
+     * @param fileType type of files that the selection dialog will filter
+     * @return path to the selected file or null if the dialog was cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static String openFileDialog(FileType fileType) {
         return openFileDialog(fileType, true);
     }
 
+    /**
+     * Open a standard file selection dialog for the selected file type.
+     *
+     * @param fileType type of files that the selection dialog will filter
+     * @param saveFilterPath if this flag is true, set the filter path to the parent of the selected file
+     * @return path to the selected file or null if the dialog was cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static String openFileDialog(FileType fileType, boolean saveFilterPath) {
         return fileDialog(fileType, saveFilterPath, SWT.OPEN, null);
     }
 
+    /**
+     * Open a standard file save dialog for the selected file type.
+     * <br>
+     * This automatically sets the filter path to the parent of the selected file.
+     *
+     * @param fileType type of files that the selection dialog will filter
+     * @param fileName default value for the filename
+     * @return path to the selected file or null if the dialog was cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static String saveFileDialog(FileType fileType, String fileName) {
         return saveFileDialog(fileType, fileName, true);
     }
 
+    /**
+     * Open a standard file save dialog for the selected file type.
+     *
+     * @param fileType type of files that the selection dialog will filter
+     * @param fileName default value for the filename
+     * @param saveFilterPath if this flag is true, set the filter path to the parent of the selected file
+     * @return path to the selected file or null if the dialog was cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static String saveFileDialog(FileType fileType, String fileName, boolean saveFilterPath) {
         return fileDialog(fileType, saveFilterPath, SWT.SAVE, fileName);
     }
@@ -69,10 +112,25 @@ public class FileDialogs extends UtilityClass {
         return filePath;
     }
 
+    /**
+     * Open a standard directory selection dialog.
+     * <br>
+     * This automatically sets the filter path to the parent of the selected file.
+     *
+     * @return path to the selected directory or null if the dialog was cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static String directoryDialog() {
         return directoryDialog(true);
     }
 
+    /**
+     * Open a standard directory selection dialog.
+     *
+     * @param saveFilterPath if this flag is true, set the filter path to the parent of the selected file
+     * @return path to the selected directory or null if the dialog was cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static String directoryDialog(boolean saveFilterPath) {
         DirectoryDialog dialog = new DirectoryDialog(ComponentManager.getShell());
 
@@ -88,10 +146,27 @@ public class FileDialogs extends UtilityClass {
         return directoryPath;
     }
 
+    /**
+     * Open a standard files selection dialog for the selected file type.
+     * <br>
+     * This automatically sets the filter path to the parent of the selected file.
+     *
+     * @param fileType type of files that the selection dialog will filter
+     * @return list of paths to the selected files, will be empty if the dialog is cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static List<String> openMultipleFilesDialog(FileType fileType) {
         return openMultipleFilesDialog(fileType, true);
     }
 
+    /**
+     * Open a standard files selection dialog for the selected file type.
+     *
+     * @param fileType type of files that the selection dialog will filter
+     * @param saveFilterPath if this flag is true, set the filter path to the parent of the selected file
+     * @return list of paths to the selected files, will be empty if the dialog is cancelled
+     * @see FileDialogs#setFilterPath(String)
+     */
     public static List<String> openMultipleFilesDialog(FileType fileType, boolean saveFilterPath) {
         Objects.requireNonNull(fileType);
 

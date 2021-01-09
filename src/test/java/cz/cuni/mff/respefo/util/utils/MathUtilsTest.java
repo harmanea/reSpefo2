@@ -4,11 +4,31 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import static cz.cuni.mff.respefo.util.utils.MathUtils.rmse;
+import static cz.cuni.mff.respefo.util.TestUtils.arrayOf;
+import static cz.cuni.mff.respefo.util.TestUtils.emptyArray;
+import static cz.cuni.mff.respefo.util.utils.MathUtils.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class MathUtilsTest {
+
+    @Test
+    public void testLinearInterpolation() {
+        // Interpolation
+        assertEquals(2, linearInterpolation(0, 1, 1, 3, 0.5), DOUBLE_PRECISION);
+        assertEquals(0.33, linearInterpolation(1, 0.11, 10, 1.1, 3), DOUBLE_PRECISION);
+        assertEquals(-5, linearInterpolation(100, 100, -100, -100, -5), DOUBLE_PRECISION);
+        assertEquals(42, linearInterpolation(1, 42, 3, 42, 2), DOUBLE_PRECISION);
+
+        // Extrapolation
+        assertEquals(10, linearInterpolation(1, 20, 2, 30, 0), DOUBLE_PRECISION);
+        assertEquals(1000, linearInterpolation(-3, -1000, -1, 0, 1), DOUBLE_PRECISION);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testLinearInterpolationSamePoints() {
+        linearInterpolation(0, 0, 0, 0, 0);
+    }
 
     @Test
     public void testRobustMean() {
@@ -126,5 +146,19 @@ public class MathUtilsTest {
         }
 
         assertTrue(rmse(predicted, y) < 0.02);
+    }
+
+    @Test
+    public void testMedian() {
+        assertEquals(3, median(arrayOf(1, 2, 3, 4, 5)), DOUBLE_PRECISION);
+        assertEquals(4, median(arrayOf(0, 3, 5, 10)), DOUBLE_PRECISION);
+        assertEquals(1, median(arrayOf(0, 1, 1, 1, 1)), DOUBLE_PRECISION);
+        assertEquals(42, median(arrayOf(42)), DOUBLE_PRECISION);
+        assertEquals(-1000, median(arrayOf(-5000, -3000, -2000, -1000, 0, 1000, 2000)), DOUBLE_PRECISION);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMedianEmptyArray() {
+        median(emptyArray());
     }
 }

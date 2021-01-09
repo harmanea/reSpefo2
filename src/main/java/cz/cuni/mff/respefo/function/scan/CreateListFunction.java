@@ -18,7 +18,7 @@ import java.util.List;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 
-@Fun(name = "Generate .lst file", fileFilter = SpefoFormatFileFilter.class)
+@Fun(name = "Generate .lst File", fileFilter = SpefoFormatFileFilter.class)
 public class CreateListFunction implements MultiFileFunction {
 
     private static final String TABLE_HEADER =

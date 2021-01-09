@@ -11,6 +11,7 @@ import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.swtchart.*;
 import org.swtchart.ILineSeries.PlotSymbolType;
 
@@ -69,6 +70,11 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return this;
     }
 
+    public ChartBuilder zoomOut() {
+        addProperty(ch -> ch.getAxisSet().zoomOut());
+        return this;
+    }
+
     public ChartBuilder series(SeriesBuilder<?> seriesBuilder) {
         addProperty(ch -> {
             ILineSeries lineSeries = (ILineSeries) ch.getSeriesSet().createSeries(seriesBuilder.seriesType, seriesBuilder.name);
@@ -82,7 +88,9 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
             lineSeries.setSymbolColor(seriesBuilder.color);
             lineSeries.setSymbolSize(seriesBuilder.symbolSize);
 
-            adjustExtraSeries(ch, lineSeries);
+            if (ch.getSeriesSet().getSeries().length > 1) {
+                adjustExtraSeries(ch, lineSeries);
+            }
         });
 
         return this;
@@ -132,26 +140,29 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return this;
     }
 
+    public ChartBuilder forceFocus() {
+        addProperty(Control::forceFocus);
+        return this;
+    }
+
     private void adjustExtraSeries(Chart chart, ILineSeries lineSeries) {
-        if (chart.getSeriesSet().getSeries().length > 1) {
-            int yAxisId = chart.getAxisSet().createYAxis();
-            IAxis yAxis = chart.getAxisSet().getYAxis(yAxisId);
+        int yAxisId = chart.getAxisSet().createYAxis();
+        IAxis yAxis = chart.getAxisSet().getYAxis(yAxisId);
 
-            yAxis.getTick().setVisible(false);
-            yAxis.getTitle().setVisible(false);
-            yAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
+        yAxis.getTick().setVisible(false);
+        yAxis.getTitle().setVisible(false);
+        yAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
 
-            lineSeries.setYAxisId(yAxisId);
+        lineSeries.setYAxisId(yAxisId);
 
-            int xAxisId = chart.getAxisSet().createXAxis();
-            IAxis xAxis = chart.getAxisSet().getXAxis(xAxisId);
+        int xAxisId = chart.getAxisSet().createXAxis();
+        IAxis xAxis = chart.getAxisSet().getXAxis(xAxisId);
 
-            xAxis.getTick().setVisible(false);
-            xAxis.getTitle().setVisible(false);
-            xAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
+        xAxis.getTick().setVisible(false);
+        xAxis.getTitle().setVisible(false);
+        xAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
 
-            lineSeries.setXAxisId(xAxisId);
-        }
+        lineSeries.setXAxisId(xAxisId);
     }
 
     private void setTheme(Chart chart) {

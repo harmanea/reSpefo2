@@ -74,14 +74,14 @@ public abstract class ChartKeyListener extends KeyAdapter {
         }
     }
 
-    private void applyToAxes(Function<IAxisSet, IAxis[]> axes, Consumer<IAxis> action) {
+    protected void applyToAxes(Function<IAxisSet, IAxis[]> axes, Consumer<IAxis> action) {
         for (IAxis axis : axes.apply(chart.getAxisSet())) {
             action.accept(axis);
         }
         chart.redraw();
     }
 
-    private void applyToAxisSet(Consumer<IAxisSet> action) {
+    protected void applyToAxisSet(Consumer<IAxisSet> action) {
         action.accept(chart.getAxisSet());
         chart.redraw();
     }

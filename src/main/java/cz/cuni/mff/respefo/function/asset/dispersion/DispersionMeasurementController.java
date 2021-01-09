@@ -64,7 +64,7 @@ public class DispersionMeasurementController {
                 .keyListener(ch -> ChartKeyListener.centerAroundSeries(ch, MIRRORED_SERIES_NAME))
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, shift -> applyShift(ch, shift)))
                 .centerAroundSeries(MIRRORED_SERIES_NAME)
-                .focus()
+                .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
 
         chart.getAxisSet().zoomOut();
@@ -112,7 +112,7 @@ public class DispersionMeasurementController {
 
     private XYSeries computeSeries(XYSeries series) {
         int from = Math.max((int) Math.rint(value) - radius, 0);
-        int to = Math.min((int) Math.rint(value) + radius, series.getYSeries().length - 1);
+        int to = Math.min((int) Math.rint(value) + radius, series.getLength() - 1);
 
         double[] mirroredYSeries = ArrayUtils.reverseArray(Arrays.copyOfRange(series.getYSeries(), from, to));
         double[] mirroredXSeries = ArrayUtils.createArray(mirroredYSeries.length, i -> 2 * value - series.getX(to - i - 1));

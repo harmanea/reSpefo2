@@ -77,6 +77,26 @@ public class FunctionManager extends UtilityClass {
         throw new IllegalArgumentException("There is no function asset class with the key [" + key + "].");
     }
 
+    public static SingleFileFunction getSingleFileFunctionByName(String name) {
+        for (FunctionInfo<SingleFileFunction> functionInfo : singleFileFunctions) {
+            if (functionInfo.getName().equals(name)) {
+                return functionInfo.getInstance();
+            }
+        }
+
+        throw new IllegalArgumentException("There is no function named [" + name + "]");
+    }
+
+    public static MultiFileFunction getMultiFileFunctionByName(String name) {
+        for (FunctionInfo<MultiFileFunction> functionInfo : multiFileFunctions) {
+            if (functionInfo.getName().equals(name)) {
+                return functionInfo.getInstance();
+            }
+        }
+
+        throw new IllegalArgumentException("There is no function named [" + name + "]");
+    }
+
     protected FunctionManager() throws IllegalAccessException {
         super();
     }

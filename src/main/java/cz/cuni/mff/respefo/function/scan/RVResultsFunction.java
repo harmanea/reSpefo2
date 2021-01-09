@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
@@ -280,8 +281,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
         ButtonBuilder buttonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);
         buttonBuilder.text("Print to .rvs file").onSelection(event -> printToRvsFile(spectra)).build(buttonsComposite);
         buttonBuilder.text("Print to .cor file").onSelection(event -> printToCorFile(spectra)).build(buttonsComposite);
-
-        // TODO: also print to .ac file
+        buttonBuilder.text("Print to .ac file").onSelection(event -> printToAcFile(spectra)).build(buttonsComposite);
 
         scrolledComposite.setContent(composite);
         scrolledComposite.setExpandHorizontal(true);
@@ -293,11 +293,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
     }
 
     private static void printToRvsFile(List<Spectrum> spectra) {
-        String fileName = ComponentManager.getFileExplorer().getRootDirectory().getPath() + File.separator + ComponentManager.getFileExplorer().getRootDirectory().getName() + ".rvs";
-
-        try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.println("Summary of radial velocities\n");
-
+        printToRvFile(".rvs", writer -> {
             writer.print("Jul. date  RVCorr");
 
             String[] categories = spectra.stream()
@@ -334,20 +330,11 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
                 }
                 writer.println();
             }
-
-            Message.info("File created successfully");
-            ComponentManager.getFileExplorer().refresh();
-        } catch (FileNotFoundException exception) {
-            Message.error("Couldn't print to .rvs file", exception);
-        }
+        });
     }
 
     private static void printToCorFile(List<Spectrum> spectra) {
-        String fileName = ComponentManager.getFileExplorer().getRootDirectory().getPath() + File.separator + ComponentManager.getFileExplorer().getRootDirectory().getName() + ".cor";
-
-        try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.println("Summary of radial velocities\n");
-
+        printToRvFile(".cor", writer -> {
             writer.print("Jul. date ");
 
             String[] categories = spectra.stream()
@@ -391,11 +378,42 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
                 }
                 writer.println();
             }
+        });
+    }
+
+    private static void printToAcFile(List<Spectrum> spectra) {
+        printToRvFile(".ac", writer -> {
+            for (Spectrum spectrum : spectra) {
+                MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
+
+                if (isNaN(results.getRvOfCategory("corr"))) {
+                    Log.warning("Spectrum " + spectrum.getFile().getName() + " was skipped because it does not have meaured corrections.");
+                    continue;
+                }
+
+                double rvCorr = spectrum.getRvCorrection() - results.getRvOfCategory("corr");
+                writer.print(formatDouble(rvCorr, 2, 2, true));
+
+                writer.print("  ");
+
+                writer.println(formatDouble(spectrum.getHjd().getRJD(), 5, 4, false));
+            }
+        });
+    }
+
+    private static void printToRvFile(String suffix, Consumer<PrintWriter> printer) {
+        File rootDirectory = ComponentManager.getFileExplorer().getRootDirectory();
+        String fileName = rootDirectory.getPath() + File.separator + rootDirectory.getName() + suffix;
+
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.println("Summary of radial velocities");
+
+            printer.accept(writer);
 
             Message.info("File created successfully");
             ComponentManager.getFileExplorer().refresh();
         } catch (FileNotFoundException exception) {
-            Message.error("Couldn't print to .cor file", exception);
+            Message.error("Couldn't print to " + suffix + " file", exception);
         }
     }
 }

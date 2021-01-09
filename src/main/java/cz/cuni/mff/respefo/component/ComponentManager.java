@@ -1,10 +1,8 @@
 package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.scan.DebugFunction;
-import cz.cuni.mff.respefo.function.scan.ExportFunction;
-import cz.cuni.mff.respefo.function.scan.ImportFunction;
-import cz.cuni.mff.respefo.function.scan.OpenFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
@@ -187,7 +185,7 @@ public class ComponentManager extends UtilityClass {
         openMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
             String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
             if (fileName != null) {
-                new OpenFunction().execute(new File(fileName)); // TODO: refactor this
+                FunctionManager.getSingleFileFunctionByName("Open").execute(new File(fileName));
             }
         }));
 
@@ -196,13 +194,12 @@ public class ComponentManager extends UtilityClass {
         final MenuItem importMenuItem = new MenuItem(fileMenu, PUSH);
         importMenuItem.setText("Import");
         importMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            // TODO: refactor this
             java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.COMPATIBLE_SPECTRUM_FILES);
             if (!fileNames.isEmpty()) {
                 if (fileNames.size() > 1) {
-                    new ImportFunction().execute(fileNames.stream().map(File::new).collect(toList()));
+                    FunctionManager.getMultiFileFunctionByName("Import").execute(fileNames.stream().map(File::new).collect(toList()));
                 } else {
-                    new ImportFunction().execute(new File(fileNames.get(0)));
+                    FunctionManager.getSingleFileFunctionByName("Open").execute(new File(fileNames.get(0)));
                 }
             }
         }));
@@ -210,13 +207,12 @@ public class ComponentManager extends UtilityClass {
         final MenuItem exportMenuItem = new MenuItem(fileMenu, PUSH);
         exportMenuItem.setText("Export");
         exportMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            // TODO: refactor this
             java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.SPECTRUM);
             if (!fileNames.isEmpty()) {
                 if (fileNames.size() > 1) {
-                    new ExportFunction().execute(fileNames.stream().map(File::new).collect(toList()));
+                    FunctionManager.getMultiFileFunctionByName("Export").execute(fileNames.stream().map(File::new).collect(toList()));
                 } else {
-                    new ExportFunction().execute(new File(fileNames.get(0)));
+                    FunctionManager.getSingleFileFunctionByName("Export").execute(new File(fileNames.get(0)));
                 }
             }
         }));
@@ -260,12 +256,13 @@ public class ComponentManager extends UtilityClass {
         debugMenuHeader.setMenu(debugMenu);
 
         // TODO: this sometimes freezes, investigate
+        final DebugFunction debugFunction = new DebugFunction();
         final MenuItem spectrumJsonMenuItem = new MenuItem(debugMenu, PUSH);
         spectrumJsonMenuItem.setText("Inspect JSON");
         spectrumJsonMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
             String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
             if (fileName != null) {
-                new DebugFunction().execute(new File(fileName)); // TODO: refactor this
+                debugFunction.execute(new File(fileName));
             }
         }));
 

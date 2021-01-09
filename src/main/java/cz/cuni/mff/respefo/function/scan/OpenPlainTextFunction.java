@@ -23,7 +23,7 @@ import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static org.eclipse.swt.SWT.*;
 
-@Fun(name = "Open plain text", fileFilter = PlainTextFileFilter.class)
+@Fun(name = "Open Plain Text", fileFilter = PlainTextFileFilter.class)
 public class OpenPlainTextFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {

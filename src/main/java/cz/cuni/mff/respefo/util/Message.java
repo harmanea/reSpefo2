@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Shell;
 import static org.eclipse.core.runtime.IStatus.ERROR;
 import static org.eclipse.swt.SWT.*;
 
+// TODO: This should probably be redesigned
 public class Message extends UtilityClass {
 
     public static void info(String message) {

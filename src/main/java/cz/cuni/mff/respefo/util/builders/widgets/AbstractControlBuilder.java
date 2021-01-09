@@ -14,7 +14,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 
-// The following subclasses don't have a builder: Link, *ProgressBar(1)*, Sash, *SashForm(2)*, Scale, Slider, List(3), Browser, *Canvas(1)*, *ExpandBar(1)*, Form, *Group(2)*, ToolBar, *Tree(2)*, *Combo(2)*
+// The following subclasses don't have a builder: Link, *ProgressBar(1)*, Sash, *SashForm(2)*, Scale, Slider, Browser, *Canvas(1)*, *ExpandBar(1)*, Form, *Group(3)*, ToolBar, *Tree(2)*, *Combo(2)*
 // The following properties were not included: bounds, capture, cursor, dragDetect, font, location, menu, orientation, parent, redraw, region, size, textDirection, touchEnabled
 @SuppressWarnings("unchecked")
 public abstract class AbstractControlBuilder<B extends AbstractControlBuilder<?, ?>, C extends Control>

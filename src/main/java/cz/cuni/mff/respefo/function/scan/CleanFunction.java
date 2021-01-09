@@ -80,7 +80,7 @@ public class CleanFunction implements SingleFileFunction {
                 }))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .makeAllSeriesEqualRange()
-                .focus()
+                .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
 
         chart.addKeyListener(new KeyAdapter() {
@@ -90,12 +90,12 @@ public class CleanFunction implements SingleFileFunction {
                     case SWT.DEL:
                         asset.addActiveIndex();
                         updateSeries(chart, data, asset);
-                        updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getXSeries().length ? 1 : 0));
+                        updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
                         break;
                     case SWT.INSERT:
                         asset.removeActiveIndex();
                         updateSeries(chart, data, asset);
-                        updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getXSeries().length ? 1 : 0));
+                        updateActivePoint(chart, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
                         break;
                     case 'n':
                         if (asset.getActiveIndex() > 0) {
@@ -103,7 +103,7 @@ public class CleanFunction implements SingleFileFunction {
                         }
                         break;
                     case 'm':
-                        if (asset.getActiveIndex() < data.getXSeries().length - 1) {
+                        if (asset.getActiveIndex() < data.getLength() - 1) {
                             updateActivePoint(chart, asset, asset.getActiveIndex() + 1);
                         }
                         break;

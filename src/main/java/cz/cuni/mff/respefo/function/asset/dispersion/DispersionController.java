@@ -98,7 +98,7 @@ public class DispersionController {
                         ch.redraw();
                     }
                 }))
-                .focus()
+                .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
 
         chart.getAxisSet().adjustRange();
@@ -198,7 +198,7 @@ public class DispersionController {
             int i = iterator.next();
             double y = measurements.hint(i);
 
-            if (y > 10 && y < seriesA.getXSeries().length - 10 && y < seriesB.getYSeries().length - 10) {
+            if (y > 10 && y < seriesA.getLength() - 10 && y < seriesB.getLength() - 10) {
                 ComparisonLineMeasurement measurement = measurements.getMeasurement(i);
                 measurementController.measure(measurement, y, () -> secondStage(iterator));
 

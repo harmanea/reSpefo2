@@ -5,7 +5,7 @@ import cz.cuni.mff.respefo.util.UtilityClass;
 import java.util.Arrays;
 import java.util.Objects;
 
-// TODO: add some tests and javadoc
+// TODO: add tests for intep
 public class MathUtils extends UtilityClass {
     public static final double DOUBLE_PRECISION = 0.0000001;
 
@@ -115,7 +115,21 @@ public class MathUtils extends UtilityClass {
         return result;
     }
 
+    /**
+     * Linearly interpolate or extrapolate a value for a point given two other points.
+     *
+     * @param x0 x coordinate of the first point
+     * @param y0 y coordinate of the first point
+     * @param x1 x coordinate of the second point
+     * @param y1 y coordinate of the second point
+     * @param x x coordinate of the point for which the y coordinate is calculated
+     * @return y coordinate
+     */
     public static double linearInterpolation(double x0, double y0, double x1, double y1, double x) {
+        if (x0 == x1) {
+            throw new IllegalArgumentException("The given points must be different");
+        }
+
         return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
     }
 
@@ -128,6 +142,14 @@ public class MathUtils extends UtilityClass {
         return !Double.isNaN(value);
     }
 
+    /**
+     * Checks whether the difference between two numbers is smaller than the required precision.
+     *
+     * @param first number to be compared
+     * @param second number to be compared
+     * @return true if their difference is sufficiently small, false otherwise
+     * @see MathUtils#DOUBLE_PRECISION
+     */
     public static boolean doublesEqual(double first, double second) {
         return Math.abs(first - second) < DOUBLE_PRECISION;
     }
@@ -156,6 +178,14 @@ public class MathUtils extends UtilityClass {
         return result;
     }
 
+    /**
+     * Fit a polynomial of a given degree to the provided data.
+     *
+     * @param x independent variables
+     * @param y dependent variables
+     * @param degree of the polynomial
+     * @return coefficients of the polynomial
+     */
     public static double[] fitPolynomial(double[] x, double[] y, int degree) {
         Objects.requireNonNull(x);
         Objects.requireNonNull(y);
@@ -272,6 +302,16 @@ public class MathUtils extends UtilityClass {
         return Math.sqrt(sum);
     }
 
+    /**
+     * Compute the robust mean of the given sorted values.
+     * <br>
+     * <br>
+     * Andrews, D. F. (1972): Robust Estimates of Location, Princeton Univ. Press, Princeton <br>
+     * This implementation is based on the FORTRAN code stated therein.
+     *
+     * @param values sorted ascending numbers
+     * @return robust mean
+     */
     public static double robustMean(double[] values) {
         Objects.requireNonNull(values);
 
@@ -335,12 +375,16 @@ public class MathUtils extends UtilityClass {
     }
 
     /**
-     * Calculate the median of the given values.
+     * Calculate the median of the given sorted values.
      * @param values whose median should be computed
      * @return the median
      */
     public static double median(double[] values) {
         Objects.requireNonNull(values);
+
+        if (values.length == 0) {
+            throw new IllegalArgumentException("Array must contain at one value.");
+        }
 
         if (values.length % 2 == 0)
             return (values[values.length / 2] + values[values.length / 2 - 1]) / 2;
