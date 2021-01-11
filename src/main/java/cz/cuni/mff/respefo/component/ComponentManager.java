@@ -199,7 +199,7 @@ public class ComponentManager extends UtilityClass {
                 if (fileNames.size() > 1) {
                     FunctionManager.getMultiFileFunctionByName("Import").execute(fileNames.stream().map(File::new).collect(toList()));
                 } else {
-                    FunctionManager.getSingleFileFunctionByName("Open").execute(new File(fileNames.get(0)));
+                    FunctionManager.getSingleFileFunctionByName("Import").execute(new File(fileNames.get(0)));
                 }
             }
         }));

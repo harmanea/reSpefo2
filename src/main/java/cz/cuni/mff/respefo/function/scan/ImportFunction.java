@@ -135,7 +135,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                         applyToAllAction = response;
                     }
                 } catch (SpefoException exception) {
-                    Log.error("An error occured while importing file " + file.toPath());
+                    Log.error("An error occured while importing file " + file.toPath(), exception);
                     failedFiles.add(file);
                 } finally {
                     p.step();

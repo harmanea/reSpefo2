@@ -1,5 +1,7 @@
 package cz.cuni.mff.respefo.logging;
 
+import cz.cuni.mff.respefo.component.ComponentManager;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,9 +64,11 @@ public class Log {
     private static void notifyListeners(LogLevel level, String message, Throwable cause, Runnable action) {
         LogEntry logEntry = new LogEntry(LocalDateTime.now(), level, message, cause, action);
 
-        for (LogListener listener : listeners) {
-            listener.notify(logEntry);
-        }
+        ComponentManager.getDisplay().asyncExec(() -> {
+            for (LogListener listener : listeners) {
+                listener.notify(logEntry);
+            }
+        });
     }
 
     private Log() {}
