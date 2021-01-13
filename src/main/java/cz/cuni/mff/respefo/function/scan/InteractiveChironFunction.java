@@ -18,6 +18,9 @@ import nom.tam.fits.ImageHDU;
 
 import java.io.File;
 
+import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkForNaNs;
+import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkRVCorrection;
+
 @Fun(name = "Interactive Chiron Rectification", fileFilter = FitsFileFilter.class, group = "FITS")
 public class InteractiveChironFunction implements SingleFileFunction {
 
@@ -60,6 +63,8 @@ public class InteractiveChironFunction implements SingleFileFunction {
     private void saveSpectrum(XYSeries series, String fileName) {
         try {
             Spectrum spectrum = new InteractiveChironFitsImportFormat(series).importFrom(fileName);
+            checkForNaNs(spectrum);
+            checkRVCorrection(spectrum);
             spectrum.saveAs(new File(FileUtils.replaceFileExtension(fileName, "spf")));
             ComponentManager.getFileExplorer().refresh();
 

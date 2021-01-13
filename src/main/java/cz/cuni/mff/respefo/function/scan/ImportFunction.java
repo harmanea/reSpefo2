@@ -189,13 +189,13 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         return applyToAllAction;
     }
 
-    private static void checkForNaNs(Spectrum spectrum) {
+    public static void checkForNaNs(Spectrum spectrum) {
         if (Arrays.stream(spectrum.getSeries().getYSeries()).anyMatch(Double::isNaN)) {
             spectrum.putFunctionAsset(SERIALIZE_KEY, new PostImportAsset(0));
         }
     }
 
-    private static void checkRVCorrection(Spectrum spectrum) {
+    public static void checkRVCorrection(Spectrum spectrum) {
         if (Double.isNaN(spectrum.getRvCorrection())) {
             RVCorrectionDialog dialog = new RVCorrectionDialog();
             spectrum.setRvCorrection(dialog.openIsOk() ? dialog.getRvCorr() : 0);
