@@ -3,6 +3,7 @@ package cz.cuni.mff.respefo.component;
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.scan.DebugFunction;
+import cz.cuni.mff.respefo.function.scan.RepairFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
@@ -270,6 +271,16 @@ public class ComponentManager extends UtilityClass {
         exceptionMenuItem.setText("Throw an Exception");
         exceptionMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
             throw new RuntimeException("This is a debug exception");
+        }));
+
+        final RepairFunction repairFunction = new RepairFunction();
+        final MenuItem repairMenuItem = new MenuItem(debugMenu, PUSH);
+        repairMenuItem.setText("Repair file");
+        repairMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
+            if (fileName != null) {
+                repairFunction.execute(new File(fileName));
+            }
         }));
 
 //        final MenuItem placeHolderMenuItem = new MenuItem(debugMenu, PUSH);

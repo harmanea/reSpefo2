@@ -130,7 +130,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
             }
         }
 
-        return null;
+        return new JulianDate();
     }
 
     private LocalDateTime getDateOfObservation(Header header) {
@@ -158,7 +158,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
             return dateTime;
         }
 
-        return null;
+        return LocalDateTime.MIN;
     }
 
     private LocalDateTime parseDateTime(String dateTimeValue) {

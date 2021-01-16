@@ -67,7 +67,7 @@ public class InteractiveChironController {
         asset.addPoint(current.getX(middle), current.getY(middle));
 
         ChartBuilder chartBuilder = newChart()
-                .title("#" + currentIndex)
+                .title("#" + (currentIndex + 1))
                 .xAxisLabel(WAVELENGTH)
                 .yAxisLabel(RELATIVE_FLUX)
                 .series(lineSeries()

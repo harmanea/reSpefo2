@@ -275,7 +275,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
 
         Composite buttonsComposite = newComposite()
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END)
-                .layout(gridLayout(2, true).margins(10).spacings(10))
+                .layout(gridLayout(3, true).margins(10).spacings(10))
                 .build(composite);
 
         ButtonBuilder buttonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);

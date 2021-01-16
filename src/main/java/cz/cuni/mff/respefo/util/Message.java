@@ -1,15 +1,11 @@
 package cz.cuni.mff.respefo.util;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.ErrorDialog;
 import cz.cuni.mff.respefo.logging.Log;
-import cz.cuni.mff.respefo.util.utils.ExceptionUtils;
-import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
-import static org.eclipse.core.runtime.IStatus.ERROR;
 import static org.eclipse.swt.SWT.*;
 
 // TODO: This should probably be redesigned
@@ -42,11 +38,8 @@ public class Message extends UtilityClass {
     }
 
     public static void errorWithDetails(String message, Throwable cause) {
-        Status status = new Status(ERROR, "cz.cuni.mff.respefo", ExceptionUtils.getStackTrace(cause));
-        MultiStatus multiStatus = new MultiStatus("cz.cuni.mff.respefo", ERROR, new Status[]{status}, cause.toString(), cause);
-
-        ErrorDialog.openError(ComponentManager.getShell(), "Error", message, multiStatus);
-        Log.error("An error occured in one of the components", cause);
+        new ErrorDialog(message, cause).open();
+        Log.error(message, cause);
     }
 
     public static boolean question(String message) {

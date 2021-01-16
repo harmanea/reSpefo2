@@ -10,6 +10,8 @@ import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.port.InteractiveChironController;
 import cz.cuni.mff.respefo.function.asset.port.InteractiveChironSelectionDialog;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
+import cz.cuni.mff.respefo.util.FileDialogs;
+import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.utils.FitsUtils;
@@ -17,6 +19,9 @@ import nom.tam.fits.FitsFactory;
 import nom.tam.fits.ImageHDU;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkForNaNs;
 import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkRVCorrection;
@@ -46,7 +51,7 @@ public class InteractiveChironFunction implements SingleFileFunction {
         String[][] names = new String[data.length][3];
         for (int i = 0; i <= data.length - 1; i++) {
             float[][] matrix = data[i];
-            names[i][0] = Integer.toString(i);
+            names[i][0] = Integer.toString(i + 1);
             names[i][1] = Float.toString(matrix[0][0]);
             names[i][2] = Float.toString(matrix[matrix.length - 1][0]);
         }
@@ -57,15 +62,21 @@ public class InteractiveChironFunction implements SingleFileFunction {
         }
 
         InteractiveChironController controller = new InteractiveChironController(data, dialog.getSelected());
-        controller.rectify(series -> saveSpectrum(series, file.getPath()));
+        controller.rectify(series -> saveSpectrum(series, file.getPath(), dialog.getSelected()));
     }
 
-    private void saveSpectrum(XYSeries series, String fileName) {
+    private void saveSpectrum(XYSeries series, String fileName, boolean[] selected) {
         try {
             Spectrum spectrum = new InteractiveChironFitsImportFormat(series).importFrom(fileName);
             checkForNaNs(spectrum);
             checkRVCorrection(spectrum);
-            spectrum.saveAs(new File(FileUtils.replaceFileExtension(fileName, "spf")));
+
+            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, getSuggestedFileName(fileName, selected));
+            if (newFileName == null) {
+                return;
+            }
+
+            spectrum.saveAs(new File(newFileName));
             ComponentManager.getFileExplorer().refresh();
 
             OpenFunction.displaySpectrum(spectrum);
@@ -73,6 +84,17 @@ public class InteractiveChironFunction implements SingleFileFunction {
         } catch (SpefoException exception) {
             Message.error("An error occurred while saving file", exception);
         }
+    }
+
+    private String getSuggestedFileName(String fileName, boolean[] selected) {
+        String suggestedFileName = FileUtils.stripFileExtension(fileName);
+
+        List<Integer> selectedIndices = IntStream.rangeClosed(1, selected.length).filter(i -> selected[i-1]).boxed().collect(Collectors.toList());
+        if (selectedIndices.size() <= 5) {
+            suggestedFileName += "-" + selectedIndices.stream().map(i -> Integer.toString(i)).collect(Collectors.joining(","));
+        }
+
+        return suggestedFileName + ".spf";
     }
 
     private static class InteractiveChironFitsImportFormat extends ChironFitsFormat {
