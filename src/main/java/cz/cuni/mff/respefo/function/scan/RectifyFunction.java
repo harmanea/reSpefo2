@@ -131,7 +131,7 @@ public class RectifyFunction implements SingleFileFunction {
     }
 
     private static void finish(Spectrum spectrum, RectifyAsset asset) {
-        if (asset.isEmpty()) { // TODO: this can never occurr
+        if (asset.isEmpty()) { // This can never occurr
             spectrum.removeFunctionAsset(SERIALIZE_KEY);
         } else {
             spectrum.putFunctionAsset(SERIALIZE_KEY, asset);

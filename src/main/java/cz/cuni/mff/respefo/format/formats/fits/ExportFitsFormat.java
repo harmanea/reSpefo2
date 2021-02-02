@@ -36,7 +36,7 @@ public class ExportFitsFormat extends FitsFormat implements ExportFileFormat {
                 hdu = FitsFactory.hduFactory(new double[][] { series.getXSeries(), series.getYSeries() });
             }
 
-            hdu.addValue(DataDescription.PROGRAM, "reSpefo " + VersionInfo.getVersion());
+            hdu.addValue(DataDescription.CREATOR, "reSpefo " + VersionInfo.getVersion());
             hdu.addValue(Standard.DATE, LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 
             // TODO: add more info based on the origin

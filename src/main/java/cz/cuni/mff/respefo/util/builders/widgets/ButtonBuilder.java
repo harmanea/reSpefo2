@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
 // The following properties were not included: alignment, grayed
-// TODO: maybe add defaults for push (and other type) buttons
+// Maybe add defaults for push (and other type) buttons
 public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, Button> {
 
     private ButtonBuilder(int style) {

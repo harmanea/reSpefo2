@@ -256,7 +256,6 @@ public class ComponentManager extends UtilityClass {
         final Menu debugMenu = new Menu(shell, DROP_DOWN);
         debugMenuHeader.setMenu(debugMenu);
 
-        // TODO: this sometimes freezes, investigate
         final DebugFunction debugFunction = new DebugFunction();
         final MenuItem spectrumJsonMenuItem = new MenuItem(debugMenu, PUSH);
         spectrumJsonMenuItem.setText("Inspect JSON");

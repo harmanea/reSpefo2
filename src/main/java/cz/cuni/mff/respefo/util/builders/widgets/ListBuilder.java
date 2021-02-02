@@ -4,7 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.List;
 
-// TODO: Maybe add some methods for adding and selecting items
+// Maybe add some methods for adding and selecting items
 public final class ListBuilder extends AbstractControlBuilder<ListBuilder, List> {
 
     private ListBuilder(int style) {

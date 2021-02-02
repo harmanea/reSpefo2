@@ -8,6 +8,8 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 
 import java.util.Arrays;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 // The following properties were not included: columnOrder, headerBackground, headerForeground, itemCount, selection, sortColumn, sortDirection, topIndex
@@ -90,6 +92,20 @@ public final class TableBuilder extends AbstractControlBuilder<TableBuilder, Tab
             final TableItem tableItem = new TableItem(t, SWT.NONE);
             tableItem.setText(transformer.apply(item));
         }));
+        return this;
+    }
+
+    public <T> TableBuilder items(Iterable<T> iterable, Function<T, String[]> transformer, BiConsumer<T, TableItem> decorator) {
+        addProperty(t -> iterable.forEach(item -> {
+            final TableItem tableItem = new TableItem(t, SWT.NONE);
+            tableItem.setText(transformer.apply(item));
+            decorator.accept(item, tableItem);
+        }));
+        return this;
+    }
+
+    public TableBuilder item(Consumer<Table> producer) {
+        addProperty(producer);
         return this;
     }
 

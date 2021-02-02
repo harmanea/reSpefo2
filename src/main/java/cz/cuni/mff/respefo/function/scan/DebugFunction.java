@@ -2,17 +2,17 @@ package cz.cuni.mff.respefo.function.scan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
+
+import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
+import static org.eclipse.swt.SWT.*;
 
 //@Fun(name = "__ Debug __", fileFilter = SpefoFormatFileFilter.class)
 public class DebugFunction implements SingleFileFunction {
@@ -22,43 +22,16 @@ public class DebugFunction implements SingleFileFunction {
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode root = mapper.readTree(file);
+            ((ObjectNode) root).replace("series", null); // don't show the raw data
 
-            final Tree tree = new Tree(ComponentManager.clearAndGetScene(), SWT.V_SCROLL | SWT.H_SCROLL);
-            tree.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-            for (Iterator<Map.Entry<String, JsonNode>> it = root.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                TreeItem item = new TreeItem(tree, 0);
-                item.setText(entry.getKey());
-                setupChildNode(item, entry.getValue());
-            }
-            ComponentManager.getScene().layout();
+            final Text text = newText(MULTI | READ_ONLY | WRAP | V_SCROLL)
+                    .gridLayoutData(GridData.FILL_BOTH)
+                    .text(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root))
+                    .build(ComponentManager.clearAndGetScene());
+            text.requestLayout();
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void setupChildNode(TreeItem parent, JsonNode node) {
-        if (node.isValueNode()) {
-            TreeItem item = new TreeItem(parent, 0);
-            item.setText(node.asText());
-        } else if (node.isArray()) {
-            for (Iterator<JsonNode> it = node.elements(); it.hasNext(); ) {
-                JsonNode childNode = it.next();
-                if (childNode.isObject()) {
-                    setupChildNode(new TreeItem(parent, 0), childNode);
-                } else {
-                    setupChildNode(parent, childNode);
-                }
-            }
-        } else if (node.isObject()) {
-            for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                TreeItem item = new TreeItem(parent, 0);
-                item.setText(entry.getKey());
-                setupChildNode(item, entry.getValue());
-            }
         }
     }
 }

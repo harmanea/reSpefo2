@@ -61,8 +61,8 @@ public class InteractiveChironFunction implements SingleFileFunction {
             return;
         }
 
-        InteractiveChironController controller = new InteractiveChironController(data, dialog.getSelected());
-        controller.rectify(series -> saveSpectrum(series, file.getPath(), dialog.getSelected()));
+        new InteractiveChironController(data, dialog.getSelected())
+                .rectify(series -> saveSpectrum(series, file.getPath(), dialog.getSelected()));
     }
 
     private void saveSpectrum(XYSeries series, String fileName, boolean[] selected) {

@@ -1,18 +1,13 @@
 package cz.cuni.mff.respefo.function.asset.dispersion;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
-import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
-import cz.cuni.mff.respefo.format.formats.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.HorizontalDragMouseListener;
-import cz.cuni.mff.respefo.function.scan.OpenFunction;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder;
 import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
-import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -20,19 +15,16 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.IAxis;
 import org.swtchart.Range;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.widgets.ButtonBuilder.newButton;
 import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.AxisLabel.PIXELS;
@@ -44,8 +36,6 @@ import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComp
 import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
 import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
@@ -55,26 +45,29 @@ public class DispersionController {
 
     private final XYSeries seriesA;
     private final XYSeries seriesB;
-    private final File file;
 
     private double newPoint;
 
     private final DispersionMeasurementController measurementController;
 
-    public DispersionController(double[] cmpValues, XYSeries seriesA, XYSeries seriesB, File file) {
+    private Consumer<ComparisonLineResults> printCallback;
+    private Consumer<double[]> finishCallback;
+
+    public DispersionController(double[] cmpValues, XYSeries seriesA, XYSeries seriesB) {
         measurements = new ComparisonLineMeasurements(cmpValues);
 
         this.seriesA = seriesA;
         this.seriesB = seriesB;
-
-        this.file = file;
 
         newPoint = Double.NaN;
 
         measurementController = new DispersionMeasurementController(seriesA, seriesB);
     }
 
-    public void start() {
+    public void start(Consumer<ComparisonLineResults> printCallback, Consumer<double[]> finishCallback) {
+        this.printCallback = printCallback;
+        this.finishCallback = finishCallback;
+
         firstStage();
     }
 
@@ -270,44 +263,39 @@ public class DispersionController {
 
         final Composite tableComposite = fillBothNoMarginsNoSpacingsComposite.build(composite);
 
-        final Table table = newTable(SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+        newTable(SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .linesVisible(true)
                 .headerVisible(true)
                 .columns("N.", "x up", "x down", "x mean", "lab.", "comp.", "error")
+                .items(results, result -> new String[]{
+                        Integer.toString(result.getIndex() + 1),
+                        String.format(Locale.US, "%5.3f", result.getXUp()),
+                        String.format(Locale.US, "%5.3f", result.getXDown()),
+                        String.format(Locale.US, "%5.3f", result.getX()),
+                        String.format(Locale.US, "%5.3f", result.getLaboratoryValue()),
+                        String.format(Locale.US, "%5.3f", result.getActualY()),
+                        String.format(Locale.US, "%5.3f", result.getResidual())
+                }, (result, item) -> {
+                    if (!result.isUsed()) {
+                        item.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+                    }
+                })
+                .item(t -> {
+                    final TableItem tableItem = new TableItem(t, SWT.NONE);
+                    tableItem.setText(6, String.format(Locale.US, "%5.3f", MathUtils.rmse(actualY, laboratoryValues)));
+                })
+                .packColumns()
+                .listener(SWT.KeyDown, event -> {
+                    int index = ((Table) event.widget).getSelectionIndex();
+                    if (index >= 0 && index < ((Table) event.widget).getItemCount() - 1 && event.keyCode == SWT.DEL) {
+                        results.inverseUsed(index);
+                        results.calculateCoeffs();
+                        results.calculateValues();
+                        thirdStage(results);
+                    }
+                })
                 .build(tableComposite);
-
-        for (ComparisonLineResults.ComparisonLineResult result : results) {
-            final TableItem tableItem = new TableItem(table, SWT.NONE);
-            tableItem.setText(0, Integer.toString(result.getIndex() + 1));
-            tableItem.setText(1, String.format(Locale.US, "%5.3f", result.getXUp()));
-            tableItem.setText(2, String.format(Locale.US, "%5.3f", result.getXDown()));
-            tableItem.setText(3, String.format(Locale.US, "%5.3f", result.getX()));
-            tableItem.setText(4, String.format(Locale.US, "%5.3f", result.getLaboratoryValue()));
-            tableItem.setText(5, String.format(Locale.US, "%5.3f", result.getActualY()));
-            tableItem.setText(6, String.format(Locale.US, "%5.3f", result.getResidual()));
-
-            if (!result.isUsed()) {
-                tableItem.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
-            }
-        }
-
-        final TableItem tableItem = new TableItem(table, SWT.NONE);
-        tableItem.setText(6, String.format(Locale.US, "%5.3f", MathUtils.rmse(actualY, laboratoryValues)));
-
-        for (TableColumn column : table.getColumns()) {
-            column.pack();
-        }
-
-        table.addListener(SWT.KeyDown, event -> {
-            int index = table.getSelectionIndex();
-            if (index >= 0 && index < table.getItemCount() - 1 && event.keyCode == SWT.DEL) {
-                results.inverseUsed(index);
-                results.calculateCoeffs();
-                results.calculateValues();
-                thirdStage(results);
-            }
-        });
 
         newText(SWT.MULTI | SWT.READ_ONLY)
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_END)
@@ -336,80 +324,14 @@ public class DispersionController {
 
         buttonBuilder
                 .text("Print to file")
-                .onSelection(event -> printResults(results))
+                .onSelection(event -> printCallback.accept(results))
                 .build(buttonsComposite);
 
         buttonBuilder
                 .text("Finish")
-                .onSelection(event -> fourthStage(coeffs))
+                .onSelection(event -> finishCallback.accept(coeffs))
                 .build(buttonsComposite);
 
         ComponentManager.getScene().layout();
-    }
-
-    private void printResults(ComparisonLineResults results) {
-        File cmfFile = new File(FileUtils.replaceFileExtension(file.getPath(), "cmf"));
-        try (PrintWriter writer = new PrintWriter(cmfFile)) {
-            writer.println("Comparison lines measured from files " + "FILE A" + " & " + "FILE B"); // TODO: fix this
-            writer.println("  ----------------------------------------------------------------\n");
-            writer.println("   N.     x up    x down    x mean     rms        lab.       comp.    c.-l.\n");
-
-            for (ComparisonLineResults.ComparisonLineResult result : results) {
-                writer.print(formatInteger(result.getIndex() + 1, 5));
-                writer.print(formatDouble(result.getXUp(), 5, 3));
-                writer.print(formatDouble(result.getXDown(), 5, 3));
-                writer.print(formatDouble(result.getX(), 5, 3));
-                writer.print("   1.000");
-                writer.print(formatDouble(result.getLaboratoryValue(), 7, 3));
-                writer.print(formatDouble(result.getActualY(), 7, 3));
-                writer.print(formatDouble(result.getResidual(), 3, 3));
-
-                if (!result.isUsed()) {
-                    writer.print("  not used");
-                }
-
-                writer.println();
-            }
-
-            writer.print("\n                                                              rms =");
-            writer.println(formatDouble(results.meanRms(), 4, 3));
-            writer.println("\n\n  Coefficients of dispersion polynomial:\n");
-
-            double[] coeffs = results.getCoeffs();
-            for (int i = 0; i < coeffs.length; i++) {
-                writer.println("   order  " + i + "    " + String.format("%1.8e", coeffs[i]));
-            }
-
-            if (writer.checkError()) {
-                throw new SpefoException("The print stream has encountered an error");
-            }
-
-            ComponentManager.getFileExplorer().refresh();
-        } catch (Exception exception) {
-            Message.error("An exception occurred while printing to file.", exception);
-        }
-    }
-
-    private void fourthStage(double[] coeffs) {
-        try {
-            Spectrum spectrum = new ImportFitsFormat().importFrom(file.getPath());
-
-            double[] xSeries = spectrum.getSeries().getXSeries();
-            for (int i = 0; i < xSeries.length; i++) {
-                xSeries[i] = MathUtils.polynomial(i, coeffs);
-
-                if (isNotNaN(spectrum.getRvCorrection())) {
-                    xSeries[i] += spectrum.getRvCorrection() * (xSeries[i] / SPEED_OF_LIGHT);
-                }
-            }
-            spectrum.getSeries().updateXSeries(xSeries);
-            spectrum.saveAs(new File(FileUtils.replaceFileExtension(file.getPath(), "spf")));
-            ComponentManager.getFileExplorer().refresh();
-
-            OpenFunction.displaySpectrum(spectrum);
-
-        } catch (SpefoException exception) {
-            Message.error("An error occurred while saving file", exception);
-        }
     }
 }

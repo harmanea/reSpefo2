@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+// TODO: There is a whole lot of useable header cards in nom.tam.fits.header(.extra), maybe use some of those as well
 public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
 
     private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD"};

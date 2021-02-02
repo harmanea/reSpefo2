@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-// TODO: maybe add more listener properties?
 @SuppressWarnings("unchecked")
 public abstract class AbstractWidgetBuilder<B extends AbstractWidgetBuilder<?, ?, ?>, W extends Widget, P extends Widget> {
 
