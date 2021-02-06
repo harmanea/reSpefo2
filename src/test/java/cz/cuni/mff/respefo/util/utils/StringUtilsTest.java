@@ -3,7 +3,7 @@ package cz.cuni.mff.respefo.util.utils;
 import org.junit.Test;
 
 import static cz.cuni.mff.respefo.util.utils.StringUtils.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class StringUtilsTest {
     @Test
@@ -32,5 +32,19 @@ public class StringUtilsTest {
     @Test(expected = IllegalArgumentException.class)
     public void testDivideArrayValuesDifferentLengths() {
         repeat("", -1);
+    }
+
+    @Test
+    public void testIsBlank() {
+        assertTrue(isBlank(""));
+        assertTrue(isBlank("   "));
+        assertTrue(isBlank("\t"));
+        assertTrue(isBlank(" \t \n \f \r \u000B \u001C \u001D \u001E \u001F"));
+
+        assertFalse(isBlank("not blank"));
+        assertFalse(isBlank("   not blank   "));
+        assertFalse(isBlank("\t_\n"));
+        assertFalse(isBlank("\u001C\u2202"));
+        assertFalse(isBlank("\u00A0 \u2007 \u202F"));
     }
 }

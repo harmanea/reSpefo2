@@ -81,6 +81,17 @@ public class StringUtils extends UtilityClass {
         return String.format("%.1f %cB", bytes / 1000.0, ci.current());
     }
 
+    /**
+     * Check whether a string is empty or only whitespace.
+     *
+     * @param str string to evaluate
+     * @return True if the given string is empty or contains only whitespace characters, False otherwise
+     * @see Character#isWhitespace
+     */
+    public static boolean isBlank(String str) {
+        Objects.requireNonNull(str);
+        return str.chars().allMatch(Character::isWhitespace);
+    }
 
     protected StringUtils() throws IllegalAccessException {
         super();

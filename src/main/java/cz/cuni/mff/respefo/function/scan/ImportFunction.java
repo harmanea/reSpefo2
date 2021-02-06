@@ -11,6 +11,7 @@ import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.Serialize;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.asset.common.LstFile;
 import cz.cuni.mff.respefo.function.asset.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.function.asset.port.PostImportAsset;
 import cz.cuni.mff.respefo.function.asset.port.RVCorrectionDialog;
@@ -24,10 +25,14 @@ import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static cz.cuni.mff.respefo.component.OverwriteDialog.*;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
+import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
+import static java.lang.Double.isNaN;
 import static org.eclipse.swt.SWT.CANCEL;
 
 @Fun(name = "Import", fileFilter = CompatibleFormatFileFilter.class)
@@ -56,6 +61,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
         // Post-import check, this is a temporary solution
         checkForNaNs(spectrum);
+        checkForAttributesInLstFile(spectrum, file);
         checkRVCorrection(spectrum);
 
         String fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
@@ -125,6 +131,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                     Spectrum spectrum = dialogAndReturnCode.getDialog().getFileFormat().importFrom(file.getPath());
                     // Post-import check, this is a temporary solution
                     checkForNaNs(spectrum);
+                    checkForAttributesInLstFile(spectrum, file);
                     checkRVCorrection(p, spectrum);
 
                     String fileName = FileUtils.replaceFileExtension(file.getPath(), "spf");
@@ -196,19 +203,105 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
     }
 
     public static void checkRVCorrection(Spectrum spectrum) {
-        if (Double.isNaN(spectrum.getRvCorrection())) {
+        if (isNaN(spectrum.getRvCorrection())) {
             RVCorrectionDialog dialog = new RVCorrectionDialog();
             spectrum.setRvCorrection(dialog.openIsOk() ? dialog.getRvCorr() : 0);
         }
     }
 
     private static void checkRVCorrection(Progress p, Spectrum spectrum) {
-        if (Double.isNaN(spectrum.getRvCorrection())) {
+        if (isNaN(spectrum.getRvCorrection())) {
             Progress.DialogAndReturnCode<RVCorrectionDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(RVCorrectionDialog::new);
             int response = overwriteDialogAndReturnCode.getReturnValue();
             RVCorrectionDialog dialog = overwriteDialogAndReturnCode.getDialog();
 
             spectrum.setRvCorrection(response == SWT.OK ? dialog.getRvCorr() : 0);
+        }
+    }
+
+    private static void checkForAttributesInLstFile(Spectrum spectrum, File originalFile) {
+        if (isNaN(spectrum.getHjd().getJD())
+                || spectrum.getDateOfObservation().equals(LocalDateTime.MIN)
+                || isNaN(spectrum.getRvCorrection())) {
+
+            File[] lstFiles = originalFile.getParentFile().listFiles((dir, name) -> name.endsWith(".lst"));
+            if (lstFiles != null && lstFiles.length > 0) {
+                File file;
+                if (lstFiles.length == 1) {
+                    file = lstFiles[0];
+
+                } else {
+                    // Try matching the lst filename
+                    Optional<File> optionalFile = Arrays.stream(lstFiles)
+                            .filter(f -> matchLstFileName(f, originalFile))
+                            .findAny();
+
+                    file = optionalFile.orElse(lstFiles[0]);
+                }
+
+                try {
+                    LstFile lstFile = new LstFile(file);
+                    updateSpectrumUsingLstFile(spectrum, lstFile, originalFile.getName());
+
+                } catch (SpefoException exception) {
+                    Log.error("Couldn't load lst file", exception);
+                }
+            }
+        }
+    }
+
+    private static boolean matchLstFileName(File file, File originalFile) {
+        String strippedFileName = stripFileExtension(file.getName());
+
+        // Match with original file parent directory name
+        if (strippedFileName.equals(stripFileExtension(originalFile.getParentFile().getName()))) {
+            return true;
+        }
+
+        // Match with original filename prefix
+        String strippedOriginalFileName = stripFileExtension(originalFile.getName());
+        if (strippedOriginalFileName.length() > 5) {
+            String prefix = strippedOriginalFileName.substring(0, strippedOriginalFileName.length() - 5);
+            return prefix.equals(strippedFileName);
+        }
+
+        return false;
+    }
+
+    private static void updateSpectrumUsingLstFile(Spectrum spectrum, LstFile lstFile, String originalFileName) {
+        // Try matching filename in the lst file
+        Optional<LstFile.Record> optionalRecord = lstFile.getRecords().stream()
+                .filter(record -> originalFileName.equals(record.getFileName()))
+                .findAny();
+
+        if (optionalRecord.isPresent()) {
+            updateSpectrumUsingLstFileRecord(spectrum, optionalRecord.get());
+
+        } else {
+            // Try using a number in the filename
+            String strippedFileName = stripFileExtension(originalFileName);
+            try {
+                int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 4));
+                LstFile.Record record = lstFile.getRecord(fileIndex);
+                updateSpectrumUsingLstFileRecord(spectrum, record);
+
+            } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                // Filename does not conform to the naming convention or the index is out of bounds
+            }
+        }
+    }
+
+    private static void updateSpectrumUsingLstFileRecord(Spectrum spectrum, LstFile.Record record) {
+        if (isNaN(spectrum.getHjd().getJD()) && isNotNaN(record.getHjd().getJD())) {
+            spectrum.setHjd(record.getHjd());
+        }
+
+        if (spectrum.getDateOfObservation().equals(LocalDateTime.MIN) && record.getDateTimeStart().getYear() > 0) {
+            spectrum.setDateOfObservation(record.getDateTimeStart());
+        }
+
+        if (isNaN(spectrum.getRvCorrection()) && isNotNaN(record.getRvCorr())) {
+            spectrum.setRvCorrection(record.getRvCorr());
         }
     }
 }

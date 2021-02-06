@@ -59,8 +59,8 @@ public class MeasureRVFunction implements SingleFileFunction {
         double deltaRV = ((series.getX(1) - series.getX(0)) * SPEED_OF_LIGHT) / (series.getX(0) * 3);
         series = transformToEquidistant(series, deltaRV);
 
-        RVMeasurementController controller = new RVMeasurementController(series, deltaRV);
-        controller.measure(measurements, results -> saveResults(spectrum, results));
+        new RVMeasurementController(series, deltaRV)
+                .measure(measurements, results -> saveResults(spectrum, results));
     }
 
     private static XYSeries transformToEquidistant(XYSeries series, double deltaRV) {

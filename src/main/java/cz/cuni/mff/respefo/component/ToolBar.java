@@ -106,23 +106,24 @@ public class ToolBar {
 
         topBarLabel = newLabel().bold().build(labelComposite);
 
-        final Composite iconsComposite = newComposite(RIGHT_TO_LEFT)
+        final Composite iconsComposite = newComposite()
                 .layout(rowLayout(HORIZONTAL).margins(0).build())
                 .gridLayoutData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END)
                 .build(composite);
+
+        topBarContextIconsComposite = newComposite()
+                .layout(new StackLayout())
+                .build(iconsComposite);
+
+        topBarSeparator = newLabel(VERTICAL | SEPARATOR)
+                .build(iconsComposite);
 
         final LabelButton hideButton = new LabelButton(iconsComposite, NONE);
         hideButton.setImage(ImageManager.getImage(ImageResource.MINIMIZE));
         hideButton.onClick(this::hide);
         hideButton.setToolTipText("Hide");
 
-        topBarSeparator = newLabel(VERTICAL | SEPARATOR)
-                .layoutData(new RowData(DEFAULT, hideButton.computeSize(DEFAULT, DEFAULT).y))
-                .build(iconsComposite);
-
-        topBarContextIconsComposite = newComposite(LEFT_TO_RIGHT)
-                .layout(new StackLayout())
-                .build(iconsComposite);
+        topBarSeparator.setLayoutData(new RowData(DEFAULT, hideButton.computeSize(DEFAULT, DEFAULT).y));
     }
 
     public void hide() {
@@ -202,7 +203,9 @@ public class ToolBar {
             topBarSeparator.setVisible(hasTopBarButtons);
 
             ((StackLayout) topBarContextIconsComposite.getLayout()).topControl = iconsComposite;
-            topBarContextIconsComposite.layout();
+            topBarContextIconsComposite.setLayoutData(new RowData(iconsComposite.computeSize(DEFAULT, DEFAULT)));
+            topBarContextIconsComposite.getParent().getParent().layout();
+
             ((StackLayout) barWindow.getLayout()).topControl = windowComposite;
             barWindow.layout();
         }

@@ -49,8 +49,8 @@ public class MeasureEWFunction implements SingleFileFunction {
             return;
         }
 
-        EWMeasurementController controller = new EWMeasurementController(data);
-        controller.measure(measurements, results -> saveResults(spectrum, results));
+        new EWMeasurementController(data)
+                .measure(measurements, results -> saveResults(spectrum, results));
     }
 
     private static void saveResults(Spectrum spectrum, MeasureEWResults results) {
