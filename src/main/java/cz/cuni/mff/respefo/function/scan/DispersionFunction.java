@@ -20,8 +20,7 @@ import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.io.*;
 
-import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkForNaNs;
-import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkRVCorrection;
+import static cz.cuni.mff.respefo.function.scan.ImportFunction.*;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
@@ -44,7 +43,7 @@ public class DispersionFunction implements SingleFileFunction {
 
             new DispersionController(cmpValues, seriesA, seriesB)
                     .start(results -> printToCmfFile(dialog.getCmpFileName(), dialog.getLabFileNameA(), dialog.getLabFileNameB(), results),
-                            coeffs -> saveSpectrum(file.getPath(), coeffs));
+                            coeffs -> saveSpectrum(file, coeffs));
 
         } catch (SpefoException e) {
             Message.error("An error occurred while reading files", e);
@@ -94,9 +93,9 @@ public class DispersionFunction implements SingleFileFunction {
         }
     }
 
-    private void saveSpectrum(String fileName, double[] coeffs) {
+    private void saveSpectrum(File originalFile, double[] coeffs) {
         try {
-            Spectrum spectrum = new ImportFitsFormat().importFrom(fileName);
+            Spectrum spectrum = new ImportFitsFormat().importFrom(originalFile.getPath());
 
             double[] xSeries = spectrum.getSeries().getXSeries();
             for (int i = 0; i < xSeries.length; i++) {
@@ -109,9 +108,10 @@ public class DispersionFunction implements SingleFileFunction {
             spectrum.getSeries().updateXSeries(xSeries);
 
             checkForNaNs(spectrum);
+            checkForAttributesInLstFile(spectrum, originalFile);
             checkRVCorrection(spectrum);
 
-            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(fileName, "spf"));
+            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(originalFile.getPath(), "spf"));
             if (newFileName == null) {
                 return;
             }

@@ -23,8 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkForNaNs;
-import static cz.cuni.mff.respefo.function.scan.ImportFunction.checkRVCorrection;
+import static cz.cuni.mff.respefo.function.scan.ImportFunction.*;
 
 @Fun(name = "Interactive Chiron Rectification", fileFilter = FitsFileFilter.class, group = "FITS")
 public class InteractiveChironFunction implements SingleFileFunction {
@@ -62,16 +61,17 @@ public class InteractiveChironFunction implements SingleFileFunction {
         }
 
         new InteractiveChironController(data, dialog.getSelected())
-                .rectify(series -> saveSpectrum(series, file.getPath(), dialog.getSelected()));
+                .rectify(series -> saveSpectrum(series, file, dialog.getSelected()));
     }
 
-    private void saveSpectrum(XYSeries series, String fileName, boolean[] selected) {
+    private void saveSpectrum(XYSeries series, File originalFile, boolean[] selected) {
         try {
-            Spectrum spectrum = new InteractiveChironFitsImportFormat(series).importFrom(fileName);
+            Spectrum spectrum = new InteractiveChironFitsImportFormat(series).importFrom(originalFile.getPath());
             checkForNaNs(spectrum);
+            checkForAttributesInLstFile(spectrum, originalFile);
             checkRVCorrection(spectrum);
 
-            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, getSuggestedFileName(fileName, selected));
+            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, getSuggestedFileName(originalFile.getPath(), selected));
             if (newFileName == null) {
                 return;
             }

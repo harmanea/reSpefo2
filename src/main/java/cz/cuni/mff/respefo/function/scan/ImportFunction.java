@@ -219,7 +219,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         }
     }
 
-    private static void checkForAttributesInLstFile(Spectrum spectrum, File originalFile) {
+    public static void checkForAttributesInLstFile(Spectrum spectrum, File originalFile) {
         if (isNaN(spectrum.getHjd().getJD())
                 || spectrum.getDateOfObservation().equals(LocalDateTime.MIN)
                 || isNaN(spectrum.getRvCorrection())) {
