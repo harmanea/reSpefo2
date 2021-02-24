@@ -2,7 +2,9 @@ package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.Spectrum;
+import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.JulianDate;
 import cz.cuni.mff.respefo.util.Message;
@@ -10,6 +12,7 @@ import cz.cuni.mff.respefo.util.Message;
 import java.io.File;
 import java.time.LocalDateTime;
 
+@Fun(name = "Repair", fileFilter = SpefoFormatFileFilter.class, group = "Debug")
 public class RepairFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {

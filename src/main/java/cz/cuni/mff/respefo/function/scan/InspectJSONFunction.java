@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Text;
 
@@ -14,8 +16,8 @@ import java.io.IOException;
 import static cz.cuni.mff.respefo.util.builders.widgets.TextBuilder.newText;
 import static org.eclipse.swt.SWT.*;
 
-//@Fun(name = "__ Debug __", fileFilter = SpefoFormatFileFilter.class)
-public class DebugFunction implements SingleFileFunction {
+@Fun(name = "Inspect JSON", fileFilter = SpefoFormatFileFilter.class, group = "Debug")
+public class InspectJSONFunction implements SingleFileFunction {
 
     @Override
     public void execute(File file) {
