@@ -234,7 +234,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                     // Try matching the lst filename
                     Optional<File> optionalFile = Arrays.stream(lstFiles)
                             .filter(f -> matchLstFileName(f, originalFile))
-                            .findAny();
+                            .findFirst();
 
                     file = optionalFile.orElse(lstFiles[0]);
                 }
@@ -272,7 +272,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         // Try matching filename in the lst file
         Optional<LstFile.Record> optionalRecord = lstFile.getRecords().stream()
                 .filter(record -> originalFileName.equals(record.getFileName()))
-                .findAny();
+                .findFirst();
 
         if (optionalRecord.isPresent()) {
             updateSpectrumUsingLstFileRecord(spectrum, optionalRecord.get());
@@ -282,11 +282,11 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             String strippedFileName = stripFileExtension(originalFileName);
             try {
                 int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 4));
-                LstFile.Record record = lstFile.getRecord(fileIndex);
+                LstFile.Record record = lstFile.getRecord(fileIndex - 1);
                 updateSpectrumUsingLstFileRecord(spectrum, record);
 
             } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                // Filename does not conform to the naming convention or the index is out of bounds
+                // Filename does not conform to the naming convention
             }
         }
     }
