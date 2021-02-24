@@ -38,18 +38,18 @@ public class ComparisonLineMeasurements {
 
     public double hint(int index) {
         // find up to three closest (by index, not value) valid measurements
-        List<Integer> indexes = new ArrayList<>();
+        List<Integer> indices = new ArrayList<>();
 
         int i = 1;
-        while (indexes.size() < 3 && (index - i >= 0 || index + i < size())) {
+        while (indices.size() < 3 && (index - i >= 0 || index + i < size())) {
             if (index - i >= 0 && measurements.get(index - i).isMeasured()) {
-                indexes.add(index - i);
-                if (indexes.size() == 3) {
+                indices.add(index - i);
+                if (indices.size() == 3) {
                     break;
                 }
             }
             if (index + i < size() && measurements.get(index + i).isMeasured()) {
-                indexes.add(index + i);
+                indices.add(index + i);
             }
 
             i++;
@@ -57,15 +57,15 @@ public class ComparisonLineMeasurements {
 
         double x = measurements.get(index).getLaboratoryValue();
 
-        double x1 = measurements.get(indexes.get(0)).getLaboratoryValue();
-        double x2 = measurements.get(indexes.get(1)).getLaboratoryValue();
+        double x1 = measurements.get(indices.get(0)).getLaboratoryValue();
+        double x2 = measurements.get(indices.get(1)).getLaboratoryValue();
 
-        double y1 = measurements.get(indexes.get(0)).getX();
-        double y2 = measurements.get(indexes.get(1)).getX();
+        double y1 = measurements.get(indices.get(0)).getX();
+        double y2 = measurements.get(indices.get(1)).getX();
 
-        if (indexes.size() > 2) {
-            double x3 = measurements.get(indexes.get(2)).getLaboratoryValue();
-            double y3 = measurements.get(indexes.get(2)).getX();
+        if (indices.size() > 2) {
+            double x3 = measurements.get(indices.get(2)).getLaboratoryValue();
+            double y3 = measurements.get(indices.get(2)).getX();
 
             double denominator = (x1 - x2) * (x1 - x3) * (x2 - x3);
             double a = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denominator;
@@ -87,7 +87,7 @@ public class ComparisonLineMeasurements {
         );
     }
 
-    public Iterator<Integer> unmeasuredIndexesIterator() {
+    public Iterator<Integer> unmeasuredIndicesIterator() {
         int start = IntStream.range(0, size()).filter(index -> getMeasurement(index).isMeasured()).findFirst().orElseThrow(IllegalStateException::new);
 
         return new Iterator<Integer>() {

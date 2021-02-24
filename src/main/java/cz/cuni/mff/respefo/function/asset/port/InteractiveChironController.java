@@ -134,10 +134,10 @@ public class InteractiveChironController {
                 .build(ComponentManager.clearAndGetScene());
     }
 
-    private List<XYSeries> dataToSeries(int ... indexes) {
-        List<XYSeries> xySeries = new ArrayList<>(indexes.length);
+    private List<XYSeries> dataToSeries(int ... indices) {
+        List<XYSeries> xySeries = new ArrayList<>(indices.length);
 
-        for (int index : indexes) {
+        for (int index : indices) {
             if (index < 0 || index >= data.length) {
                 continue;
             }

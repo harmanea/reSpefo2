@@ -9,11 +9,11 @@ import java.util.TreeSet;
 import java.util.stream.IntStream;
 
 public class CleanAsset implements FunctionAsset {
-    private final SortedSet<Integer> deletedIndexes;
+    private final SortedSet<Integer> deletedIndices;
     private transient int activeIndex = 0;
 
     public CleanAsset() {
-        deletedIndexes = new TreeSet<>();
+        deletedIndices = new TreeSet<>();
     }
 
     public int getActiveIndex() {
@@ -25,24 +25,24 @@ public class CleanAsset implements FunctionAsset {
     }
 
     public void addActiveIndex() {
-        deletedIndexes.add(activeIndex);
+        deletedIndices.add(activeIndex);
     }
 
     public void removeActiveIndex() {
-        deletedIndexes.remove(activeIndex);
+        deletedIndices.remove(activeIndex);
     }
 
     public boolean isActiveIndexDeleted() {
-        return deletedIndexes.contains(activeIndex);
+        return deletedIndices.contains(activeIndex);
     }
 
     public boolean isEmpty() {
-        return deletedIndexes.isEmpty();
+        return deletedIndices.isEmpty();
     }
 
-    public XYSeries mapDeletedIndexesToValues(XYSeries data) {
-        double[] xSeries = deletedIndexes.stream().mapToDouble(data::getX).toArray();
-        double[] ySeries = deletedIndexes.stream().mapToDouble(data::getY).toArray();
+    public XYSeries mapDeletedIndicesToValues(XYSeries data) {
+        double[] xSeries = deletedIndices.stream().mapToDouble(data::getX).toArray();
+        double[] ySeries = deletedIndices.stream().mapToDouble(data::getY).toArray();
 
         return new XYSeries(xSeries, ySeries);
     }
@@ -61,12 +61,12 @@ public class CleanAsset implements FunctionAsset {
         }
 
         double[] remainingXSeries = IntStream.range(0, series.getLength())
-                .filter(index -> !deletedIndexes.contains(index))
+                .filter(index -> !deletedIndices.contains(index))
                 .mapToDouble(series::getX)
                 .toArray();
 
         double[] remainingYSeries = IntStream.range(0, series.getLength())
-                .filter(index -> !deletedIndexes.contains(index))
+                .filter(index -> !deletedIndices.contains(index))
                 .mapToDouble(series::getY)
                 .toArray();
 

@@ -141,7 +141,7 @@ public class DispersionController {
                             if (measurements.numberOfMeasured() < 2) {
                                 Message.warning("You must first manually select at least two lines.");
                             } else {
-                                secondStage(measurements.unmeasuredIndexesIterator());
+                                secondStage(measurements.unmeasuredIndicesIterator());
                             }
 
                         } else {

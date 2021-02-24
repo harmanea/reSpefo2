@@ -60,7 +60,7 @@ public class CleanFunction implements SingleFileFunction {
                         .name(DELETED_SERIES_NAME)
                         .color(ColorResource.GRAY)
                         .symbolSize(2)
-                        .series(asset.mapDeletedIndexesToValues(data)))
+                        .series(asset.mapDeletedIndicesToValues(data)))
                 .series(scatterSeries()
                         .name(POINTS_SERIES_NAME)
                         .color(ColorResource.GREEN)
@@ -141,7 +141,7 @@ public class CleanFunction implements SingleFileFunction {
     }
 
     private static void updateSeries(Chart chart, XYSeries data, CleanAsset asset) {
-        XYSeries deletedSeriesData = asset.mapDeletedIndexesToValues(data);
+        XYSeries deletedSeriesData = asset.mapDeletedIndicesToValues(data);
 
         ILineSeries series = (ILineSeries) chart.getSeriesSet().getSeries(DELETED_SERIES_NAME);
         series.setXSeries(deletedSeriesData.getXSeries());
