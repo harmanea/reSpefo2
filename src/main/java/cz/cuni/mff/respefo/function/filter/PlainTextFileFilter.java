@@ -6,17 +6,20 @@ import cz.cuni.mff.respefo.util.utils.FileUtils;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class PlainTextFileFilter implements FileFilter {
 
-    private static final Set<String> FILE_EXTENSIONS;
+    public static final Set<String> FILE_EXTENSIONS;
     static {
-        FILE_EXTENSIONS = new HashSet<>();
+        Set<String> set = new HashSet<>();
 
-        FILE_EXTENSIONS.addAll(AsciiFormat.FILE_EXTENSIONS);
-        FILE_EXTENSIONS.addAll(Arrays.asList("stl", "lst", "rvr", "dat", "rv", "ac", "cor", "rvs", "res", "inp", "par", "eqw", "cmf", "cmp"));
+        set.addAll(AsciiFormat.FILE_EXTENSIONS);
+        set.addAll(Arrays.asList("stl", "lst", "rvr", "dat", "rv", "ac", "cor", "rvs", "res", "inp", "par", "eqw", "cmf", "cmp"));
+
+        FILE_EXTENSIONS = Collections.unmodifiableSet(set);
     }
 
     @Override

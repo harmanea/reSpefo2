@@ -5,6 +5,7 @@ import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.filter.PlainTextFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.util.FileCopy;
@@ -298,6 +299,12 @@ public class FileExplorer {
                         item.setExpanded(true);
                         expandTreeItem(item);
                     }
+
+                } else if (FileUtils.getFileExtension(file).equals("spf")) {
+                    FunctionManager.getSingleFileFunctionByName("Open").execute(file);
+
+                } else if (PlainTextFileFilter.FILE_EXTENSIONS.contains(FileUtils.getFileExtension(file))) {
+                    FunctionManager.getSingleFileFunctionByName("Open Plain Text").execute(file);
                 }
             }
         });
