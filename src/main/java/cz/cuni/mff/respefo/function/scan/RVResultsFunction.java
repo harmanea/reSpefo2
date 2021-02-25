@@ -146,7 +146,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
                         double[] rvs = Arrays.stream(results.getResultsOfCategory(category)).mapToDouble(MeasureRVResult::getRv).toArray();
 
                         meanText.setText("mean RV: " + String.format(Locale.US, "%4.4f", mean)
-                                + "\nrmse: " + String.format(Locale.US, "%4.4f", MathUtils.rmse(rvs, mean)));
+                                + "\nstd. error: " + String.format(Locale.US, "%4.4f", MathUtils.sem(rvs, mean)));
                         group.requestLayout();
                     }
 
@@ -170,7 +170,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
 
                 meanText.setVisible(true);
                 meanText.setText("mean RV: " + String.format(Locale.US, "%4.4f", mean)
-                        + "\nrmse: " + String.format(Locale.US, "%4.4f", MathUtils.rmse(values.toArray(), mean)));
+                        + "\nstd. error: " + String.format(Locale.US, "%4.4f", MathUtils.sem(values.toArray(), mean)));
             }
 
             for (TableColumn column : table.getColumns()) {
@@ -247,7 +247,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
         for (String title : categories) {
             final TableColumn tableColumn = new TableColumn(table, SWT.NONE);
             tableColumn.setText(title);
-            new TableColumn(table, SWT.NONE); // for rmse
+            new TableColumn(table, SWT.NONE); // for sem
         }
 
         for (Spectrum spectrum : spectra) {
@@ -262,8 +262,8 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
                     tableItem.setText(2 * i + 2, String.format(Locale.US, "%4.2f", result));
 
                     if (results.getResultsOfCategory(categories[i]).length > 1) {
-                        double rmse = results.getRmseOfCategory(categories[i]);
-                        tableItem.setText(2 * i + 3, String.format(Locale.US, "%5.2f", rmse));
+                        double sem = results.getSemOfCategory(categories[i]);
+                        tableItem.setText(2 * i + 3, String.format(Locale.US, "%5.2f", sem));
                     }
                 }
             }
@@ -319,8 +319,8 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
                         writer.print(" " + formatDouble(result, 4, 2) + " ");
 
                         if (results.getResultsOfCategory(category).length > 1) {
-                            double rmse = results.getRmseOfCategory(category);
-                            writer.print(formatDouble(rmse, 5, 2, false));
+                            double sem = results.getSemOfCategory(category);
+                            writer.print(formatDouble(sem, 5, 2, false));
                         } else {
                             writer.print("    0.00");
                         }
@@ -367,8 +367,8 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction 
                         writer.print(" " + formatDouble(result + rvCorr, 4, 2) + " ");
 
                         if (results.getResultsOfCategory(category).length > 1) {
-                            double rmse = results.getRmseOfCategory(category);
-                            writer.print(formatDouble(rmse, 5, 2, false));
+                            double sem = results.getSemOfCategory(category);
+                            writer.print(formatDouble(sem, 5, 2, false));
                         } else {
                             writer.print("    0.00");
                         }

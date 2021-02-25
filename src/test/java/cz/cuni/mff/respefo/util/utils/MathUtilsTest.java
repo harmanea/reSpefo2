@@ -61,7 +61,7 @@ public class MathUtilsTest {
         double predicted = 28.2193;
         double mean = 0.7528;
 
-        assertEquals(mean, MathUtils.rmse(values, predicted), 0.0001);
+        assertEquals(mean, MathUtils.sem(values, predicted), 0.0001);
 
 
         values = new double[] { 28.392, 23.949, 28.848, 22.65, 27.622, 27.937, 27.5, 29.081, 26.116, 25.472, 32.387,
@@ -69,14 +69,14 @@ public class MathUtilsTest {
         predicted = 27.345;
         mean = 0.63;
 
-        assertEquals(mean, MathUtils.rmse(values, predicted), 0.001);
+        assertEquals(mean, MathUtils.sem(values, predicted), 0.001);
 
 
         values = new double[] { -23.233, -0.378 };
         predicted = -11.805;
         mean = 11.428;
 
-        assertEquals(mean, MathUtils.rmse(values, predicted), 0.001);
+        assertEquals(mean, MathUtils.sem(values, predicted), 0.001);
     }
 
     @Test

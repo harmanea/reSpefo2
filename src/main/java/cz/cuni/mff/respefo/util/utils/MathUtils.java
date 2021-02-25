@@ -4,6 +4,7 @@ import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 // TODO: add tests for intep
 public class MathUtils extends UtilityClass {
@@ -67,45 +68,29 @@ public class MathUtils extends UtilityClass {
         }
 
         // treat points inside bounds
-        double xp;
-        double xpi;
-        double xpi1;
-        double l1;
-        double l2;
-        double lp1;
-        double lp2;
-        double fp1;
-        double fp2;
-
         for (int i = ilow; i <= iup; i++) {
-            xp = xinter[i];
+            double xp = xinter[i];
             int infl = ArrayUtils.findFirstGreaterThan(x, xp);
             if (infl == x.length) {
                 result[i] = y[y.length - 1];
                 continue;
             }
             infl--;
-            lp1 = 1 / (x[infl] - x[infl + 1]);
-            lp2 = -lp1;
+            double lp1 = 1 / (x[infl] - x[infl + 1]);
+            double lp2 = -lp1;
 
-            if (infl <= 0) {
-                // first point
-                fp1 = (y[1] - y[0]) / (x[1] - x[0]);
-            } else {
-                fp1 = (y[infl + 1] - y[infl - 1]) / (x[infl + 1] - x[infl - 1]);
-            }
+            double fp1 = infl <= 0
+                    ? (y[1] - y[0]) / (x[1] - x[0]) // first point
+                    : (y[infl + 1] - y[infl - 1]) / (x[infl + 1] - x[infl - 1]);
 
-            if (infl >= x.length - 2) {
-                // last point
-                fp2 = (y[y.length - 1] - y[y.length - 2]) / (x[x.length - 1] - x[x.length - 2]);
-            } else {
-                fp2 = (y[infl + 2] - y[infl]) / (x[infl + 2] - x[infl]);
-            }
+            double fp2 = infl >= x.length - 2
+                    ? (y[y.length - 1] - y[y.length - 2]) / (x[x.length - 1] - x[x.length - 2]) // last point
+                    : (y[infl + 2] - y[infl]) / (x[infl + 2] - x[infl]);
 
-            xpi1 = xp - x[infl + 1];
-            xpi = xp - x[infl];
-            l1 = xpi1 * lp1;
-            l2 = xpi * lp2;
+            double xpi1 = xp - x[infl + 1];
+            double xpi = xp - x[infl];
+            double l1 = xpi1 * lp1;
+            double l2 = xpi * lp2;
 
             result[i] = y[infl] * (1 - 2 * lp1 * xpi) * l1 * l1 + y[infl + 1] * (1 - 2 * lp2 * xpi1) * l2 * l2
                     + fp2 * xpi1 * l2 * l2 + fp1 * xpi * l1 * l1;
@@ -203,7 +188,7 @@ public class MathUtils extends UtilityClass {
         double[][] normal = new double[degree + 1][degree + 2]; // the normal matrix(augmented) that will store the equations
         double[] coefs = new double[degree + 1]; // final polynomial coefficients
 
-        //Build the Normal matrix by storing the corresponding coefficients at the right positions except the last column of the matrix
+        // build the Normal matrix by storing the corresponding coefficients at the right positions except the last column of the matrix
         for (int i = 0; i <= degree; i++) {
             if (degree + 1 >= 0) {
                 System.arraycopy(sigmasX, i, normal[i], 0, degree + 1);
@@ -221,7 +206,7 @@ public class MathUtils extends UtilityClass {
             normal[i][degree + 1] = sigmasY[i]; // load the values of sigmasY as the last column of the normal matrix
         }
         degree = degree + 1;
-        for (int i = 0; i < degree; i++) { // From now Gaussian Elimination starts(can be ignored) to solve the set of linear equations (Pivotisation)
+        for (int i = 0; i < degree; i++) { // from now Gaussian Elimination starts (can be ignored) to solve the set of linear equations (Pivotisation)
             for (int k = i + 1; k < degree; k++) {
                 if (normal[i][i] < normal[k][i]) {
                     for (int j = 0; j <= degree; j++) {
@@ -237,12 +222,12 @@ public class MathUtils extends UtilityClass {
             for (int k = i + 1; k < degree; k++) {
                 double t = normal[k][i] / normal[i][i];
                 for (int j = 0; j <= degree; j++) {
-                    normal[k][j] = normal[k][j] - t * normal[i][j]; //make the elements below the pivot elements equal to zero or eliminate the variables
+                    normal[k][j] = normal[k][j] - t * normal[i][j]; // make the elements below the pivot elements equal to zero or eliminate the variables
                 }
             }
         }
         for (int i = degree - 1; i >= 0; i--) { // back-substitution
-            coefs[i] = normal[i][degree]; //make the variable to be calculated equal to the rhs of the last equation
+            coefs[i] = normal[i][degree]; // make the variable to be calculated equal to the rhs of the last equation
             for (int j = 0; j < degree; j++) {
                 if (j != i) { // then subtract all the lhs values except the coefficient of the variable whose value s being calculated
                     coefs[i] = coefs[i] - normal[i][j] * coefs[j];
@@ -264,42 +249,35 @@ public class MathUtils extends UtilityClass {
         Objects.requireNonNull(predicted);
         Objects.requireNonNull(actual);
 
-        if (predicted.length == 0 || actual.length == 0) {
-            throw new IllegalArgumentException("Arrays must contain some values.");
+        if (predicted.length != actual.length) {
+            throw new IllegalArgumentException("Arrays must have the same length.");
         }
 
-        double rss = 0;
-        int n = 0;
+        double mse = IntStream.range(0, predicted.length)
+                .mapToDouble(i -> Math.pow(predicted[i] - actual[i], 2))
+                .average()
+                .orElseThrow(() -> new IllegalArgumentException("Arrays must not be empty."));
 
-        for (int i = 0; i < predicted.length && i < actual.length; i++) {
-            rss += Math.pow(predicted[i] - actual[i], 2);
-            n++;
-        }
-
-        rss /= n;
-
-        return Math.sqrt(rss);
+        return Math.sqrt(mse);
     }
 
     /**
-     * Calculate root mean square error.
+     * Calculate standard error of the mean.
      *
-     * @param predicted values
-     * @param actual    value
+     * @param observations values
+     * @param mean    value
      * @return root mean square error
      */
-    public static double rmse(double[] predicted, double actual) {
-        Objects.requireNonNull(predicted);
+    public static double sem(double[] observations, double mean) {
+        Objects.requireNonNull(observations);
 
-        if (predicted.length <= 1) {
+        if (observations.length <= 1) {
             throw new IllegalArgumentException("Array must contain at least two values.");
         }
 
-        double sum = Arrays.stream(predicted).map(value -> Math.pow(value - actual, 2)).sum();
-        sum /= predicted.length;
-        sum /= predicted.length - 1;
+        double mse = Arrays.stream(observations).map(value -> Math.pow(value - mean, 2)).average().getAsDouble();
 
-        return Math.sqrt(sum);
+        return Math.sqrt(mse / (observations.length - 1));
     }
 
     /**
@@ -383,7 +361,7 @@ public class MathUtils extends UtilityClass {
         Objects.requireNonNull(values);
 
         if (values.length == 0) {
-            throw new IllegalArgumentException("Array must contain at one value.");
+            throw new IllegalArgumentException("Array must not be empty.");
         }
 
         if (values.length % 2 == 0)
