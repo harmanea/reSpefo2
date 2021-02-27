@@ -54,13 +54,13 @@ public class MeasureRVResults implements FunctionAsset {
         }
     }
 
-    public double getRmseOfCategory(String category) {
+    public double getSemOfCategory(String category) {
         double rv = getRvOfCategory(category);
         double[] rvs = results.stream()
                 .filter(result -> result.category.equals(category))
                 .mapToDouble(MeasureRVResult::getRv)
                 .toArray();
 
-        return MathUtils.rmse(rvs, rv);
+        return MathUtils.sem(rvs, rv);
     }
 }
