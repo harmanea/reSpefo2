@@ -27,6 +27,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
 
     private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD"};
     private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};
+    private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"};
 
     @Override
     public Spectrum importFrom(String fileName) throws SpefoException {
@@ -62,6 +63,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
             spectrum.setHjd(getHJD(header));
             spectrum.setDateOfObservation(getDateOfObservation(header));
             spectrum.setRvCorrection(getRVCorrection(header));
+            spectrum.setExpTime(getExpTime(header));
 
             return spectrum;
 
@@ -197,6 +199,16 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         for (String alias : RV_CORR_ALIASES) {
             if (header.containsKey(alias)) {
                 return header.getDoubleValue(alias);
+            }
+        }
+
+        return Double.NaN;
+    }
+
+    private double getExpTime(Header header) {
+        for (String alias : EXP_TIME_ALIASES) {
+            if (header.containsKey(alias)) {
+                return header.getBigDecimalValue(alias).doubleValue();
             }
         }
 

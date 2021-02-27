@@ -53,6 +53,7 @@ public class Spectrum {
     private JulianDate hjd;
     private LocalDateTime dateOfObservation;
     private double rvCorrection; // Maybe add support for different types in the future
+    private double expTime;
 
     @JsonDeserialize(using = FunctionAssetsDeserializer.class)
     private LinkedHashMap<String, FunctionAsset> functionAssets;
@@ -109,6 +110,7 @@ public class Spectrum {
         hjd = new JulianDate();
         dateOfObservation = LocalDateTime.MIN;
         rvCorrection = Double.NaN;
+        expTime = Double.NaN;
 
         this.series = series;
     }
@@ -167,6 +169,14 @@ public class Spectrum {
 
     public void setRvCorrection(double rvCorrection) {
         this.rvCorrection = rvCorrection;
+    }
+
+    public double getExpTime() {
+        return expTime;
+    }
+
+    public void setExpTime(double expTime) {
+        this.expTime = expTime;
     }
 
     public XYSeries getSeries() {

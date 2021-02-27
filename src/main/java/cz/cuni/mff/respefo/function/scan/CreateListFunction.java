@@ -53,7 +53,7 @@ public class CreateListFunction implements MultiFileFunction {
                 writer.println(String.join(" ",
                         formatInteger(i, 5),
                         spectrum.getDateOfObservation().format(DATE_TIME_FORMATTER),
-                        formatDouble(0.0, 5, 3, false), // TODO: replace with actual exp time
+                        formatDouble(spectrum.getExpTime(), 5, 3, false),
                         spectrum.getFile().getName(),
                         formatDouble(spectrum.getHjd().getRJD(), 5, 4),
                         formatDouble(spectrum.getRvCorrection(), 3, 2)));

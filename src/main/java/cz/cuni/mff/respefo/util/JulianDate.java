@@ -9,6 +9,8 @@ import java.util.Objects;
  * Algorithms taken from https://en.wikipedia.org/wiki/Julian_day
  */
 public class JulianDate implements Comparable<JulianDate> {
+    public static final double REDUCTION = 2_400_000;
+
     private final double jd;
 
     public JulianDate() {
@@ -95,7 +97,7 @@ public class JulianDate implements Comparable<JulianDate> {
      * @return reduced Julian date
      */
     public double getRJD() {
-        return jd - 2400000;
+        return jd - REDUCTION;
     }
 
     /**

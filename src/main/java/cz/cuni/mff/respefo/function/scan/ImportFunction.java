@@ -17,10 +17,7 @@ import cz.cuni.mff.respefo.function.asset.port.PostImportAsset;
 import cz.cuni.mff.respefo.function.asset.port.RVCorrectionDialog;
 import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
-import cz.cuni.mff.respefo.util.FileDialogs;
-import cz.cuni.mff.respefo.util.FileType;
-import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.Progress;
+import cz.cuni.mff.respefo.util.*;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
 
@@ -292,16 +289,32 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
     }
 
     private static void updateSpectrumUsingLstFileRecord(Spectrum spectrum, LstFile.Record record) {
-        if (isNaN(spectrum.getHjd().getJD()) && isNotNaN(record.getHjd().getJD())) {
-            spectrum.setHjd(record.getHjd());
+        JulianDate hjd = record.getHjd();
+        if (isNaN(spectrum.getHjd().getJD()) && isNotNaN(hjd.getJD())) {
+            if (hjd.getJD() < 100_000) {
+                // Convert reduced julian date to full date
+                hjd = new JulianDate(hjd.getJD() + JulianDate.REDUCTION);
+            }
+            spectrum.setHjd(hjd);
         }
 
         if (spectrum.getDateOfObservation().equals(LocalDateTime.MIN) && record.getDateTimeStart().getYear() > 0) {
             spectrum.setDateOfObservation(record.getDateTimeStart());
         }
 
-        if (isNaN(spectrum.getRvCorrection()) && isNotNaN(record.getRvCorr())) {
-            spectrum.setRvCorrection(record.getRvCorr());
+        double rvCorr = record.getRvCorr();
+        if (isNaN(spectrum.getRvCorrection()) && isNotNaN(rvCorr)) {
+            spectrum.setRvCorrection(rvCorr);
+
+            // Apply the correction
+            double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
+                    .map(value -> value + rvCorr * (value / Constants.SPEED_OF_LIGHT))
+                    .toArray();
+            spectrum.getSeries().updateXSeries(updatedXSeries);
+        }
+
+        if (isNaN(spectrum.getExpTime()) && isNotNaN(record.getExpTime())) {
+            spectrum.setExpTime(record.getExpTime());
         }
     }
 }
