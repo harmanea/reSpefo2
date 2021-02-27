@@ -183,6 +183,9 @@ public class RVMeasurementController {
             manualStepLabel.setEnabled(true);
             manualStepText.setEnabled(true);
             manualStepUnitLabel.setEnabled(true);
+
+            manualStepText.forceFocus();
+            manualStepText.setSelection(0, manualStepText.getText().length());
         }));
     }
 
@@ -242,12 +245,16 @@ public class RVMeasurementController {
                         .name(MIRRORED_SERIES_NAME)
                         .series(computeSeries(measurement))
                         .color(BLUE))
-                .keyListener(ch -> new MeasureRVKeyListener(ch, () -> updateRelativeStep(ch), MIRRORED_SERIES_NAME))
+                .keyListener(ch -> new MeasureRVKeyListener(ch, MIRRORED_SERIES_NAME, computeMiddle(measurement),
+                        () -> updateRelativeStep(ch),
+                        () -> applyShift(ch, -rvStep),
+                        () -> applyShift(ch, rvStep)))
                 .keyListener(ch -> new KeyAdapter() {
                     @Override
                     public void keyPressed(KeyEvent e) {
                         switch (e.keyCode) {
                             case SWT.CR:
+                            case SWT.INSERT:
                                 MeasurementInputDialog dialog = new MeasurementInputDialog(measurement.isCorrection());
                                 if (dialog.openIsOk()) {
                                     MeasureRVResult result = new MeasureRVResult(
@@ -285,15 +292,6 @@ public class RVMeasurementController {
                                 ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
                                 ch.redraw();
                                 break;
-
-                            case 'n':
-                                applyShift(ch, -rvStep);
-                                break;
-
-                            case 'm':
-                                applyShift(ch, rvStep);
-                                break;
-
                         }
                     }
                 })
@@ -330,18 +328,7 @@ public class RVMeasurementController {
 
         double[] mirroredYSeries = ArrayUtils.reverseArray(Arrays.copyOfRange(series.getYSeries(), from, to));
 
-        double mid;
-        int midIndex = Arrays.binarySearch(series.getXSeries(), measurement.getL0());
-        if (midIndex < 0) {
-            midIndex = -midIndex - 1;
-
-            double low = series.getX(midIndex - 1);
-            double high = series.getX(midIndex);
-
-            mid = midIndex - 1 + ((measurement.getL0() - low) / (high - low));
-        } else {
-            mid = midIndex;
-        }
+        double mid = computeMiddle(measurement);
 
         double[] mirroredXSeries = new double[mirroredYSeries.length];
         for (int i = 0; i < mirroredXSeries.length; i++) {
@@ -349,6 +336,20 @@ public class RVMeasurementController {
         }
 
         return new XYSeries(mirroredXSeries, mirroredYSeries);
+    }
+
+    private double computeMiddle(Measurement measurement) {
+        int midIndex = Arrays.binarySearch(series.getXSeries(), measurement.getL0());
+        if (midIndex < 0) {
+            midIndex = -midIndex - 1;
+
+            double low = series.getX(midIndex - 1);
+            double high = series.getX(midIndex);
+
+            return midIndex - 1 + ((measurement.getL0() - low) / (high - low));
+        } else {
+            return midIndex;
+        }
     }
 
     private void applyShift(Chart chart, double value) {

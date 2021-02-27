@@ -5,6 +5,7 @@ import cz.cuni.mff.respefo.util.UtilityClass;
 import org.swtchart.*;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 import static java.util.Arrays.stream;
 
@@ -67,6 +68,24 @@ public class ChartUtils extends UtilityClass {
      * @param seriesName name of the series to center around
      */
     public static void centerAroundSeries(Chart chart, String seriesName) {
+        center(chart, seriesName, xSeries -> rangeWithMargin(xSeries[0], xSeries[xSeries.length - 1]));
+    }
+
+    /**
+     * Set the range of all axes so that the series with the given name are fully visible while maintaining the
+     * horizontal midpoint in the center of the chart.
+     * @param chart whose axes will be adjusted
+     * @param seriesName name of the series to center around
+     * @param midpoint which should be in the horizontal center
+     */
+    public static void centerAroundSeriesAndMidpoint(Chart chart, String seriesName, double midpoint) {
+        center(chart, seriesName, xSeries -> {
+            double distance = Math.max(Math.abs(xSeries[0] - midpoint), Math.abs(xSeries[xSeries.length - 1] - midpoint));
+            return rangeWithMargin(midpoint - distance, midpoint + distance);
+        });
+    }
+
+    private static void center(Chart chart, String seriesName, Function<double[], Range> xRangeCreator) {
         Objects.requireNonNull(chart);
         Objects.requireNonNull(seriesName);
 
@@ -78,7 +97,7 @@ public class ChartUtils extends UtilityClass {
             throw new IllegalArgumentException("The selected series has no data points");
         }
 
-        Range xRange = rangeWithMargin(xSeries[0], xSeries[xSeries.length - 1]);
+        Range xRange = xRangeCreator.apply(xSeries);
 
         double ySeriesMax = stream(ySeries).max().getAsDouble();
         double ySeriesMin = stream(ySeries).min().getAsDouble();

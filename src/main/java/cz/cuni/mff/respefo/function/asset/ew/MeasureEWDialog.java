@@ -18,14 +18,18 @@ import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
 
 public class MeasureEWDialog extends TitleAreaDialog {
 
-    private String[] items;
+    private static String[] previousFileNames = {};
+
+    private String[] fileNames;
 
     public MeasureEWDialog() {
         super("Measure EW");
+
+        fileNames = previousFileNames;
     }
 
-    public String[] getItems() {
-        return items;
+    public String[] getFileNames() {
+        return fileNames;
     }
 
     @Override
@@ -51,6 +55,7 @@ public class MeasureEWDialog extends TitleAreaDialog {
                         addStlFile((List) e.widget);
                     }
                 }).build(topComposite);
+        list.setItems(fileNames);
 
         final Composite buttonsComposite = newComposite()
                 .layout(gridLayout().margins(0))
@@ -75,9 +80,9 @@ public class MeasureEWDialog extends TitleAreaDialog {
         if (fileName != null) {
             list.add(fileName);
 
-            items = list.getItems();
+            fileNames = list.getItems();
 
-            if (items.length == 1) {
+            if (fileNames.length == 1) {
                 setMessage("Measure equivalent width and other spectrophotometric quantities", SWT.ICON_INFORMATION);
                 getButton(SWT.OK).setEnabled(true);
             }
@@ -88,12 +93,23 @@ public class MeasureEWDialog extends TitleAreaDialog {
         if (list.getSelectionIndex() != -1) {
             list.remove(list.getSelectionIndex());
 
-            items = list.getItems();
+            fileNames = list.getItems();
 
-            if (items.length == 0) {
+            if (fileNames.length == 0) {
                 setMessage("Select at least one .stl file", SWT.ICON_WARNING);
                 getButton(SWT.OK).setEnabled(false);
             }
         }
+    }
+
+    @Override
+    protected void buttonPressed(int returnCode) {
+        if (returnCode == SWT.OK) {
+            synchronized (this) {
+                previousFileNames = fileNames;
+            }
+        }
+
+        super.buttonPressed(returnCode);
     }
 }

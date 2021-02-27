@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.function.asset.rv;
 
-import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
+import cz.cuni.mff.respefo.function.asset.common.LeftRightChartKeyListener;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.events.KeyEvent;
 import org.swtchart.Chart;
@@ -10,15 +10,17 @@ import org.swtchart.IAxisSet;
 import static org.eclipse.swt.SWT.KEYPAD_4;
 import static org.eclipse.swt.SWT.KEYPAD_6;
 
-public class MeasureRVKeyListener extends ChartKeyListener {
+public class MeasureRVKeyListener extends LeftRightChartKeyListener {
 
-    private final Runnable updateRelativeStep;
     private final String mirroredSeriesName;
+    private final double l0;
+    private final Runnable updateRelativeStep;
 
-    public MeasureRVKeyListener(Chart chart, Runnable updateRelativeStep, String mirroredSeriesName) {
-        super(chart);
-        this.updateRelativeStep = updateRelativeStep;
+    public MeasureRVKeyListener(Chart chart, String mirroredSeriesName, double l0, Runnable updateRelativeStep, Runnable moveLeft, Runnable moveRight) {
+        super(chart, moveLeft, moveRight);
         this.mirroredSeriesName = mirroredSeriesName;
+        this.l0 = l0;
+        this.updateRelativeStep = updateRelativeStep;
     }
 
     @Override
@@ -55,8 +57,9 @@ public class MeasureRVKeyListener extends ChartKeyListener {
 
     @Override
     protected void adjustRange() {
-        ChartUtils.centerAroundSeries(chart, mirroredSeriesName);
+        ChartUtils.centerAroundSeriesAndMidpoint(chart, mirroredSeriesName, l0);
         chart.getAxisSet().zoomOut();
+        chart.redraw();
         updateRelativeStep.run();
     }
 }

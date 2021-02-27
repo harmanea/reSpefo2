@@ -2,7 +2,6 @@ package cz.cuni.mff.respefo.function.asset.dispersion;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.format.XYSeries;
-import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.HorizontalDragMouseListener;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import org.eclipse.swt.SWT;
@@ -49,7 +48,7 @@ public class DispersionMeasurementController {
         value = hint;
         radius = 10;
 
-        final Chart chart = newChart()
+        newChart()
                 .title(label + " " + measurement.getLaboratoryValue())
                 .xAxisLabel(PIXELS)
                 .yAxisLabel(RELATIVE_FLUX)
@@ -61,53 +60,43 @@ public class DispersionMeasurementController {
                         .name(MIRRORED_SERIES_NAME)
                         .series(computeSeries(series))
                         .color(BLUE))
-                .keyListener(ch -> ChartKeyListener.centerAroundSeries(ch, MIRRORED_SERIES_NAME))
+                .keyListener(ch -> new DispersionKeyListener(ch, MIRRORED_SERIES_NAME, hint,
+                        () -> applyShift(ch, -getRelativeHorizontalStep(ch)),
+                        () -> applyShift(ch, getRelativeHorizontalStep(ch))))
+                .keyListener(ch -> new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        switch (e.keyCode) {
+                            case SWT.CR:
+                            case SWT.INSERT:
+                                callback.accept(value);
+                                break;
+
+                            case SWT.END:
+                            case SWT.ESC:
+                                callback.accept(Double.NaN);
+                                break;
+
+                            case SWT.TAB:
+                                if (e.stateMask == SWT.CTRL) {
+                                    radius = Math.max(1, radius / 2);
+                                } else {
+                                    radius *= 2;
+                                }
+
+                                XYSeries newSeries = computeSeries(series);
+                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(newSeries.getXSeries());
+                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
+                                ch.redraw();
+                                break;
+                        }
+                    }
+                })
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, shift -> applyShift(ch, shift)))
                 .centerAroundSeries(MIRRORED_SERIES_NAME)
+                .zoomOut()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
-
-        chart.getAxisSet().zoomOut();
-
-        chart.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.keyCode) {
-                    case SWT.CR:
-                        callback.accept(value);
-                        break;
-
-                    case SWT.ESC:
-                        callback.accept(Double.NaN);
-                        break;
-
-                    case SWT.TAB:
-                        if (e.stateMask == SWT.CTRL) {
-                            radius = Math.max(1, radius / 2);
-                        } else {
-                            radius *= 2;
-                        }
-
-                        XYSeries newSeries = computeSeries(series);
-                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(newSeries.getXSeries());
-                        chart.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
-                        chart.redraw();
-                        break;
-
-                    case 'n':
-                        applyShift(chart, -getRelativeHorizontalStep(chart));
-                        break;
-
-                    case 'm':
-                        applyShift(chart, getRelativeHorizontalStep(chart));
-                        break;
-
-                }
-            }
-        });
-
-        chart.redraw();
-        chart.forceFocus();
     }
 
     private XYSeries computeSeries(XYSeries series) {

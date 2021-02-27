@@ -41,10 +41,10 @@ public class MeasureRVFunction implements SingleFileFunction {
         }
 
         Measurements measurements = new Measurements();
-        for (String lstFileName : dialog.getMeasurements()) {
+        for (String lstFileName : dialog.getMeasurementFileNames()) {
             measurements.loadMeasurements(lstFileName, false);
         }
-        for (String lstFileName : dialog.getCorrections()) {
+        for (String lstFileName : dialog.getCorrectionFileNames()) {
             measurements.loadMeasurements(lstFileName, true);
         }
 

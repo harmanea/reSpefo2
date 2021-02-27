@@ -20,19 +20,25 @@ import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComp
 
 public class MeasureRVDialog extends TitleAreaDialog {
 
-    private String[] measurements = {};
-    private String[] corrections = {};
+    private static String[] previousMeasurementFileNames = {};
+    private static String[] previousCorrectionFileNames = {};
+
+    private String[] measurementFileNames;
+    private String[] correctionFileNames;
 
     public MeasureRVDialog() {
         super("Measure RV");
+
+        measurementFileNames = previousMeasurementFileNames;
+        correctionFileNames = previousCorrectionFileNames;
     }
 
-    public String[] getMeasurements() {
-        return measurements;
+    public String[] getMeasurementFileNames() {
+        return measurementFileNames;
     }
 
-    public String[] getCorrections() {
-        return corrections;
+    public String[] getCorrectionFileNames() {
+        return correctionFileNames;
     }
 
     @Override
@@ -54,7 +60,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
 
         // Measurements
 
-        Consumer<String[]> measurementsItemsConsumer = items -> measurements = items;
+        Consumer<String[]> measurementsItemsConsumer = items -> measurementFileNames = items;
 
         labelBuilder.text("Select .lst files with measurements:").build(topComposite);
 
@@ -65,6 +71,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
                 addStlFile((List) e.widget, measurementsItemsConsumer);
             }
         }).build(topComposite);
+        measurementsList.setItems(measurementFileNames);
 
         final Composite measurementsButtonsComposite = buttonsCompositeBuilder.build(topComposite);
         addButtonBuilder
@@ -76,7 +83,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
 
         // Correction measurements
 
-        Consumer<String[]> correctionsItemsConsumer = items -> corrections = items;
+        Consumer<String[]> correctionsItemsConsumer = items -> correctionFileNames = items;
 
         labelBuilder.text("Select .lst files with correction measurements:").build(topComposite);
 
@@ -87,6 +94,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
                 addStlFile((List) e.widget, correctionsItemsConsumer);
             }
         }).build(topComposite);
+        correctionsList.setItems(correctionFileNames);
 
         final Composite correctionsButtonsComposite = buttonsCompositeBuilder.build(topComposite);
         addButtonBuilder
@@ -124,12 +132,24 @@ public class MeasureRVDialog extends TitleAreaDialog {
     }
 
     private void verify() {
-        if (measurements.length == 0 && corrections.length == 0) {
+        if (measurementFileNames.length == 0 && correctionFileNames.length == 0) {
             setMessage("Select at least one .stl file", SWT.ICON_WARNING);
             getButton(SWT.OK).setEnabled(false);
         } else {
             setMessage("Measure equivalent width and other spectrophotometric quantities", SWT.ICON_INFORMATION);
             getButton(SWT.OK).setEnabled(true);
         }
+    }
+
+    @Override
+    protected void buttonPressed(int returnCode) {
+        if (returnCode == SWT.OK) {
+            synchronized (this) {
+                previousCorrectionFileNames = correctionFileNames;
+                previousMeasurementFileNames = measurementFileNames;
+            }
+        }
+
+        super.buttonPressed(returnCode);
     }
 }

@@ -37,7 +37,7 @@ public class MeasureEWFunction implements SingleFileFunction {
         }
 
         Measurements measurements = new Measurements();
-        for (String lstFileName : dialog.getItems()) {
+        for (String lstFileName : dialog.getFileNames()) {
             measurements.loadMeasurements(lstFileName, false);
         }
 

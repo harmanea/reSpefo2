@@ -149,7 +149,8 @@ public class EWMeasurementController {
             @Override
             public void keyPressed(KeyEvent e) {
                 switch (e.keyCode) {
-                    case SWT.CR:
+                    case SWT.END:
+                    case SWT.ESC:
                         results.add(result);
                         if (index + 1 < measurements.size()) {
                             index += 1;
@@ -159,6 +160,7 @@ public class EWMeasurementController {
                         }
                         break;
 
+                    case SWT.CR:
                     case SWT.INSERT:
                         MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
                         if (dialog.openIsOk()) {
