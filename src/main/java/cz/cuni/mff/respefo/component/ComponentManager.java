@@ -2,7 +2,7 @@ package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.function.FunctionManager;
-import cz.cuni.mff.respefo.function.scan.DebugFunction;
+import cz.cuni.mff.respefo.function.scan.InspectJSONFunction;
 import cz.cuni.mff.respefo.function.scan.RepairFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
@@ -256,7 +256,7 @@ public class ComponentManager extends UtilityClass {
         final Menu debugMenu = new Menu(shell, DROP_DOWN);
         debugMenuHeader.setMenu(debugMenu);
 
-        final DebugFunction debugFunction = new DebugFunction();
+        final InspectJSONFunction debugFunction = new InspectJSONFunction();
         final MenuItem spectrumJsonMenuItem = new MenuItem(debugMenu, PUSH);
         spectrumJsonMenuItem.setText("Inspect JSON");
         spectrumJsonMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {

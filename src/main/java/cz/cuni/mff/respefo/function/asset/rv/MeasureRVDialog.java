@@ -109,7 +109,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
     protected void createButtons(Composite parent) {
         super.createButtons(parent);
 
-        getButton(SWT.OK).setEnabled(false);
+        getButton(SWT.OK).setEnabled(measurementFileNames.length + correctionFileNames.length > 0);
     }
 
     private void addStlFile(List list, Consumer<String[]> itemsConsumer) {
@@ -136,7 +136,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
             setMessage("Select at least one .stl file", SWT.ICON_WARNING);
             getButton(SWT.OK).setEnabled(false);
         } else {
-            setMessage("Measure equivalent width and other spectrophotometric quantities", SWT.ICON_INFORMATION);
+            setMessage("Measure radial velocities", SWT.ICON_INFORMATION);
             getButton(SWT.OK).setEnabled(true);
         }
     }

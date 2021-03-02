@@ -1,6 +1,5 @@
 package cz.cuni.mff.respefo.function.asset.ew;
 
-
 import cz.cuni.mff.respefo.component.TitleAreaDialog;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
@@ -72,7 +71,7 @@ public class MeasureEWDialog extends TitleAreaDialog {
     protected void createButtons(Composite parent) {
         super.createButtons(parent);
 
-        getButton(SWT.OK).setEnabled(false);
+        getButton(SWT.OK).setEnabled(fileNames.length > 0);
     }
 
     private void addStlFile(List list) {
