@@ -6,7 +6,9 @@ import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
+import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.Progress;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,39 +32,48 @@ public class CreateListFunction implements MultiFileFunction {
 
     @Override
     public void execute(List<File> files) {
-        List<Spectrum> spectra = new ArrayList<>();
-        for (File file : files) {
-            try {
-                Spectrum spectrum = Spectrum.open(file);
-                spectra.add(spectrum);
+        Progress.withProgressTracking(p -> {
+            p.refresh("Opening files", files.size());
 
-            } catch (SpefoException exception) {
-                Message.error("An error occurred while opening file " + file.getPath(), exception);
-                return;
-            }
-        }
+            List<Spectrum> spectra = new ArrayList<>();
+            for (File file : files) {
+                try {
+                    Spectrum spectrum = Spectrum.open(file);
+                    spectra.add(spectrum);
 
-        String fileName = ComponentManager.getFileExplorer().getRootDirectory().getPath() + File.separator + ComponentManager.getFileExplorer().getRootDirectory().getName() + ".lst";
-        try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.print("\n\n\n\n"); // TODO: generate some relevant header
-            writer.print(TABLE_HEADER);
-
-            for (int i = 0; i < spectra.size(); i++) {
-                Spectrum spectrum = spectra.get(i);
-
-                writer.println(String.join(" ",
-                        formatInteger(i, 5),
-                        spectrum.getDateOfObservation().format(DATE_TIME_FORMATTER),
-                        formatDouble(spectrum.getExpTime(), 5, 3, false),
-                        spectrum.getFile().getName(),
-                        formatDouble(spectrum.getHjd().getRJD(), 5, 4),
-                        formatDouble(spectrum.getRvCorrection(), 3, 2)));
+                } catch (SpefoException exception) {
+                    Log.error("An error occurred while opening file " + file.getPath(), exception);
+                } finally {
+                    p.step();
+                }
             }
 
-            Message.info("File created successfully");
-            ComponentManager.getFileExplorer().refresh();
-        } catch (FileNotFoundException exception) {
-            Message.error("Couldn't generate .lst file", exception);
-        }
+            return spectra;
+        }, spectra -> {
+            File rootDirectory = ComponentManager.getFileExplorer().getRootDirectory();
+            String fileName = rootDirectory.getPath() + File.separator + rootDirectory.getName() + ".lst";
+
+            try (PrintWriter writer = new PrintWriter(fileName)) {
+                writer.print("\n\n\n\n"); // TODO: generate some relevant header
+                writer.print(TABLE_HEADER);
+
+                for (int i = 0; i < spectra.size(); i++) {
+                    Spectrum spectrum = spectra.get(i);
+
+                    writer.println(String.join(" ",
+                            formatInteger(i + 1, 5),
+                            spectrum.getDateOfObservation().format(DATE_TIME_FORMATTER),
+                            formatDouble(spectrum.getExpTime(), 5, 3, false),
+                            spectrum.getFile().getName(),
+                            formatDouble(spectrum.getHjd().getRJD(), 5, 4),
+                            formatDouble(spectrum.getRvCorrection(), 3, 2)));
+                }
+
+                Message.info("File created successfully");
+                ComponentManager.getFileExplorer().refresh();
+            } catch (FileNotFoundException exception) {
+                Message.error("Couldn't generate .lst file", exception);
+            }
+        });
     }
 }

@@ -13,6 +13,7 @@ import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResults;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
@@ -138,27 +139,34 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction 
 
     @Override
     public void execute(List<File> files) {
-        List<Spectrum> spectra = new ArrayList<>();
-        for (File file : files) {
-            try {
-                Spectrum spectrum = Spectrum.open(file);
+        Progress.withProgressTracking(p -> {
+            p.refresh("Processing files", files.size());
 
-                if (spectrum.containsFunctionAsset(MeasureEWFunction.SERIALIZE_KEY)) {
-                    spectra.add(spectrum);
-                } else {
-                    Log.warning("There are no EW measurements in the file [" + file.getPath() + "]");
+            List<Spectrum> spectra = new ArrayList<>();
+            for (File file : files) {
+                try {
+                    Spectrum spectrum = Spectrum.open(file);
+
+                    if (spectrum.containsFunctionAsset(MeasureEWFunction.SERIALIZE_KEY)) {
+                        spectra.add(spectrum);
+                    } else {
+                        Log.warning("There are no EW measurements in the file [" + file.getPath() + "]");
+                    }
+                } catch (SpefoException exception) {
+                    Log.error("Couldn't open file [" + file.getPath() + "]", exception);
+                } finally {
+                    p.step();
                 }
-            } catch (SpefoException exception) {
-                Log.error("Couldn't open file [" + file.getPath() + "]", exception);
             }
-        }
 
-        if (spectra.isEmpty()) {
-            Message.warning("No valid spectrum with EW measurements was loaded");
-            return;
-        }
-
-        displayResults(spectra);
+            return spectra;
+        }, spectra -> {
+            if (spectra.isEmpty()) {
+                Message.warning("No valid spectrum with EW measurements was loaded");
+            } else {
+                displayResults(spectra);
+            }
+        });
     }
 
     private static void displayResults(List<Spectrum> spectra) {
