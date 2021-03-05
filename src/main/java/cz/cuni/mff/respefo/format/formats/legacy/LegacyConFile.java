@@ -72,7 +72,7 @@ public class LegacyConFile {
     }
 
     protected String readString(FileInputStream inputStream, int length) throws IOException, InvalidFileFormatException {
-        return new String(readBytes(inputStream, length)).replaceAll("\00", "").trim();
+        return new String(readBytes(inputStream, length)).replace("\00", "").trim();
     }
 
     public String getRemark() {
