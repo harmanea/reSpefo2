@@ -11,6 +11,7 @@ import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.common.*;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.Constants;
 import cz.cuni.mff.respefo.util.JulianDate;
 import cz.cuni.mff.respefo.util.Message;
 import org.eclipse.swt.SWT;
@@ -103,6 +104,14 @@ public class OpenFunction implements SingleFileFunction {
                             case "RV Corr": {
                                 DoubleNumberDialog numberDialog = new DoubleNumberDialog("RV Corr", spectrum.getRvCorrection());
                                 if (numberDialog.openIsOk()) {
+                                    if (Double.compare(spectrum.getRvCorrection(), numberDialog.getValue()) != 0
+                                            && Message.question("Do you want to adjust the spectrum values according to the difference?")) {
+                                        double diff = numberDialog.getValue() - (isNaN(spectrum.getRvCorrection()) ? 0 : spectrum.getRvCorrection());
+                                        double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
+                                                .map(value -> value + diff * (value / Constants.SPEED_OF_LIGHT))
+                                                .toArray();
+                                        spectrum.getSeries().updateXSeries(updatedXSeries);
+                                    }
                                     spectrum.setRvCorrection(numberDialog.getValue());
                                     trySave(spectrum, item, Double.toString(numberDialog.getValue()));
                                 }

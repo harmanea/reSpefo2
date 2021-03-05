@@ -44,6 +44,9 @@ public class DoubleNumberDialog extends SpefoDialog {
                 .onModify(event -> {
                     try {
                         value = Double.parseDouble(((Text) event.widget).getText());
+                        if (Double.isNaN(value) || Double.isInfinite(value)) {
+                            throw new NumberFormatException();
+                        }
                         getButton(SWT.OK).setEnabled(true);
 
                     } catch (NumberFormatException e) {
