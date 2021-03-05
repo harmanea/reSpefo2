@@ -8,13 +8,12 @@ import org.reflections.Reflections;
 import java.io.FileFilter;
 import java.util.*;
 
-import static java.util.Optional.ofNullable;
-
 public class FunctionManager extends UtilityClass {
     private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.function.scan";
 
     private static List<FunctionInfo<SingleFileFunction>> singleFileFunctions;
     private static List<FunctionInfo<MultiFileFunction>> multiFileFunctions;
+    private static List<FunctionInfo<ProjectFunction>> projectFunctions;
 
     private static Map<String, Class<? extends FunctionAsset>> assetClasses;
 
@@ -24,6 +23,7 @@ public class FunctionManager extends UtilityClass {
 
         singleFileFunctions = new ArrayList<>();
         multiFileFunctions = new ArrayList<>();
+        projectFunctions = new ArrayList<>();
         assetClasses = new HashMap<>();
 
         for (Class<?> functionClass : functionClasses) {
@@ -37,10 +37,13 @@ public class FunctionManager extends UtilityClass {
                 Object instance = functionClass.getDeclaredConstructor().newInstance();
 
                 if (instance instanceof SingleFileFunction) {
-                    singleFileFunctions.add(new FunctionInfo<>((SingleFileFunction) instance, name, fileFilter, ofNullable(group)));
+                    singleFileFunctions.add(new FunctionInfo<>((SingleFileFunction) instance, name, fileFilter, group));
                 }
                 if (instance instanceof MultiFileFunction) {
-                    multiFileFunctions.add(new FunctionInfo<>((MultiFileFunction) instance, name, fileFilter, ofNullable(group)));
+                    multiFileFunctions.add(new FunctionInfo<>((MultiFileFunction) instance, name, fileFilter, group));
+                }
+                if (instance instanceof ProjectFunction) {
+                    projectFunctions.add(new FunctionInfo<>((ProjectFunction) instance, name, fileFilter, group));
                 }
 
                 Serialize serializeAnnotation = functionClass.getAnnotation(Serialize.class);
@@ -53,11 +56,12 @@ public class FunctionManager extends UtilityClass {
             }
         }
 
-        if (singleFileFunctions.isEmpty() && multiFileFunctions.isEmpty()) {
+        if (singleFileFunctions.isEmpty() && multiFileFunctions.isEmpty() && projectFunctions.isEmpty()) {
             Log.warning("No functions were loaded.");
         } else {
             singleFileFunctions.sort(Comparator.comparing(FunctionInfo::getName));
             multiFileFunctions.sort(Comparator.comparing(FunctionInfo::getName));
+            projectFunctions.sort(Comparator.comparing(FunctionInfo::getName));
         }
     }
 
@@ -67,6 +71,10 @@ public class FunctionManager extends UtilityClass {
 
     public static List<FunctionInfo<MultiFileFunction>> getMultiFileFunctions() {
         return multiFileFunctions;
+    }
+
+    public static List<FunctionInfo<ProjectFunction>> getProjectFunctions() {
+        return projectFunctions;
     }
 
     public static Class<? extends FunctionAsset> getAssetClass(String key) {

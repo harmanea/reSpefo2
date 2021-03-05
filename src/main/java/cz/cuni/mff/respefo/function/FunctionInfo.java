@@ -7,9 +7,9 @@ public class FunctionInfo<T> {
     private final T instance;
     private final String name;
     private final FileFilter fileFilter;
-    private final Optional<String> group;
+    private final String group;
 
-    public FunctionInfo(T instance, String name, FileFilter fileFilter, Optional<String> group) {
+    public FunctionInfo(T instance, String name, FileFilter fileFilter, String group) {
         this.instance = instance;
         this.name = name;
         this.fileFilter = fileFilter;
@@ -29,6 +29,6 @@ public class FunctionInfo<T> {
     }
 
     public Optional<String> getGroup() {
-        return group;
+        return Optional.ofNullable(group);
     }
 }

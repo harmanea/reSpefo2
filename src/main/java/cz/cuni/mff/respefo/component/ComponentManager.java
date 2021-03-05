@@ -1,7 +1,9 @@
 package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
+import cz.cuni.mff.respefo.function.ProjectFunction;
 import cz.cuni.mff.respefo.function.scan.InspectJSONFunction;
 import cz.cuni.mff.respefo.function.scan.RepairFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
@@ -21,6 +23,7 @@ import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.builders.RowLayoutBuilder.rowLayout;
 import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
@@ -224,6 +227,23 @@ public class ComponentManager extends UtilityClass {
         quitMenuItem.setText("Quit");
         quitMenuItem.addSelectionListener(new DefaultSelectionListener(event -> shell.close()));
 
+
+        final MenuItem projectMenuHeader = new MenuItem(menuBar, CASCADE);
+        projectMenuHeader.setText("&Project");
+
+        final Menu projectMenu = new Menu(shell, DROP_DOWN);
+        projectMenuHeader.setMenu(projectMenu);
+
+        for (FunctionInfo<ProjectFunction> functionInfo : FunctionManager.getProjectFunctions()) {
+            final MenuItem menuItem = new MenuItem(projectMenu, PUSH);
+            menuItem.setText(functionInfo.getName());
+            menuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+                File[] files = getFileExplorer().getRootDirectory().listFiles(functionInfo.getFileFilter());
+                if (files != null) {
+                    functionInfo.getInstance().execute(asList(files));
+                }
+            }));
+        }
 
         final MenuItem windowMenuHeader = new MenuItem(menuBar, CASCADE);
         windowMenuHeader.setText("&Window");

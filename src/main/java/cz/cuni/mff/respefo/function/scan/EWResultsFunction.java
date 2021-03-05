@@ -6,6 +6,7 @@ import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
+import cz.cuni.mff.respefo.function.ProjectFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResult;
 import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResultPointCategory;
@@ -41,7 +42,7 @@ import static java.lang.Double.isNaN;
 import static org.eclipse.swt.SWT.COLOR_WIDGET_BACKGROUND;
 
 @Fun(name = "EW Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
-public class EWResultsFunction implements SingleFileFunction, MultiFileFunction {
+public class EWResultsFunction implements SingleFileFunction, MultiFileFunction, ProjectFunction {
 
     @Override
     public void execute(File file) {
