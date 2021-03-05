@@ -3,6 +3,8 @@ package cz.cuni.mff.respefo.util;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.stream.Collector;
+import java.util.stream.DoubleStream;
 
 public class DoubleArrayList implements Iterable<Double> {
     private static final int DEFAULT_INITIAL_CAPACITY = 10;
@@ -43,9 +45,7 @@ public class DoubleArrayList implements Iterable<Double> {
     }
 
     public void add(double element) {
-        if (size == elements.length) {
-            ensureCapacity(size + 1);
-        }
+        ensureCapacity(size + 1);
         elements[size++] = element;
     }
 
@@ -59,6 +59,14 @@ public class DoubleArrayList implements Iterable<Double> {
             elements[index] = element;
             size++;
         }
+    }
+
+    public void addAll(DoubleArrayList other) {
+        Objects.requireNonNull(other);
+
+        ensureCapacity(size + other.size);
+        System.arraycopy(other.elements, 0, this.elements, size, other.size);
+        size += other.size;
     }
 
     public void clear() {
@@ -137,5 +145,13 @@ public class DoubleArrayList implements Iterable<Double> {
         if (index >= size || index < 0) {
             throw new IndexOutOfBoundsException("Tried to access element with index [" + index + "] in a list of size [" + size + "]");
         }
+    }
+
+    public DoubleStream stream() {
+        return Arrays.stream(toArray());
+    }
+
+    public static Collector<Double, DoubleArrayList, DoubleArrayList> toDoubleArrayList() {
+        return Collector.of(DoubleArrayList::new, DoubleArrayList::add, (left, right) -> { left.addAll(right); return left; } );
     }
 }

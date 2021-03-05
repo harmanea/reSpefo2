@@ -35,6 +35,8 @@ public class RectifyFunction implements SingleFileFunction {
     public static final String SELECTED_SERIES_NAME = "selected";
     public static final String CONTINUUM_SERIES_NAME = "continuum";
 
+    private static RectifyAsset previousAsset;
+
     @Override
     public void execute(File file) {
         Spectrum spectrum;
@@ -46,7 +48,9 @@ public class RectifyFunction implements SingleFileFunction {
         }
 
         RectifyAsset asset = spectrum.getFunctionAsset(SERIALIZE_KEY, RectifyAsset.class)
-                .orElse(RectifyAsset.withDefaultPoints(spectrum.getProcessedSeries()));
+                .orElse(previousAsset != null
+                        ? previousAsset.adjustToNewData(spectrum.getProcessedSeries())
+                        : RectifyAsset.withDefaultPoints(spectrum.getProcessedSeries()));
 
         XYSeries series = spectrum.getProcessedSeriesWithout(asset);
 
@@ -135,6 +139,7 @@ public class RectifyFunction implements SingleFileFunction {
             spectrum.removeFunctionAsset(SERIALIZE_KEY);
         } else {
             spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
+            previousAsset = asset;
         }
 
         try {

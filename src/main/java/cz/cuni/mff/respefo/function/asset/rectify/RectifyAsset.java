@@ -7,6 +7,8 @@ import cz.cuni.mff.respefo.util.Point;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
+import java.util.Arrays;
+
 public class RectifyAsset implements FunctionAsset {
     private DoubleArrayList xCoordinates;
     private DoubleArrayList yCoordinates;
@@ -101,6 +103,18 @@ public class RectifyAsset implements FunctionAsset {
 
     public int getCount() {
         return xCoordinates.size();
+    }
+
+    public RectifyAsset adjustToNewData(XYSeries data) {
+        double[] newXSeries = xCoordinates.stream().filter(x -> x >= data.getX(0) && x <= data.getLastX()).toArray();
+
+        double[] newYSeries = Arrays.stream(newXSeries)
+                .map(x -> {
+                    int index = ArrayUtils.findClosest(data.getXSeries(), x);
+                    return Arrays.stream(data.getYSeries(), Math.max(0, index - 2), Math.min(data.getLength() - 1, index + 2)).average().getAsDouble();
+                }).toArray();
+
+        return new RectifyAsset(new DoubleArrayList(newXSeries), new DoubleArrayList(newYSeries));
     }
 
     public static RectifyAsset withDefaultPoints(XYSeries data) {

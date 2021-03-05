@@ -11,7 +11,7 @@ public class ArrayUtils extends UtilityClass {
 
     /**
      * Find first array entry that is greater than target.
-     * @param array to search
+     * @param array to search, must be sorted in ascending order
      * @param target to search for
      * @return index of the value matching the criteria, returns array.length if all values are smaller than or equal to the target
      */
@@ -28,12 +28,15 @@ public class ArrayUtils extends UtilityClass {
 
     /**
      * Find the array entry that is, by value, the closest to the target.
-     * @param array to search
+     * @param array to search, must be sorted in ascending order
      * @param target to search for
      * @return index of the value matching the criteria
      */
     public static int findClosest(double[] array, double target) {
         Objects.requireNonNull(array);
+        if (array.length == 0) {
+            throw new IllegalArgumentException("Array must not be empty.");
+        }
 
         int index = Arrays.binarySearch(array, target);
         if (index >= 0) {
@@ -186,7 +189,7 @@ public class ArrayUtils extends UtilityClass {
         Objects.requireNonNull(values);
 
         if (values.length < 2) {
-            throw new IllegalArgumentException("Values must contain at least two values");
+            throw new IllegalArgumentException("Array must not be empty.");
         } else if (values.length == 2) {
             return true;
         }
