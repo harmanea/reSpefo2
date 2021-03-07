@@ -304,12 +304,13 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         }
 
         double rvCorr = record.getRvCorr();
-        if (isNaN(spectrum.getRvCorrection()) && isNotNaN(rvCorr)) {
+        if (isNotNaN(rvCorr) && rvCorr != 0) {
             spectrum.setRvCorrection(rvCorr);
 
             // Apply the correction
+            double diff = rvCorr - (isNaN(spectrum.getRvCorrection()) ? 0 : spectrum.getRvCorrection());
             double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
-                    .map(value -> value + rvCorr * (value / Constants.SPEED_OF_LIGHT))
+                    .map(value -> value + diff * (value / Constants.SPEED_OF_LIGHT))
                     .toArray();
             spectrum.getSeries().updateXSeries(updatedXSeries);
         }
