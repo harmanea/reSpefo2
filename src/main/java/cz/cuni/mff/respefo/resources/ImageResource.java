@@ -20,6 +20,7 @@ public enum ImageResource {
     COPY("copy.png"),
     DELETE("delete.png"),
     PASTE("paste.png"),
+    EDIT("edit.png"),
 
     FOLDER_LARGE("folder_large.png"),
     SPECTRA_LARGE("spectra_large.png"),

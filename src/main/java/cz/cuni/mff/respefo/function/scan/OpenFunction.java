@@ -60,7 +60,7 @@ public class OpenFunction implements SingleFileFunction {
         final ToolBar.Tab infoTab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "Info", "Information", ImageResource.INFO_LARGE);
 
-        newTable(SWT.SINGLE)
+        final Table table = newTable(SWT.SINGLE)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .headerVisible(false)
                 .linesVisible(true)
@@ -77,58 +77,19 @@ public class OpenFunction implements SingleFileFunction {
                 ))
                 .packColumns()
                 .listener(SWT.MouseDoubleClick, event -> {
-                    Table table = (Table) event.widget;
-                    TableItem item = table.getItem(new Point(event.x, event.y));
+                    TableItem item = ((Table) event.widget).getItem(new Point(event.x, event.y));
                     if (item != null) {
-                        switch (item.getText(0)) {
-                            case "HJD": {
-                                double hjd = spectrum.getHjd().getJD();
-                                DoubleNumberDialog numberDialog = new DoubleNumberDialog("HJD", isNaN(hjd) ? 0 : hjd);
-                                if (numberDialog.openIsOk()) {
-                                    spectrum.setHjd(new JulianDate(numberDialog.getValue()));
-                                    trySave(spectrum, item, Double.toString(numberDialog.getValue()));
-                                }
-                                break;
-                            }
-
-                            case "Date OBS": {
-                                LocalDateTime dateTime = spectrum.getDateOfObservation();
-                                DateTimeDialog dateTimeDialog = new DateTimeDialog(dateTime.equals(LocalDateTime.MIN) ? LocalDateTime.now() : dateTime);
-                                if (dateTimeDialog.openIsOk()) {
-                                    spectrum.setDateOfObservation(dateTimeDialog.getDateTime());
-                                    trySave(spectrum, item, dateTimeDialog.getDateTime().toString());
-                                }
-                                break;
-                            }
-
-                            case "RV Corr": {
-                                DoubleNumberDialog numberDialog = new DoubleNumberDialog("RV Corr", spectrum.getRvCorrection());
-                                if (numberDialog.openIsOk()) {
-                                    if (Double.compare(spectrum.getRvCorrection(), numberDialog.getValue()) != 0
-                                            && Message.question("Do you want to adjust the spectrum values according to the difference?")) {
-                                        double diff = numberDialog.getValue() - (isNaN(spectrum.getRvCorrection()) ? 0 : spectrum.getRvCorrection());
-                                        double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
-                                                .map(value -> value + diff * (value / Constants.SPEED_OF_LIGHT))
-                                                .toArray();
-                                        spectrum.getSeries().updateXSeries(updatedXSeries);
-                                    }
-                                    spectrum.setRvCorrection(numberDialog.getValue());
-                                    trySave(spectrum, item, Double.toString(numberDialog.getValue()));
-                                }
-                                break;
-                            }
-                            
-                            case "Exp Time": {
-                                DoubleNumberDialog numberDialog = new DoubleNumberDialog("Exp Time", spectrum.getExpTime());
-                                if (numberDialog.openIsOk()) {
-                                    spectrum.setExpTime(numberDialog.getValue());
-                                    trySave(spectrum, item, Double.toString(numberDialog.getValue()));
-                                }
-                            }
-                        }
+                        edit(spectrum, item);
                     }
                 })
                 .build(infoTab.getWindow());
+
+        infoTab.addTopBarButton("Edit", ImageResource.EDIT, () -> {
+            int index = table.getSelectionIndex();
+            if (index >= 0) {
+                edit(spectrum, table.getItem(index));
+            }
+        });
     }
 
     private static void trySave(Spectrum spectrum, TableItem item, String text) {
@@ -137,6 +98,55 @@ public class OpenFunction implements SingleFileFunction {
             item.setText(1, text);
         } catch (SpefoException exception) {
             Message.error("Couldn't save spectrum", exception);
+        }
+    }
+
+    private static void edit(Spectrum spectrum, TableItem item) {
+        switch (item.getText(0)) {
+            case "HJD": {
+                double hjd = spectrum.getHjd().getJD();
+                DoubleNumberDialog numberDialog = new DoubleNumberDialog("HJD", isNaN(hjd) ? 0 : hjd);
+                if (numberDialog.openIsOk()) {
+                    spectrum.setHjd(new JulianDate(numberDialog.getValue()));
+                    trySave(spectrum, item, Double.toString(numberDialog.getValue()));
+                }
+                break;
+            }
+
+            case "Date OBS": {
+                LocalDateTime dateTime = spectrum.getDateOfObservation();
+                DateTimeDialog dateTimeDialog = new DateTimeDialog(dateTime.equals(LocalDateTime.MIN) ? LocalDateTime.now() : dateTime);
+                if (dateTimeDialog.openIsOk()) {
+                    spectrum.setDateOfObservation(dateTimeDialog.getDateTime());
+                    trySave(spectrum, item, dateTimeDialog.getDateTime().toString());
+                }
+                break;
+            }
+
+            case "RV Corr": {
+                DoubleNumberDialog numberDialog = new DoubleNumberDialog("RV Corr", spectrum.getRvCorrection());
+                if (numberDialog.openIsOk()) {
+                    if (Double.compare(spectrum.getRvCorrection(), numberDialog.getValue()) != 0
+                            && Message.question("Do you want to adjust the spectrum values according to the difference?")) {
+                        double diff = numberDialog.getValue() - (isNaN(spectrum.getRvCorrection()) ? 0 : spectrum.getRvCorrection());
+                        double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
+                                .map(value -> value + diff * (value / Constants.SPEED_OF_LIGHT))
+                                .toArray();
+                        spectrum.getSeries().updateXSeries(updatedXSeries);
+                    }
+                    spectrum.setRvCorrection(numberDialog.getValue());
+                    trySave(spectrum, item, Double.toString(numberDialog.getValue()));
+                }
+                break;
+            }
+
+            case "Exp Time": {
+                DoubleNumberDialog numberDialog = new DoubleNumberDialog("Exp Time", spectrum.getExpTime());
+                if (numberDialog.openIsOk()) {
+                    spectrum.setExpTime(numberDialog.getValue());
+                    trySave(spectrum, item, Double.toString(numberDialog.getValue()));
+                }
+            }
         }
     }
 }
