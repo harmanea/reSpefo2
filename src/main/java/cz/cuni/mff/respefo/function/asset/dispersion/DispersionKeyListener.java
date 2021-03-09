@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function.asset.dispersion;
 
-import cz.cuni.mff.respefo.function.asset.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.asset.common.LeftRightChartKeyListener;
+import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.swtchart.Chart;
 
 public class DispersionKeyListener extends LeftRightChartKeyListener {
@@ -17,7 +17,8 @@ public class DispersionKeyListener extends LeftRightChartKeyListener {
 
     @Override
     protected void adjustRange() {
-        ChartKeyListener.centerAroundSeries(chart, mirroredSeriesName);  // TODO: change this to stay on center
+        ChartUtils.centerAroundSeriesAndMidpoint(chart, mirroredSeriesName, l0);
         chart.getAxisSet().zoomOut();
+        chart.redraw();
     }
 }

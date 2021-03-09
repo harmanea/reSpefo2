@@ -49,7 +49,7 @@ public class ToolBar {
      */
     public Tab addTab(Function<Composite, Toggle> toggleCreator, String label, String topBarLabelText, ImageResource icon) {
         final Composite iconsComposite = newComposite()
-                .layout(rowLayout(HORIZONTAL).margins(0).build())
+                .layout(rowLayout(HORIZONTAL).margins(0))
                 .build(topBarContextIconsComposite);
 
         final Composite windowComposite = newComposite()
@@ -95,19 +95,19 @@ public class ToolBar {
 
     private void createTopBar(Composite window) {
         final Composite composite = newComposite(BORDER)
-                .layout(gridLayout(2, false).margins(0).spacings(0).build())
+                .layout(gridLayout(2, false).margins(0).spacings(0))
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_BEGINNING)
                 .build(window);
 
         final Composite labelComposite = newComposite()
-                .layout(rowLayout(HORIZONTAL).margins(3).build())
+                .layout(rowLayout(HORIZONTAL).margins(3))
                 .gridLayoutData(FILL, CENTER, true, true)
                 .build(composite);
 
         topBarLabel = newLabel().bold().build(labelComposite);
 
         final Composite iconsComposite = newComposite()
-                .layout(rowLayout(HORIZONTAL).margins(0).build())
+                .layout(rowLayout(HORIZONTAL).margins(0))
                 .gridLayoutData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END)
                 .build(composite);
 
@@ -203,11 +203,12 @@ public class ToolBar {
             topBarSeparator.setVisible(hasTopBarButtons);
 
             ((StackLayout) topBarContextIconsComposite.getLayout()).topControl = iconsComposite;
-            topBarContextIconsComposite.setLayoutData(new RowData(iconsComposite.computeSize(DEFAULT, DEFAULT)));
-            topBarContextIconsComposite.getParent().getParent().layout();
+            topBarContextIconsComposite.layout();
 
             ((StackLayout) barWindow.getLayout()).topControl = windowComposite;
             barWindow.layout();
+
+            topBarContextIconsComposite.getParent().getParent().layout();
         }
     }
 }

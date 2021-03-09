@@ -118,6 +118,7 @@ public class EWMeasurementController {
                 .mouseAndMouseMoveListener(ch -> new MeasureEWMouseListener(ch, series, sh -> {
                     updateShift(sh);
                     ch.redraw();
+                    ch.forceFocus();
                 }, () ->  {
                     snapToPoint(series, result);
                     ch.redraw();

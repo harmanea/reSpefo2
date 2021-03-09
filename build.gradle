@@ -47,7 +47,7 @@ dependencies {
 }
 
 tasks.withType(JavaExec) {
-    systemProperty "respefo.version", version
+    systemProperty 'respefo.version', version
 }
 
 // https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Jar.html

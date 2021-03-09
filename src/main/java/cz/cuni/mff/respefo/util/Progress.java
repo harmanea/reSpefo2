@@ -80,6 +80,10 @@ public class Progress {
         display.asyncExec(runnable);
     }
 
+    public void syncExec(Runnable runnable) {
+        display.syncExec(runnable);
+    }
+
     public void refresh(String label, int range) {
         selection = 0;
         this.range = range;

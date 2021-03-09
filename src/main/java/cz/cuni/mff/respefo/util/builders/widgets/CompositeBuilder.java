@@ -6,7 +6,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Layout;
 
 // The following properties were not included: backgroundMode, layoutDeferred, tabList
-// TODO: maybe add a better way of selecting layouts
+// Maybe add a better way of selecting layouts
 public final class CompositeBuilder extends AbstractControlBuilder<CompositeBuilder, Composite> {
 
     protected CompositeBuilder(int style) {
