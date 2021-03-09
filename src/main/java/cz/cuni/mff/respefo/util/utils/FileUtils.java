@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.util.utils;
 
-import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
@@ -118,7 +118,7 @@ public class FileUtils extends UtilityClass {
      */
     public static Path getRelativePath(Path path) {
         Objects.requireNonNull(path);
-        return ComponentManager.getFileExplorer().getRootDirectory().toPath().relativize(path);
+        return Project.getRootDirectory().toPath().relativize(path);
     }
 
     /**

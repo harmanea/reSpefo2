@@ -13,6 +13,8 @@ import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.*;
 import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
@@ -31,7 +33,6 @@ public class ComponentManager extends UtilityClass {
     private static Display display;
     private static Shell shell;
 
-    private static FileExplorer fileExplorer;
     private static Composite scene;
 
     // TODO: maybe add a notification for lost work
@@ -51,6 +52,14 @@ public class ComponentManager extends UtilityClass {
     public static void build() throws SpefoException {
         shell.setLayout(gridLayout(3, false).margins(0).spacings(0).build());
         shell.addListener(Close, event -> event.doit = Message.question("Are you sure you want to quit?"));
+        shell.addShellListener(new ShellAdapter() {
+            @Override
+            public void shellActivated(ShellEvent e) {
+                if (Project.getRootDirectory() == null) {
+                    Project.setRootDirectory(FileUtils.getUserDirectory());
+                }
+            }
+        });
 
         // Top level
 
@@ -109,11 +118,12 @@ public class ComponentManager extends UtilityClass {
         ToolBar.Tab projectTab = leftToolBar.addTab(parent -> new VerticalToggle(parent, UP),
                 "Project", "Project", ImageResource.FOLDER_LARGE);
 
-        fileExplorer = new FileExplorer(projectTab.getWindow());
+        final FileExplorer fileExplorer = new FileExplorer(projectTab.getWindow());
         fileExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));
         fileExplorer.setRootDirectory(FileUtils.getUserDirectory());
+        FileExplorer.setDefaultInstance(fileExplorer);
 
-        projectTab.addTopBarButton("ChangeDirectory", ImageResource.OPENED_FOLDER, fileExplorer::changeDirectory);
+        projectTab.addTopBarButton("ChangeDirectory", ImageResource.OPENED_FOLDER, Project::changeRootDirectory);
         projectTab.addTopBarButton("Refresh", ImageResource.REFRESH, fileExplorer::refresh);
         projectTab.addTopBarButton("Collapse All", ImageResource.COLLAPSE, fileExplorer::collapseAll);
 
@@ -165,7 +175,7 @@ public class ComponentManager extends UtilityClass {
 
         final Composite progressBarComposite = newComposite()
                 .gridLayoutData(RIGHT, CENTER, false, true)
-                .layout(fillLayout().marginWidth(10).marginHeight(0).build())
+                .layout(fillLayout().marginWidth(10).marginHeight(0))
                 .build(bottomBar);
 
         final ProgressBar progressBar = new ProgressBar(progressBarComposite, SMOOTH);
@@ -234,11 +244,17 @@ public class ComponentManager extends UtilityClass {
         final Menu projectMenu = new Menu(shell, DROP_DOWN);
         projectMenuHeader.setMenu(projectMenu);
 
+        final MenuItem changeDirectoryItem = new MenuItem(projectMenu, PUSH);
+        changeDirectoryItem.setText("Change Directory");
+        changeDirectoryItem.addSelectionListener(new DefaultSelectionListener(event -> Project.changeRootDirectory()));
+
+        new MenuItem(projectMenu, SEPARATOR);
+
         for (FunctionInfo<ProjectFunction> functionInfo : FunctionManager.getProjectFunctions()) {
             final MenuItem menuItem = new MenuItem(projectMenu, PUSH);
             menuItem.setText(functionInfo.getName());
             menuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-                File[] files = getFileExplorer().getRootDirectory().listFiles(functionInfo.getFileFilter());
+                File[] files = Project.getRootDirectory().listFiles(functionInfo.getFileFilter());
                 if (files != null) {
                     functionInfo.getInstance().execute(asList(files));
                 }
@@ -356,10 +372,6 @@ public class ComponentManager extends UtilityClass {
     public static Composite clearAndGetScene(boolean clearToolsTab) {
         clearScene(clearToolsTab);
         return scene;
-    }
-
-    public static FileExplorer getFileExplorer() {
-        return fileExplorer;
     }
 
     public static ToolBar getLeftToolBar() {

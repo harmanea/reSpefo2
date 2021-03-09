@@ -1,6 +1,5 @@
 package cz.cuni.mff.respefo.component;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
@@ -9,8 +8,8 @@ import cz.cuni.mff.respefo.function.filter.PlainTextFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.util.FileCopy;
-import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
@@ -50,12 +49,21 @@ import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
 
 public class FileExplorer {
+
+    private static FileExplorer defaultInstance;
+
     private final Tree tree;
     private final TreeEditor treeEditor;
 
     private final Clipboard clipboard;
 
-    private File rootDirectory;
+    public static FileExplorer getDefault() {
+        return defaultInstance;
+    }
+
+    public static void setDefaultInstance(FileExplorer defaultInstance) {
+        FileExplorer.defaultInstance = defaultInstance;
+    }
 
     public FileExplorer(Composite parent) {
         tree = new Tree(parent, BORDER | MULTI | V_SCROLL | VIRTUAL);
@@ -77,53 +85,33 @@ public class FileExplorer {
         tree.setLayoutData(layoutData);
     }
 
-    public void setRootDirectory(File file) throws SpefoException {
-        if (file == null) {
-            throw new SpefoException("File is null");
-        } else if (!file.isDirectory()) {
-            throw new SpefoException("File is not a directory");
-        } else if (!file.exists()) {
-            throw new SpefoException("File doesn't exist");
-        }
-
+    public void setRootDirectory(File file) {
         clearTree();
+        tree.setEnabled(false);
 
-        File[] children = listFiles(file);
-        Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
-        for (File child : children) {
-            TreeItem item = new TreeItem(tree, NONE);
-            setUpChildItem(item, child);
-        }
+        Progress.withProgressTracking(p -> {
+            File[] children = listFiles(file);
+            p.refresh("Loading files", children.length);
+            Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
 
-        rootDirectory = file;
-    }
-
-    public File getRootDirectory() {
-        return rootDirectory;
-    }
-
-    public void changeDirectory() {
-        DirectoryDialog dialog = new DirectoryDialog(tree.getShell());
-
-        dialog.setText("Choose directory");
-        dialog.setFilterPath(getRootDirectory().getPath());
-
-        String directoryName = dialog.open();
-
-        if (directoryName != null) {
-            try {
-                setRootDirectory(new File(directoryName));
-                FileDialogs.setFilterPath(directoryName);
-            } catch (Exception exception) {
-                Message.error("Couldn't change directory.", exception);
+            for (File child : children) {
+                p.syncExec(() -> {
+                    TreeItem item = new TreeItem(tree, NONE);
+                    setUpChildItem(item, child);
+                });
+                p.step();
             }
-        }
+
+            return null;
+        }, n -> tree.setEnabled(true));
     }
 
     public void refresh() {
-        TreeItem[] items = tree.getItems();
-
-        refreshItems(items, rootDirectory, index -> new TreeItem(tree, NONE, index));
+        if (tree.isEnabled()) {
+            tree.setEnabled(false);
+            refreshItems(tree.getItems(), Project.getRootDirectory(), index -> new TreeItem(tree, NONE, index));
+            tree.setEnabled(true);
+        }
     }
 
     private void refreshNested(TreeItem item, File file) {
@@ -228,17 +216,16 @@ public class FileExplorer {
     }
 
     public void collapseAll() {
-        tree.setRedraw(false);
-
-        for (TreeItem item : tree.getItems()) {
-            if (((File) item.getData()).isDirectory()) {
-                item.setExpanded(false);
-                item.setImage(getImage(FOLDER));
+        if (tree.isEnabled()) {
+            tree.setEnabled(false);
+            for (TreeItem item : tree.getItems()) {
+                if (((File) item.getData()).isDirectory()) {
+                    item.setExpanded(false);
+                    item.setImage(getImage(FOLDER));
+                }
             }
+            tree.setEnabled(true);
         }
-
-        tree.setRedraw(true);
-        tree.redraw();
     }
 
     private void clearTree() {

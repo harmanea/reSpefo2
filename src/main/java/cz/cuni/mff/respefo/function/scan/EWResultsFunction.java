@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.Fun;
@@ -267,7 +268,7 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction,
     }
 
     private static void printToFile(List<Spectrum> spectra) {
-        String fileName = ComponentManager.getFileExplorer().getRootDirectory().getPath() + File.separator + ComponentManager.getFileExplorer().getRootDirectory().getName() + ".eqw";
+        String fileName = Project.getRootFileName(".eqw");
 
         try (PrintWriter writer = new PrintWriter(fileName)) {
             writer.println("Summary of equivalent widths etc.\n");
@@ -323,7 +324,7 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction,
             }
 
             Message.info("File created successfully");
-            ComponentManager.getFileExplorer().refresh();
+            Project.refresh();
         } catch (FileNotFoundException exception) {
             Message.error("Couldn't print to .cor file", exception);
         }

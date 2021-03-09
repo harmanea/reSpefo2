@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.format.formats.fits.ImportFitsFormat;
@@ -87,7 +87,7 @@ public class DispersionFunction implements SingleFileFunction {
                 throw new SpefoException("The print stream has encountered an error");
             }
 
-            ComponentManager.getFileExplorer().refresh();
+            Project.refresh();
         } catch (Exception exception) {
             Message.error("An exception occurred while printing to file.", exception);
         }
@@ -117,7 +117,7 @@ public class DispersionFunction implements SingleFileFunction {
             }
 
             spectrum.saveAs(new File(newFileName));
-            ComponentManager.getFileExplorer().refresh();
+            Project.refresh();
 
             OpenFunction.displaySpectrum(spectrum);
 

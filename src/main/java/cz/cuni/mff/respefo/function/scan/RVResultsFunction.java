@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
@@ -411,16 +412,14 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
     }
 
     private static void printToRvFile(String suffix, Consumer<PrintWriter> printer) {
-        File rootDirectory = ComponentManager.getFileExplorer().getRootDirectory();
-        String fileName = rootDirectory.getPath() + File.separator + rootDirectory.getName() + suffix;
-
+        String fileName = Project.getRootFileName(suffix);
         try (PrintWriter writer = new PrintWriter(fileName)) {
             writer.println("Summary of radial velocities");
 
             printer.accept(writer);
 
             Message.info("File created successfully");
-            ComponentManager.getFileExplorer().refresh();
+            Project.refresh();
         } catch (FileNotFoundException exception) {
             Message.error("Couldn't print to " + suffix + " file", exception);
         }

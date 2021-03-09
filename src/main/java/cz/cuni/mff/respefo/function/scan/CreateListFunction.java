@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
@@ -50,9 +50,7 @@ public class CreateListFunction implements MultiFileFunction {
 
             return spectra;
         }, spectra -> {
-            File rootDirectory = ComponentManager.getFileExplorer().getRootDirectory();
-            String fileName = rootDirectory.getPath() + File.separator + rootDirectory.getName() + ".lst";
-
+            String fileName = Project.getRootFileName(".lst");
             try (PrintWriter writer = new PrintWriter(fileName)) {
                 writer.print("\n\n\n\n"); // TODO: generate some relevant header
                 writer.print(TABLE_HEADER);
@@ -70,7 +68,7 @@ public class CreateListFunction implements MultiFileFunction {
                 }
 
                 Message.info("File created successfully");
-                ComponentManager.getFileExplorer().refresh();
+                Project.refresh();
             } catch (FileNotFoundException exception) {
                 Message.error("Couldn't generate .lst file", exception);
             }

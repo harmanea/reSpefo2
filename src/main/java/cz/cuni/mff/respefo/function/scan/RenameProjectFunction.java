@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.ProjectFunction;
@@ -73,7 +73,7 @@ public class RenameProjectFunction implements ProjectFunction {
             }
         }
 
-        ComponentManager.getFileExplorer().refresh();
+        Project.refresh();
     }
 
     private static Predicate<File> endsWith(String suffix) {

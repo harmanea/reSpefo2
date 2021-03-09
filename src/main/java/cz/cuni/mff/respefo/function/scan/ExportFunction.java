@@ -1,8 +1,8 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.OverwriteDialog;
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.format.FormatManager;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.UnknownFileFormatException;
@@ -48,7 +48,7 @@ public class ExportFunction implements SingleFileFunction, MultiFileFunction {
         if (fileName != null) {
             try {
                 if (exportTo(spectrum, fileName)) {
-                    ComponentManager.getFileExplorer().refresh();
+                    Project.refresh();
                 }
             } catch (SpefoException exception) {
                 Message.error("An error occurred while exporting file.", exception);
@@ -140,7 +140,7 @@ public class ExportFunction implements SingleFileFunction, MultiFileFunction {
             if (!failedFiles.isEmpty()) {
                 Message.warning("Some files failed to import:\n\n" + filesListToString(failedFiles));
             }
-            ComponentManager.getFileExplorer().refresh();
+            Project.refresh();
         });
     }
 
