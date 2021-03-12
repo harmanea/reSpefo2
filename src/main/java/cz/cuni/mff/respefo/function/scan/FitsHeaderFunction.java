@@ -29,7 +29,7 @@ public class FitsHeaderFunction implements SingleFileFunction {
     public void execute(File file) {
         try (Fits f = new Fits(file)) {
             Header header = f.getHDU(0).getHeader();
-            newTable(SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+            newTable(SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL)
                     .gridLayoutData(GridData.FILL_BOTH)
                     .linesVisible(true)
                     .headerVisible(true)

@@ -66,7 +66,7 @@ public class FileExplorer {
     }
 
     public FileExplorer(Composite parent) {
-        tree = new Tree(parent, BORDER | MULTI | V_SCROLL | VIRTUAL);
+        tree = new Tree(parent, MULTI | V_SCROLL | VIRTUAL);
 
         treeEditor = new TreeEditor(tree);
         treeEditor.horizontalAlignment = LEFT;

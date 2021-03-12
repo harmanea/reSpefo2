@@ -15,6 +15,7 @@ public class ComponentWithBottomBar {
     public ComponentWithBottomBar(Composite parent) {
         sash = new SashForm(parent, VERTICAL);
         sash.setBackground(sash.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+        sash.setSashWidth(1);
 
         scene = new Composite(sash, NONE);
         bottomBar = new Composite(sash, NONE);

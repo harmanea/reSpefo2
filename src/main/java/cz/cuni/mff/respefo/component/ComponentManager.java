@@ -82,7 +82,7 @@ public class ComponentManager extends UtilityClass {
 
         final Composite bottomBar = newComposite(BORDER)
                 .gridLayoutData(FILL, BOTTOM, true, false, 3, 1)
-                .layout(gridLayout(4, false).margins(3).spacings(3))
+                .layout(gridLayout(4, false).margins(1).spacings(3))
                 .build(shell);
 
 
@@ -106,7 +106,7 @@ public class ComponentManager extends UtilityClass {
 
         // Left Tool Bar
 
-        CompositeBuilder toolBarCompositeBuilder = newComposite(BORDER)
+        CompositeBuilder toolBarCompositeBuilder = newComposite()
                 .gridLayoutData(GridData.FILL_BOTH)
                 .layout(gridLayout().margins(0).spacings(0));
 

@@ -1,10 +1,10 @@
 package cz.cuni.mff.respefo.component;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 
-import static org.eclipse.swt.SWT.HORIZONTAL;
-import static org.eclipse.swt.SWT.NONE;
+import static org.eclipse.swt.SWT.*;
 
 public class ComponentWithSidebars {
     private final SashForm sash;
@@ -17,9 +17,11 @@ public class ComponentWithSidebars {
 
     public ComponentWithSidebars(Composite parent) {
         sash = new SashForm(parent, HORIZONTAL);
+        sash.setBackground(sash.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+        sash.setSashWidth(1);
 
         leftBar = new Composite(sash, NONE);
-        scene = new Composite(sash, NONE);
+        scene = new Composite(sash, BORDER);
         rightBar = new Composite(sash, NONE);
     }
 

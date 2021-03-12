@@ -25,7 +25,7 @@ public class FancyLogListener implements LogListener, LogActionListener {
     private boolean scrollToEnd = false;
 
     public FancyLogListener(Composite parent) {
-        textField = new StyledText(parent, BORDER | READ_ONLY | H_SCROLL | V_SCROLL);
+        textField = new StyledText(parent, READ_ONLY | H_SCROLL | V_SCROLL);
         actionsMap = new TreeMap<>();
 
         textField.setLeftMargin(5);

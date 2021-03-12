@@ -8,7 +8,6 @@ import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
@@ -30,9 +29,12 @@ public class OpenPlainTextFunction implements SingleFileFunction {
         try {
             String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
 
-            CompositeBuilder compositeBuilder = newComposite(BORDER).gridLayoutData(GridData.FILL_BOTH);
+            CompositeBuilder compositeBuilder = newComposite().gridLayoutData(GridData.FILL_BOTH);
 
-            final Composite topComposite = compositeBuilder.layout(new GridLayout()).build(ComponentManager.clearAndGetScene());
+            final Composite topComposite = compositeBuilder
+                    .layout(gridLayout().margins(0))
+                    .background(ComponentManager.getDisplay().getSystemColor(COLOR_LIST_BACKGROUND))
+                    .build(ComponentManager.clearAndGetScene());
 
             newLabel(CENTER)
                     .gridLayoutData(GridData.FILL_HORIZONTAL)
@@ -42,7 +44,6 @@ public class OpenPlainTextFunction implements SingleFileFunction {
 
             final Composite textComposite = compositeBuilder
                     .layout(gridLayout().margins(0).marginLeft(5))
-                    .background(ComponentManager.getDisplay().getSystemColor(COLOR_WIDGET_BACKGROUND))
                     .build(topComposite);
 
             final Text text = newText(MULTI | READ_ONLY | WRAP | V_SCROLL)

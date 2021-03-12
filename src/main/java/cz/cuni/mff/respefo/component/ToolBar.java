@@ -136,7 +136,7 @@ public class ToolBar {
     }
 
     private void createBarWindow(Composite window) {
-        barWindow = newComposite()
+        barWindow = newComposite(BORDER)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .layout(new StackLayout())
                 .build(window);
