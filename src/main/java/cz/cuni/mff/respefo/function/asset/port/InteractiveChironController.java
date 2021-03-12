@@ -27,6 +27,8 @@ import static cz.cuni.mff.respefo.util.builders.widgets.ChartBuilder.newChart;
 
 public class InteractiveChironController {
 
+    private static final Map<Integer, RectifyAsset> previousAssets = new HashMap<>();
+
     private final float[][][] data;
     private final boolean[] selected;
 
@@ -61,7 +63,9 @@ public class InteractiveChironController {
         XYSeries current = dataToSeries(currentIndex);
         List<XYSeries> neighbours = dataToSeries(currentIndex -2, currentIndex -1, currentIndex +1, currentIndex +2);
 
-        RectifyAsset asset = RectifyAsset.withDefaultPoints(current);
+        RectifyAsset asset = previousAssets.containsKey(currentIndex)
+                ? previousAssets.get(currentIndex).adjustToNewData(current)
+                : RectifyAsset.withDefaultPoints(current);
 
         int middle = current.getLength() / 2;
         asset.addPoint(current.getX(middle), current.getY(middle));
@@ -105,6 +109,7 @@ public class InteractiveChironController {
                         () -> {
                             double[] newYSeries = ArrayUtils.divideArrayValues(current.getYSeries(), asset.getIntepData(current.getXSeries()));
                             rectifiedData.add(new XYSeries(current.getXSeries(), newYSeries));
+                            previousAssets.put(currentIndex, asset);
 
                             currentIndex++;
                             ComponentManager.getDisplay().asyncExec(this::rectifySingle);
