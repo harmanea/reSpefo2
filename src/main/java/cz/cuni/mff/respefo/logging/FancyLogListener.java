@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.logging;
 
+import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.util.utils.ExceptionUtils;
 import org.eclipse.swt.custom.StyleRange;
@@ -16,10 +17,12 @@ import static cz.cuni.mff.respefo.logging.LogLevel.WARNING;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static org.eclipse.swt.SWT.*;
 
-public class FancyLogListener implements LogListener {
+public class FancyLogListener implements LogListener, LogActionListener {
 
     private final StyledText textField;
     private final NavigableMap<Integer, ActionRange> actionsMap;
+
+    private boolean scrollToEnd = false;
 
     public FancyLogListener(Composite parent) {
         textField = new StyledText(parent, BORDER | READ_ONLY | H_SCROLL | V_SCROLL);
@@ -31,11 +34,22 @@ public class FancyLogListener implements LogListener {
         textField.addListener(MouseDown, this::handleMouseDownEvent);
 
         // Scroll to end
-        textField.addModifyListener(event -> textField.setTopIndex(textField.getLineCount() - 1));
+        textField.addModifyListener(event -> { if (scrollToEnd) scrollToEnd(); });
     }
 
     public void setLayoutData(Object layoutData) {
         textField.setLayoutData(layoutData);
+    }
+
+    public void setScrollToEnd(boolean scrollToEnd) {
+        this.scrollToEnd = scrollToEnd;
+        if (scrollToEnd) {
+            scrollToEnd();
+        }
+    }
+
+    public void setMinimumLevel(LogLevel minimumLevel) {
+        Log.registerListener(this, minimumLevel);
     }
 
     private void handleMouseDownEvent(Event event) {
@@ -43,26 +57,34 @@ public class FancyLogListener implements LogListener {
         if (offset != -1) {
             Map.Entry<Integer, ActionRange> entry = actionsMap.floorEntry(offset);
             if (entry != null && offset <= entry.getValue().upper) {
-                executeAction(entry);
+                executeAction(entry.getKey(), entry.getValue().upper, entry.getValue().action, entry.getValue().oneShot);
             }
         }
     }
 
-    private void executeAction(Map.Entry<Integer, ActionRange> entry) {
-        if (entry.getValue().oneShot) {
-            StyleRange styleRange = new StyleRange(entry.getKey(), entry.getValue().upper - entry.getKey(), ColorManager.getColor(GRAY), null);
+    private void executeAction(int lower, int upper, Runnable action, boolean oneShot) {
+        if (oneShot) {
+            StyleRange styleRange = new StyleRange(lower, upper - lower, ColorManager.getColor(GRAY), null);
             styleRange.underline = true;
             styleRange.underlineStyle = UNDERLINE_SINGLE;
             textField.setStyleRange(styleRange);
 
-            actionsMap.remove(entry.getKey());
+            actionsMap.remove(lower);
         }
 
-        entry.getValue().execute();
+        action.run();
+    }
+
+    private void scrollToEnd() {
+        textField.setTopIndex(textField.getLineCount() - 1);
     }
 
     @Override
     public void notify(LogEntry entry) {
+        ComponentManager.getDisplay().asyncExec(() -> addLogEntry(entry));
+    }
+
+    private void addLogEntry(LogEntry entry) {
         String logString = String.format("%tT %s %s%n", entry.getDateTime(), entry.getLevel(), entry.getMessage());
         textField.append(logString);
 
@@ -86,17 +108,23 @@ public class FancyLogListener implements LogListener {
         textField.setStyleRange(styleRange);
     }
 
-    @SuppressWarnings("unused")
-    private void addAction(String text, Runnable action, boolean oneShot) {
+    @Override
+    public void notify(LogAction action) {
+        ComponentManager.getDisplay().asyncExec(() -> addAction(action.getText(), action.getLabel(), action.getAction(), action.isOneShot()));
+    }
+
+    private void addAction(String text, String label, Runnable action, boolean oneShot) {
+        textField.append(text);
+
         int lower = textField.getCharCount();
-        int upper = lower + text.length();
+        int upper = lower + label.length();
         actionsMap.put(lower, new ActionRange(upper, action, oneShot));
 
-        StyleRange styleRange = new StyleRange(lower, text.length(), null, null);
+        StyleRange styleRange = new StyleRange(lower, label.length(), null, null);
         styleRange.underline = true;
         styleRange.underlineStyle = UNDERLINE_LINK;
 
-        textField.append(text + "\n");
+        textField.append(label + "\n");
         textField.setStyleRange(styleRange);
     }
 
@@ -109,10 +137,6 @@ public class FancyLogListener implements LogListener {
             this.upper = upper;
             this.action = action;
             this.oneShot = oneShot;
-        }
-
-        void execute() {
-            action.run();
         }
     }
 }

@@ -1,6 +1,5 @@
 package cz.cuni.mff.respefo.component;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.ProjectFunction;
@@ -9,6 +8,7 @@ import cz.cuni.mff.respefo.function.scan.RepairFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.logging.LogLevel;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.*;
 import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
@@ -35,7 +35,6 @@ public class ComponentManager extends UtilityClass {
 
     private static Composite scene;
 
-    // TODO: maybe add a notification for lost work
     private static ToolBar leftToolBar;
     private static ToolBar rightToolBar;
     private static ToolBar bottomToolBar;
@@ -49,7 +48,7 @@ public class ComponentManager extends UtilityClass {
         shell.setText("reSpefo (" + VersionInfo.getVersion() + ")");
     }
 
-    public static void build() throws SpefoException {
+    public static void build() {
         shell.setLayout(gridLayout(3, false).margins(0).spacings(0).build());
         shell.addListener(Close, event -> event.doit = Message.question("Are you sure you want to quit?"));
         shell.addShellListener(new ShellAdapter() {
@@ -120,10 +119,9 @@ public class ComponentManager extends UtilityClass {
 
         final FileExplorer fileExplorer = new FileExplorer(projectTab.getWindow());
         fileExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));
-        fileExplorer.setRootDirectory(FileUtils.getUserDirectory());
         FileExplorer.setDefaultInstance(fileExplorer);
 
-        projectTab.addTopBarButton("ChangeDirectory", ImageResource.OPENED_FOLDER, Project::changeRootDirectory);
+        projectTab.addTopBarButton("Change Directory", ImageResource.OPENED_FOLDER, Project::changeRootDirectory);
         projectTab.addTopBarButton("Refresh", ImageResource.REFRESH, fileExplorer::refresh);
         projectTab.addTopBarButton("Collapse All", ImageResource.COLLAPSE, fileExplorer::collapseAll);
 
@@ -155,14 +153,28 @@ public class ComponentManager extends UtilityClass {
 
         final FancyLogListener fancyLogListener = new FancyLogListener(eventLogTab.getWindow());
         fancyLogListener.setLayoutData(new GridData(GridData.FILL_BOTH));
-        Log.registerListener(fancyLogListener);
+        Log.registerListener(fancyLogListener, LogLevel.INFO);
+        Log.registerActionListener(fancyLogListener);
+
+        final Menu menu = new Menu(shell, POP_UP);
+        for (LogLevel level : LogLevel.values()) {
+            final MenuItem item = new MenuItem(menu, PUSH);
+            item.setText(level.name());
+            item.addSelectionListener(new DefaultSelectionListener(event -> fancyLogListener.setMinimumLevel(level)));
+        }
+        eventLogTab.addTopBarMenuButton("Minimum Level", ImageResource.FILTER, menu);
+
+        eventLogTab.addTopBarToggleButton("Scroll to End", ImageResource.SCROLL_TO_END, fancyLogListener::setScrollToEnd);
+
+        eventLogTab.show();
+        bottomToolBar.hide();
 
         final Label bottomLogLabel = newLabel()
                 .text("")
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_CENTER)
                 .listener(MouseDown, event -> eventLogTab.show())
                 .build(bottomBar);
-        Log.registerListener(new LabelLogListener(bottomLogLabel, eventLogTab::isHidden));
+        Log.registerListener(new LabelLogListener(bottomLogLabel, eventLogTab::isHidden), LogLevel.INFO);
         eventLogTab.appendToggleAction(toggled -> {
             bottomLogLabel.setText("");
             bottomLogLabel.requestLayout();
@@ -181,7 +193,7 @@ public class ComponentManager extends UtilityClass {
         final ProgressBar progressBar = new ProgressBar(progressBarComposite, SMOOTH);
         progressBar.setVisible(false);
 
-        Progress.init(progressBar, progressLabel);
+        Progress.setControls(progressBar, progressLabel);
 
         // Menu
 
@@ -292,13 +304,13 @@ public class ComponentManager extends UtilityClass {
         final Menu debugMenu = new Menu(shell, DROP_DOWN);
         debugMenuHeader.setMenu(debugMenu);
 
-        final InspectJSONFunction debugFunction = new InspectJSONFunction();
+        final InspectJSONFunction inspectJSONFunction = new InspectJSONFunction();
         final MenuItem spectrumJsonMenuItem = new MenuItem(debugMenu, PUSH);
         spectrumJsonMenuItem.setText("Inspect JSON");
         spectrumJsonMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
             String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
             if (fileName != null) {
-                debugFunction.execute(new File(fileName));
+                inspectJSONFunction.execute(new File(fileName));
             }
         }));
 
@@ -317,6 +329,39 @@ public class ComponentManager extends UtilityClass {
                 repairFunction.execute(new File(fileName));
             }
         }));
+
+        final MenuItem logMenuItem = new MenuItem(debugMenu, CASCADE);
+        logMenuItem.setText("Log");
+
+        final Menu subMenu = new Menu(shell, DROP_DOWN | NO_RADIO_GROUP);
+        logMenuItem.setMenu(subMenu);
+
+        final MenuItem errorItem = new MenuItem(subMenu, PUSH);
+        errorItem.setText("Error");
+        errorItem.addSelectionListener(new DefaultSelectionListener(event -> Log.error("Test error log", new RuntimeException("This is a debug exception"))));
+
+        final MenuItem warningItem = new MenuItem(subMenu, PUSH);
+        warningItem.setText("Warning");
+        warningItem.addSelectionListener(new DefaultSelectionListener(event -> Log.warning("Test warning log")));
+
+        final MenuItem infoItem = new MenuItem(subMenu, PUSH);
+        infoItem.setText("Info");
+        infoItem.addSelectionListener(new DefaultSelectionListener(event -> Log.info("Test info log")));
+
+        final MenuItem debugItem = new MenuItem(subMenu, PUSH);
+        debugItem.setText("Debug");
+        debugItem.addSelectionListener(new DefaultSelectionListener(event -> Log.debug("Test debug log")));
+
+        final MenuItem traceItem = new MenuItem(subMenu, PUSH);
+        traceItem.setText("Trace");
+        traceItem.addSelectionListener(new DefaultSelectionListener(event -> Log.trace("Test trace log")));
+
+        new MenuItem(subMenu, SEPARATOR);
+
+        final MenuItem actionItem = new MenuItem(subMenu, PUSH);
+        actionItem.setText("Action");
+        actionItem.addSelectionListener(new DefaultSelectionListener(event ->
+                Log.action("Test action log ", "Action", () -> Message.info("Test action!"), false)));
 
 //        final MenuItem placeHolderMenuItem = new MenuItem(debugMenu, PUSH);
 //        placeHolderMenuItem.setText("Placeholder text");

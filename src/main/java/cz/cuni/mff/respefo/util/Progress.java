@@ -1,6 +1,5 @@
 package cz.cuni.mff.respefo.util;
 
-import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.SpefoDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -23,10 +22,13 @@ public class Progress {
 
     private Progress() {}
 
-    public static void init(ProgressBar progressBar, Label progressLabel) {
+    public static void init(Display display) {
+        Progress.display = display;
+    }
+
+    public static void setControls(ProgressBar progressBar, Label progressLabel) {
         Progress.progressBar = progressBar;
         Progress.progressLabel = progressLabel;
-        display = ComponentManager.getDisplay();
     }
 
     public static <T> void withProgressTracking(Function<Progress, T> backgroundProcess, Consumer<T> callback) {

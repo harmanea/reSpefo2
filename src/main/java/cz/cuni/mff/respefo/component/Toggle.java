@@ -12,7 +12,7 @@ public abstract class Toggle extends Composite {
     private boolean toggled;
     private Consumer<Boolean> toggleAction = t -> {};
 
-    public Toggle(Composite parent, int style) {
+    Toggle(Composite parent, int style) {
         super(parent, style);
 
         toggled = false;

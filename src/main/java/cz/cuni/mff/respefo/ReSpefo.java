@@ -6,6 +6,7 @@ import cz.cuni.mff.respefo.format.origin.OriginManager;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ImageManager;
+import cz.cuni.mff.respefo.util.Progress;
 
 public class ReSpefo {
 
@@ -21,6 +22,7 @@ public class ReSpefo {
 
         ImageManager.init(ComponentManager.getDisplay());
         ColorManager.init(ComponentManager.getDisplay());
+        Progress.init(ComponentManager.getDisplay());
 
         ComponentManager.build();
 

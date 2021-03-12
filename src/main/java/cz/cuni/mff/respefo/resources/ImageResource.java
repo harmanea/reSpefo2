@@ -31,7 +31,15 @@ public enum ImageResource {
     EVENT_LOG_LARGE("event_log_large.png"),
 
     LINES_LARGE("lines_large.png"),
-    RULER_LARGE("ruler_large.png");
+    RULER_LARGE("ruler_large.png"),
+
+    RECTIFY("rectify.png"),
+    RV("rv.png"),
+    EW("ew.png"),
+
+    FILTER("filter.png"),
+    SCROLL_TO_END("scroll_to_end.png"),
+    ;
 
     private final String fileName;
 

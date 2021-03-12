@@ -1,16 +1,21 @@
 package cz.cuni.mff.respefo.logging;
 
-import cz.cuni.mff.respefo.component.ComponentManager;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Log {
-    private static final List<LogListener> listeners = new ArrayList<>();
+    private static final Map<LogListener, LogLevel> listeners = new HashMap<>();
+    private static final List<LogActionListener> actionListeners = new ArrayList<>();
 
-    public static void registerListener(LogListener listener) {
-        listeners.add(listener);
+    public static void registerListener(LogListener listener, LogLevel minimumLevel) {
+        listeners.put(listener, minimumLevel);
+    }
+
+    public static void registerActionListener(LogActionListener listener) {
+        actionListeners.add(listener);
     }
 
     public static void error(String message) {
@@ -57,18 +62,22 @@ public class Log {
         notifyListeners(LogLevel.TRACE, String.format(message, params), null);
     }
 
-    private static void notifyListeners(LogLevel level, String message, Throwable cause) {
-        notifyListeners(level, message, cause, null);
+    public static void action(String text, String label, Runnable action, boolean oneShot) {
+        LogAction logAction = new LogAction(text, label, action, oneShot);
+
+        for (LogActionListener listener : actionListeners) {
+            listener.notify(logAction);
+        }
     }
 
-    private static void notifyListeners(LogLevel level, String message, Throwable cause, Runnable action) {
-        LogEntry logEntry = new LogEntry(LocalDateTime.now(), level, message, cause, action);
+    private static void notifyListeners(LogLevel level, String message, Throwable cause) {
+        LogEntry logEntry = new LogEntry(LocalDateTime.now(), level, message, cause);
 
-        ComponentManager.getDisplay().asyncExec(() -> {
-            for (LogListener listener : listeners) {
-                listener.notify(logEntry);
+        for (Map.Entry<LogListener, LogLevel> listenerEntry : listeners.entrySet()) {
+            if (level.isMoreImportantOrEqualTo(listenerEntry.getValue())) {
+                listenerEntry.getKey().notify(logEntry);
             }
-        });
+        }
     }
 
     private Log() {}

@@ -7,6 +7,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -168,6 +169,27 @@ public class ToolBar {
             final LabelButton topBarButton = new LabelButton(iconsComposite, NONE);
             topBarButton.setImage(ImageManager.getImage(icon));
             topBarButton.onClick(onClickAction);
+            topBarButton.setToolTipText(toolTip);
+
+            hasTopBarButtons = true;
+        }
+
+        public void addTopBarMenuButton(String toolTip, ImageResource icon, Menu menu) {
+            final LabelButton topBarButton = new LabelButton(iconsComposite, NONE);
+            topBarButton.setImage(ImageManager.getImage(icon));
+            topBarButton.onClick(() -> {
+                menu.setLocation(ComponentManager.getDisplay().map(iconsComposite, null, topBarButton.getLocation()));
+                menu.setVisible(true);
+            });
+            topBarButton.setToolTipText(toolTip);
+
+            hasTopBarButtons = true;
+        }
+
+        public void addTopBarToggleButton(String toolTip, ImageResource icon, Consumer<Boolean> toggleAction) {
+            final HorizontalToggle topBarButton = new HorizontalToggle(iconsComposite, NONE);
+            topBarButton.setImage(ImageManager.getImage(icon));
+            topBarButton.setToggleAction(toggleAction);
             topBarButton.setToolTipText(toolTip);
 
             hasTopBarButtons = true;

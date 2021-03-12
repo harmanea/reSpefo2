@@ -23,9 +23,9 @@ public class LabelLogListener implements LogListener {
 
     @Override
     public void notify(LogEntry entry) {
-        if (Boolean.TRUE.equals(shouldDisplay.get()) && entry.getLevel().isMoreImportantOrEqualTo(LogLevel.INFO)) {
+        if (Boolean.TRUE.equals(shouldDisplay.get())) {
             String formattedDate = entry.getDateTime().format(formatter);
-            setTextAndRequestLayout(formattedDate + " " + StringUtils.substringBefore(entry.getMessage(), '\n'));
+            label.getDisplay().asyncExec(() -> setTextAndRequestLayout(formattedDate + " " + StringUtils.substringBefore(entry.getMessage(), '\n')));
 
             label.getDisplay().timerExec(DECAY_TIME_IN_MILLISECONDS, () -> {
                 if (!label.isDisposed() && label.getText().startsWith(formattedDate)) {
