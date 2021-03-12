@@ -225,6 +225,7 @@ public class ToolBar {
             topBarSeparator.setVisible(hasTopBarButtons);
 
             ((StackLayout) topBarContextIconsComposite.getLayout()).topControl = iconsComposite;
+            topBarContextIconsComposite.setLayoutData(new RowData(iconsComposite.computeSize(DEFAULT, DEFAULT)));
             topBarContextIconsComposite.layout();
 
             ((StackLayout) barWindow.getLayout()).topControl = windowComposite;

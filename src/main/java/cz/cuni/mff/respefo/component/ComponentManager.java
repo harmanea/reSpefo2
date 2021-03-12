@@ -127,6 +127,15 @@ public class ComponentManager extends UtilityClass {
 
         projectTab.show();
 
+        ToolBar.Tab spectraTab = leftToolBar.addTab(parent -> new VerticalToggle(parent, UP),
+                "Spectra", "Spectra", ImageResource.SPECTRA_LARGE);
+
+        SpectrumExplorer spectrumExplorer = new SpectrumExplorer(spectraTab.getWindow());
+        spectrumExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));
+        SpectrumExplorer.setDefaultInstance(spectrumExplorer);
+
+        spectraTab.addTopBarButton("Change Directory", ImageResource.OPENED_FOLDER, Project::changeRootDirectory);
+        spectraTab.addTopBarButton("Refresh", ImageResource.REFRESH, spectrumExplorer::refresh);
 
         // Right Tool Bar
 

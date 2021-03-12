@@ -19,6 +19,7 @@ import cz.cuni.mff.respefo.util.*;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
@@ -224,5 +225,9 @@ public class Spectrum {
 
     public boolean containsFunctionAsset(String key) {
         return functionAssets.containsKey(key);
+    }
+
+    public static Comparator<Spectrum> hjdComparator() {
+        return Comparator.comparing(left -> left.hjd);
     }
 }

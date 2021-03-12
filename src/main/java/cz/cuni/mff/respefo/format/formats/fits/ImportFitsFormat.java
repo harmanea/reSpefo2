@@ -27,7 +27,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
 
     private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD"};
     private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};
-    private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"};
+    private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"}; // ObservationDurationDescription.EXPOSURE, ObservationDurationDescription.EXPTIME, SBFitsExt.DARKTIME
 
     @Override
     public Spectrum importFrom(String fileName) throws SpefoException {

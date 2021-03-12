@@ -22,6 +22,7 @@ public class Project extends UtilityClass {
         rootDirectory = directory;
 
         FileExplorer.getDefault().setRootDirectory(directory);
+        SpectrumExplorer.getDefault().setRootDirectory(directory);
     }
 
     public static File getRootDirectory() {
@@ -52,6 +53,7 @@ public class Project extends UtilityClass {
 
     public static void refresh() {
         FileExplorer.getDefault().refresh();
+        SpectrumExplorer.getDefault().refresh();
     }
 
     private Project() throws IllegalAccessException {

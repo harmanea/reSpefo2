@@ -95,7 +95,7 @@ public class FileExplorer {
             Arrays.sort(children, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
 
             for (File child : children) {
-                p.syncExec(() -> {
+                p.asyncExec(() -> {
                     TreeItem item = new TreeItem(tree, NONE);
                     setUpChildItem(item, child);
                 });

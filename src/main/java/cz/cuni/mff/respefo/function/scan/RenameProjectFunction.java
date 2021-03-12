@@ -9,7 +9,6 @@ import cz.cuni.mff.respefo.function.asset.rename.MultipleLstFilesDialog;
 import cz.cuni.mff.respefo.function.asset.rename.ProjectPrefixDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoAndLstFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
-import cz.cuni.mff.respefo.util.JulianDate;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +59,7 @@ public class RenameProjectFunction implements ProjectFunction {
                 .filter(endsWith("spf"))
                 .map(this::toSpectrum)
                 .filter(Objects::nonNull)
-                .sorted(this::compareUsingHJD)
+                .sorted(Spectrum.hjdComparator())
                 .collect(toList());
 
         for (int i = 0; i < spfFiles.size(); i++) {
@@ -86,23 +85,6 @@ public class RenameProjectFunction implements ProjectFunction {
         } catch (SpefoException exception) {
             Log.error("Couldn't load spectrum [" + file.getName() + "]", exception);
             return null;
-        }
-    }
-
-    private int compareUsingHJD(Spectrum left, Spectrum right) {
-        JulianDate leftDate = left.getHjd();
-        JulianDate rightDate = right.getHjd();
-
-        if (leftDate == null) {
-            if (rightDate == null) {
-                return 0;
-            } else {
-                return 1;
-            }
-        } else if (rightDate == null) {
-            return -1;
-        } else {
-            return Double.compare(leftDate.getJD(), rightDate.getJD());
         }
     }
 }
