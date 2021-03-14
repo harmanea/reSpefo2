@@ -78,7 +78,7 @@ public class FileExplorer {
 
         clipboard = new Clipboard(ComponentManager.getDisplay());
 
-        new FileExplorerMenu(tree);
+        new FileExplorerMenu();
     }
 
     public void setLayoutData(Object layoutData) {
@@ -462,12 +462,11 @@ public class FileExplorer {
         }
     }
 
-    public class FileExplorerMenu {
+    private class FileExplorerMenu {
         private final Menu menu;
-
         private final List<MenuItem> contextOptions = new ArrayList<>();
 
-        FileExplorerMenu(Tree tree) {
+        FileExplorerMenu() {
             menu = new Menu(ComponentManager.getShell(), POP_UP | NO_RADIO_GROUP);
             tree.setMenu(menu);
 

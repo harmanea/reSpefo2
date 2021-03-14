@@ -20,9 +20,10 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.widgets.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
@@ -46,7 +47,9 @@ public class SpectrumExplorer {
     public SpectrumExplorer(Composite parent) {
         this.table = newTable(MULTI | V_SCROLL | VIRTUAL).columns(4).build(parent);
 
-        addMenu();
+        addDoubleClickListener();
+
+        new SpectrumExplorerMenu();
     }
 
     public void setRootDirectory(File file) {
@@ -113,43 +116,110 @@ public class SpectrumExplorer {
         setRootDirectory(Project.getRootDirectory()); // TODO: optimize this
     }
 
-    private void addMenu() {
-        final Menu menu = new Menu(ComponentManager.getShell(), POP_UP | NO_RADIO_GROUP);
-        table.setMenu(menu);
+    private void addDoubleClickListener() {
+        table.addListener(MouseDoubleClick, event -> {
+            if (table.getSelectionCount() == 1) {
+                TableItem item = table.getSelection()[0];
 
-        menu.addMenuListener(new MenuAdapter() {
-
-            @Override
-            public void menuShown(MenuEvent e) {
-                for (MenuItem item : menu.getItems()) {
-                    item.dispose();
-                }
-
-                if (table.getSelectionCount() == 1) {
-                    File selectedFile = (File) table.getSelection()[0].getData();
-
-                    for (FunctionInfo<SingleFileFunction> fun : FunctionManager.getSingleFileFunctions()) {
-                        if (fun.getFileFilter() instanceof SpefoFormatFileFilter) {
-                            MenuItem item = new MenuItem(menu, PUSH);
-                            item.setText(fun.getName());
-                            item.addListener(Selection, event -> fun.getInstance().execute(selectedFile));
-                        }
-                    }
-
-                } else if (table.getSelectionCount() > 1) {
-                    List<File> selectedFiles = Arrays.stream(table.getSelection())
-                            .map(item -> (File) item.getData())
-                            .collect(Collectors.toList());
-
-                    for (FunctionInfo<MultiFileFunction> fun : FunctionManager.getMultiFileFunctions()) {
-                        if (fun.getFileFilter() instanceof SpefoFormatFileFilter) {
-                            MenuItem item = new MenuItem(menu, PUSH);
-                            item.setText(fun.getName());
-                            item.addListener(Selection, event -> fun.getInstance().execute(selectedFiles));
-                        }
-                    }
-                }
+                File file = (File) item.getData();
+                FunctionManager.getSingleFileFunctionByName("Open").execute(file);
             }
         });
+    }
+
+    private class SpectrumExplorerMenu {
+        private final Menu menu;
+
+        private final List<FunctionInfo<SingleFileFunction>> singleFileFunctions;
+        private final List<String> singleFileGroups;
+        private final List<FunctionInfo<MultiFileFunction>> multiFileFunctions;
+        private final List<String> multiFileGroups;
+
+        private int lastSelectionCount;
+
+        public SpectrumExplorerMenu() {
+            menu = new Menu(ComponentManager.getShell(), POP_UP | NO_RADIO_GROUP);
+            table.setMenu(menu);
+
+            singleFileFunctions = FunctionManager.getSingleFileFunctions().stream()
+                    .filter(fun -> fun.getFileFilter() instanceof SpefoFormatFileFilter)
+                    .collect(Collectors.toList());
+
+            singleFileGroups = singleFileFunctions.stream()
+                    .filter(fun -> fun.getGroup().isPresent())
+                    .map(fun -> fun.getGroup().get())
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            multiFileFunctions = FunctionManager.getMultiFileFunctions().stream()
+                    .filter(fun -> fun.getFileFilter() instanceof SpefoFormatFileFilter)
+                    .collect(Collectors.toList());
+
+            multiFileGroups = multiFileFunctions.stream()
+                    .filter(fun -> fun.getGroup().isPresent())
+                    .map(fun -> fun.getGroup().get())
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            lastSelectionCount = 0;
+
+            menu.addMenuListener(new MenuAdapter() {
+                @Override
+                public void menuShown(MenuEvent e) {
+                    int selectionCount = table.getSelectionCount();
+                    if (selectionCount == 1 && lastSelectionCount != 1) {
+                        createMenuitems(SpectrumExplorerMenu.this::getSingleSelection, singleFileGroups, singleFileFunctions, SingleFileFunction::execute);
+                    } else if (selectionCount > 1 && lastSelectionCount <= 1) {
+                        createMenuitems(SpectrumExplorerMenu.this::getMultiSelection, multiFileGroups, multiFileFunctions, MultiFileFunction::execute);
+                    } else if (selectionCount == 0 && lastSelectionCount > 0) {
+                        disposeItems();
+                    }
+
+                    lastSelectionCount = selectionCount;
+                }
+            });
+        }
+
+        private void disposeItems() {
+            for (MenuItem item : menu.getItems()) {
+                item.dispose();
+            }
+        }
+
+        private File getSingleSelection() {
+            return (File) table.getSelection()[0].getData();
+        }
+
+        private List<File> getMultiSelection() {
+            return Arrays.stream(table.getSelection())
+                    .map(item -> (File) item.getData())
+                    .collect(Collectors.toList());
+        }
+
+        private <S, T> void createMenuitems(Supplier<S> selection, List<String> groups, List<FunctionInfo<T>> functions, BiConsumer<T, S> executor) {
+            disposeItems();
+
+            Map<String, Menu> menuGroups = new HashMap<>();
+
+            for (String group : groups) {
+                final MenuItem groupItem = new MenuItem(menu, CASCADE);
+                groupItem.setText(group);
+
+                final Menu subMenu = new Menu(ComponentManager.getShell(), DROP_DOWN | NO_RADIO_GROUP);
+                groupItem.setMenu(subMenu);
+
+                menuGroups.put(group, subMenu);
+            }
+
+            new MenuItem(menu, SEPARATOR);
+
+            for (FunctionInfo<T> fun : functions) {
+                MenuItem item = new MenuItem(fun.getGroup().isPresent() ? menuGroups.get(fun.getGroup().get()) : menu, PUSH);
+                item.setText(fun.getName());
+                item.addListener(Selection, event -> executor.accept(fun.getInstance(), selection.get()));
+            }
+        }
     }
 }

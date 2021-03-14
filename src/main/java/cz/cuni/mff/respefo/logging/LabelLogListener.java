@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 public class LabelLogListener implements LogListener {
 
-    private static final int DECAY_TIME_IN_MILLISECONDS = 60 * 1000;
+    private static final int DECAY_TIME_IN_MILLISECONDS = 60 * 1000; // = 1 minute
     private static final String DATE_TIME_PATTERN = "HH:mm:ss";
 
     private final Label label;
@@ -24,15 +24,18 @@ public class LabelLogListener implements LogListener {
     @Override
     public void notify(LogEntry entry) {
         if (Boolean.TRUE.equals(shouldDisplay.get())) {
-            String formattedDate = entry.getDateTime().format(formatter);
-            label.getDisplay().asyncExec(() -> setTextAndRequestLayout(formattedDate + " " + StringUtils.substringBefore(entry.getMessage(), '\n')));
-
-            label.getDisplay().timerExec(DECAY_TIME_IN_MILLISECONDS, () -> {
-                if (!label.isDisposed() && label.getText().startsWith(formattedDate)) {
-                    setTextAndRequestLayout("");
-                }
-            });
+            label.getDisplay().asyncExec(() -> showLog(entry));
         }
+    }
+
+    private void showLog(LogEntry entry) {
+        String formattedDate = entry.getDateTime().format(formatter);
+        setTextAndRequestLayout(formattedDate + " " + StringUtils.substringBefore(entry.getMessage(), '\n'));
+        label.getDisplay().timerExec(DECAY_TIME_IN_MILLISECONDS, () -> {
+            if (!label.isDisposed() && label.getText().startsWith(formattedDate)) {
+                setTextAndRequestLayout("");
+            }
+        });
     }
 
     private void setTextAndRequestLayout(String text) {

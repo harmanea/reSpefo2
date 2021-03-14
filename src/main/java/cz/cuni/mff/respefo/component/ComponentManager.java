@@ -3,7 +3,9 @@ package cz.cuni.mff.respefo.component;
 import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.ProjectFunction;
+import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.scan.InspectJSONFunction;
+import cz.cuni.mff.respefo.function.scan.OpenFunction;
 import cz.cuni.mff.respefo.function.scan.RepairFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
@@ -22,6 +24,7 @@ import java.io.File;
 
 import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.builders.MenuBuilder.*;
 import static cz.cuni.mff.respefo.util.builders.RowLayoutBuilder.rowLayout;
 import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
@@ -128,7 +131,7 @@ public class ComponentManager extends UtilityClass {
         projectTab.show();
 
         ToolBar.Tab spectraTab = leftToolBar.addTab(parent -> new VerticalToggle(parent, UP),
-                "Spectra", "Spectra", ImageResource.SPECTRA_LARGE);
+                "Spectra", "Spectra (Preview)", ImageResource.SPECTRA_LARGE);
 
         SpectrumExplorer spectrumExplorer = new SpectrumExplorer(spectraTab.getWindow());
         spectrumExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -206,177 +209,41 @@ public class ComponentManager extends UtilityClass {
 
         // Menu
 
-        final Menu menuBar = new Menu(shell, BAR);
-        shell.setMenuBar(menuBar);
-
-        final MenuItem fileMenuHeader = new MenuItem(menuBar, CASCADE);
-        fileMenuHeader.setText("&File");
-
-        final Menu fileMenu = new Menu(shell, DROP_DOWN);
-        fileMenuHeader.setMenu(fileMenu);
-
-        final MenuItem openMenuItem = new MenuItem(fileMenu, PUSH);
-        openMenuItem.setText("Open");
-        openMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
-            if (fileName != null) {
-                FunctionManager.getSingleFileFunctionByName("Open").execute(new File(fileName));
-            }
-        }));
-
-        new MenuItem(fileMenu, SEPARATOR);
-
-        final MenuItem importMenuItem = new MenuItem(fileMenu, PUSH);
-        importMenuItem.setText("Import");
-        importMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.COMPATIBLE_SPECTRUM_FILES);
-            if (!fileNames.isEmpty()) {
-                if (fileNames.size() > 1) {
-                    FunctionManager.getMultiFileFunctionByName("Import").execute(fileNames.stream().map(File::new).collect(toList()));
-                } else {
-                    FunctionManager.getSingleFileFunctionByName("Import").execute(new File(fileNames.get(0)));
-                }
-            }
-        }));
-
-        final MenuItem exportMenuItem = new MenuItem(fileMenu, PUSH);
-        exportMenuItem.setText("Export");
-        exportMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(FileType.SPECTRUM);
-            if (!fileNames.isEmpty()) {
-                if (fileNames.size() > 1) {
-                    FunctionManager.getMultiFileFunctionByName("Export").execute(fileNames.stream().map(File::new).collect(toList()));
-                } else {
-                    FunctionManager.getSingleFileFunctionByName("Export").execute(new File(fileNames.get(0)));
-                }
-            }
-        }));
-
-        new MenuItem(fileMenu, SEPARATOR);
-
-        final MenuItem quitMenuItem = new MenuItem(fileMenu, PUSH);
-        quitMenuItem.setText("Quit");
-        quitMenuItem.addSelectionListener(new DefaultSelectionListener(event -> shell.close()));
-
-
-        final MenuItem projectMenuHeader = new MenuItem(menuBar, CASCADE);
-        projectMenuHeader.setText("&Project");
-
-        final Menu projectMenu = new Menu(shell, DROP_DOWN);
-        projectMenuHeader.setMenu(projectMenu);
-
-        final MenuItem changeDirectoryItem = new MenuItem(projectMenu, PUSH);
-        changeDirectoryItem.setText("Change Directory");
-        changeDirectoryItem.addSelectionListener(new DefaultSelectionListener(event -> Project.changeRootDirectory()));
-
-        new MenuItem(projectMenu, SEPARATOR);
-
-        for (FunctionInfo<ProjectFunction> functionInfo : FunctionManager.getProjectFunctions()) {
-            final MenuItem menuItem = new MenuItem(projectMenu, PUSH);
-            menuItem.setText(functionInfo.getName());
-            menuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-                File[] files = Project.getRootDirectory().listFiles(functionInfo.getFileFilter());
-                if (files != null) {
-                    functionInfo.getInstance().execute(asList(files));
-                }
-            }));
-        }
-
-        final MenuItem windowMenuHeader = new MenuItem(menuBar, CASCADE);
-        windowMenuHeader.setText("&Window");
-
-        final Menu windowMenu = new Menu(shell, DROP_DOWN);
-        windowMenuHeader.setMenu(windowMenu);
-
-        final MenuItem hideSideBarsMenuItem = new MenuItem(windowMenu, PUSH);
-        hideSideBarsMenuItem.setText("Hide All Toolbars");
-        hideSideBarsMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            leftToolBar.hide();
-            rightToolBar.hide();
-            bottomToolBar.hide();
-        }));
-
-        new MenuItem(windowMenu, SEPARATOR);
-
-        final MenuItem clearSceneMenuItem = new MenuItem(windowMenu, PUSH);
-        clearSceneMenuItem.setText("Clear Scene");
-        clearSceneMenuItem.addSelectionListener(new DefaultSelectionListener(event -> clearScene(true)));
-
-        final MenuItem focusSceneMenuItem = new MenuItem(windowMenu, PUSH);
-        focusSceneMenuItem.setText("Focus Scene");
-        focusSceneMenuItem.addSelectionListener(new DefaultSelectionListener(event -> getScene().forceFocus()));
-
-
-        final MenuItem debugMenuHeader = new MenuItem(menuBar, CASCADE);
-        debugMenuHeader.setText("Debug");
-
-        final Menu debugMenu = new Menu(shell, DROP_DOWN);
-        debugMenuHeader.setMenu(debugMenu);
-
-        final InspectJSONFunction inspectJSONFunction = new InspectJSONFunction();
-        final MenuItem spectrumJsonMenuItem = new MenuItem(debugMenu, PUSH);
-        spectrumJsonMenuItem.setText("Inspect JSON");
-        spectrumJsonMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
-            if (fileName != null) {
-                inspectJSONFunction.execute(new File(fileName));
-            }
-        }));
-
-        final MenuItem exceptionMenuItem = new MenuItem(debugMenu, PUSH);
-        exceptionMenuItem.setText("Throw an Exception");
-        exceptionMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            throw new RuntimeException("This is a debug exception");
-        }));
-
-        final RepairFunction repairFunction = new RepairFunction();
-        final MenuItem repairMenuItem = new MenuItem(debugMenu, PUSH);
-        repairMenuItem.setText("Repair file");
-        repairMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
-            if (fileName != null) {
-                repairFunction.execute(new File(fileName));
-            }
-        }));
-
-        final MenuItem logMenuItem = new MenuItem(debugMenu, CASCADE);
-        logMenuItem.setText("Log");
-
-        final Menu subMenu = new Menu(shell, DROP_DOWN | NO_RADIO_GROUP);
-        logMenuItem.setMenu(subMenu);
-
-        final MenuItem errorItem = new MenuItem(subMenu, PUSH);
-        errorItem.setText("Error");
-        errorItem.addSelectionListener(new DefaultSelectionListener(event -> Log.error("Test error log", new RuntimeException("This is a debug exception"))));
-
-        final MenuItem warningItem = new MenuItem(subMenu, PUSH);
-        warningItem.setText("Warning");
-        warningItem.addSelectionListener(new DefaultSelectionListener(event -> Log.warning("Test warning log")));
-
-        final MenuItem infoItem = new MenuItem(subMenu, PUSH);
-        infoItem.setText("Info");
-        infoItem.addSelectionListener(new DefaultSelectionListener(event -> Log.info("Test info log")));
-
-        final MenuItem debugItem = new MenuItem(subMenu, PUSH);
-        debugItem.setText("Debug");
-        debugItem.addSelectionListener(new DefaultSelectionListener(event -> Log.debug("Test debug log")));
-
-        final MenuItem traceItem = new MenuItem(subMenu, PUSH);
-        traceItem.setText("Trace");
-        traceItem.addSelectionListener(new DefaultSelectionListener(event -> Log.trace("Test trace log")));
-
-        new MenuItem(subMenu, SEPARATOR);
-
-        final MenuItem actionItem = new MenuItem(subMenu, PUSH);
-        actionItem.setText("Action");
-        actionItem.addSelectionListener(new DefaultSelectionListener(event ->
-                Log.action("Test action log ", "Action", () -> Message.info("Test action!"), false)));
-
-//        final MenuItem placeHolderMenuItem = new MenuItem(debugMenu, PUSH);
-//        placeHolderMenuItem.setText("Placeholder text");
-//        placeHolderMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-//            // Placeholder action
-//        }));
+        bar(shell,
+                header("&File",
+                        item("Open", () -> function(new OpenFunction())),
+                        separator(),
+                        item("Import", () -> multipleFilesFunction(FileType.COMPATIBLE_SPECTRUM_FILES, "Import")),
+                        item("Export", () -> multipleFilesFunction(FileType.SPECTRUM, "Export")),
+                        separator(),
+                        item("Quit", () -> shell.close())
+                ),
+                header("&Project",
+                        item("Change Directory", Project::changeRootDirectory),
+                        separator(),
+                        items(FunctionManager.getProjectFunctions(), FunctionInfo::getName, ComponentManager::projectFunction)
+                ),
+                header("&Window",
+                        item("Hide All Toolbars", ComponentManager::windowHideToolbars),
+                        separator(),
+                        item("Clear Scene", () -> clearScene(true)),
+                        item("Focus Scene", () -> getScene().forceFocus())
+                ),
+                header("Debug",
+                        item("Inspect JSON", () -> function(new InspectJSONFunction())),
+                        item("Repair File", () -> function(new RepairFunction())),
+                        item("Throw an Exception", () -> { throw new RuntimeException("This is a debug exception"); }),
+                        subMenu("Log",
+                                item("Error", () -> Log.error("Test error log", new RuntimeException("This is a debug exception"))),
+                                item("Warning", () -> Log.warning("Test warning log")),
+                                item("Info", () -> Log.info("Test info log")),
+                                item("Debug", () -> Log.debug("Test debug log")),
+                                item("Trace", () -> Log.trace("Test trace log")),
+                                separator(),
+                                item("Action", () -> Log.action("Test action log ", "Action", () -> Message.info("Test action!"), false))
+                        )
+                )
+        );
     }
 
     public static void open() {
@@ -442,5 +309,38 @@ public class ComponentManager extends UtilityClass {
 
     protected ComponentManager() throws IllegalAccessException {
         super();
+    }
+
+    private static void function(SingleFileFunction function) {
+        String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
+        if (fileName != null) {
+            function.execute(new File(fileName));
+        }
+    }
+
+    private static void multipleFilesFunction(FileType fileType, String functionName) {
+        java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(fileType);
+        if (!fileNames.isEmpty()) {
+            if (fileNames.size() > 1) {
+                FunctionManager.getMultiFileFunctionByName(functionName).execute(fileNames.stream().map(File::new).collect(toList()));
+            } else {
+                FunctionManager.getSingleFileFunctionByName(functionName).execute(new File(fileNames.get(0)));
+            }
+        }
+    }
+
+    private static Runnable projectFunction(FunctionInfo<ProjectFunction> functionInfo) {
+        return () -> {
+            File[] files = Project.getRootDirectory().listFiles(functionInfo.getFileFilter());
+            if (files != null) {
+                functionInfo.getInstance().execute(asList(files));
+            }
+        };
+    }
+
+    private static void windowHideToolbars() {
+        leftToolBar.hide();
+        bottomToolBar.hide();
+        rightToolBar.hide();
     }
 }
