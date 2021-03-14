@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.SpectrumExplorer;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.Fun;
@@ -144,12 +145,12 @@ public class RectifyFunction implements SingleFileFunction {
 
         try {
             spectrum.save();
-
-            Message.info("Rectified spectrum saved successfully.");
+            SpectrumExplorer.getDefault().refresh();
             OpenFunction.displaySpectrum(spectrum);
+            Message.info("Rectified spectrum saved successfully.");
 
         } catch (SpefoException exception) {
-            Message.error("Couldn't save file", exception);
+            Message.error("Spectrum file couldn't be saved.", exception);
         }
     }
 }

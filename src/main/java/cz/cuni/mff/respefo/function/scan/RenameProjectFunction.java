@@ -9,6 +9,7 @@ import cz.cuni.mff.respefo.function.asset.rename.MultipleLstFilesDialog;
 import cz.cuni.mff.respefo.function.asset.rename.ProjectPrefixDialog;
 import cz.cuni.mff.respefo.function.filter.SpefoAndLstFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.util.Message;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,6 +74,7 @@ public class RenameProjectFunction implements ProjectFunction {
         }
 
         Project.refresh();
+        Message.info("Project renamed successfully");
     }
 
     private static Predicate<File> endsWith(String suffix) {

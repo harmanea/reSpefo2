@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.component.SpectrumExplorer;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.function.Fun;
@@ -64,8 +65,9 @@ public class MeasureEWFunction implements SingleFileFunction {
 
         try {
             spectrum.save();
-
+            SpectrumExplorer.getDefault().refresh();
             Message.info("Measurements saved successfully.");
+
         } catch (SpefoException exception) {
             Message.error("Spectrum file couldn't be saved.", exception);
         }

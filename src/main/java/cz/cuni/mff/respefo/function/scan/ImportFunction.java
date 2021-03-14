@@ -66,6 +66,8 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             try {
                 if (saveAs(spectrum, new File(fileName))) {
                     Project.refresh();
+                    OpenFunction.displaySpectrum(spectrum);
+                    Message.info("File imported successfully.");
                 }
             } catch (SpefoException exception) {
                 Message.error("An error occurred while saving file.", exception);
@@ -151,6 +153,8 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             if (failedFiles != null) {
                 if (!failedFiles.isEmpty()) {
                     Message.warning("Some files failed to import:\n\n" + filesListToString(failedFiles));
+                } else {
+                    Message.info("All files imported successfully.");
                 }
                 Project.refresh();
             }

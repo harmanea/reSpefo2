@@ -73,7 +73,7 @@ public class OpenFunction implements SingleFileFunction {
                         new String[] {"HJD", isNaN(spectrum.getHjd().getJD()) ? "N/A" : Double.toString(spectrum.getHjd().getJD())},
                         new String[] {"Date OBS", spectrum.getDateOfObservation().equals(LocalDateTime.MIN) ? "N/A" : spectrum.getDateOfObservation().toString()},
                         new String[] {"RV Corr", Double.toString(spectrum.getRvCorrection())},
-                        new String[] {"Exp Time", Double.toString(spectrum.getExpTime())}
+                        new String[] {"Exp Time", isNaN(spectrum.getExpTime()) ? "N/A" : Double.toString(spectrum.getExpTime())}
                 ))
                 .packColumns()
                 .listener(SWT.MouseDoubleClick, event -> {

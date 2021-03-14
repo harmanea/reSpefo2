@@ -105,9 +105,8 @@ public class CleanFunction implements SingleFileFunction {
 
                                 try {
                                     spectrum.save();
-
-                                    Message.info("Cleaned spectrum saved successfully.");
                                     OpenFunction.displaySpectrum(spectrum);
+                                    Message.info("Cleaned spectrum saved successfully.");
 
                                 } catch (Exception exception) {
                                     Message.error("Spectrum file couldn't be saved.", exception);

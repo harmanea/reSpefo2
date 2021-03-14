@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.function.scan;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.function.Fun;
@@ -67,8 +68,8 @@ public class CreateListFunction implements MultiFileFunction {
                             formatDouble(spectrum.getRvCorrection(), 3, 2)));
                 }
 
+                FileExplorer.getDefault().refresh();
                 Message.info("File created successfully");
-                Project.refresh();
             } catch (FileNotFoundException exception) {
                 Message.error("Couldn't generate .lst file", exception);
             }

@@ -47,8 +47,8 @@ public class TrimFunction implements SingleFileFunction {
         try {
             spectrum.save();
             OpenFunction.displaySpectrum(spectrum);
+            Message.info("Trimmed spectrum saved successfully.");
 
-            Message.info("File saved successfully");
         } catch (SpefoException e) {
             Message.error("Couldn't save file", e);
         }

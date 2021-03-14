@@ -78,11 +78,11 @@ public class InteractiveChironFunction implements SingleFileFunction {
 
             spectrum.saveAs(new File(newFileName));
             Project.refresh();
-
             OpenFunction.displaySpectrum(spectrum);
+            Message.info("File imported successfully.");
 
         } catch (SpefoException exception) {
-            Message.error("An error occurred while saving file", exception);
+            Message.error("Spectrum file couldn't be saved.", exception);
         }
     }
 
