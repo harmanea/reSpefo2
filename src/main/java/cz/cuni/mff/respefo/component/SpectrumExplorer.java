@@ -6,9 +6,6 @@ import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
-import cz.cuni.mff.respefo.function.asset.ew.MeasureEWResults;
-import cz.cuni.mff.respefo.function.asset.rectify.RectifyAsset;
-import cz.cuni.mff.respefo.function.asset.rv.MeasureRVResults;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ImageManager;
@@ -89,15 +86,15 @@ public class SpectrumExplorer {
                 item.setText(0, FileUtils.stripParent(spectrum.getFile().getName()));
                 item.setImage(0, ImageManager.getImage(ImageResource.SPECTRUM_FILE));
 
-                if (spectrum.getFunctionAsset("rectify", RectifyAsset.class).isPresent()) {
+                if (spectrum.containsFunctionAsset("rectify")) {
                     item.setImage(1, ImageManager.getImage(ImageResource.RECTIFY));
                 }
 
-                if (spectrum.getFunctionAsset("rv", MeasureRVResults.class).isPresent()) {
+                if (spectrum.containsFunctionAsset("rv")) {
                     item.setImage(2, ImageManager.getImage(ImageResource.RV));
                 }
 
-                if (spectrum.getFunctionAsset("ew", MeasureEWResults.class).isPresent()) {
+                if (spectrum.containsFunctionAsset("ew")) {
                     item.setImage(3, ImageManager.getImage(ImageResource.EW));
                 }
             }

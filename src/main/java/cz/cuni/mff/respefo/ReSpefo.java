@@ -10,7 +10,7 @@ import cz.cuni.mff.respefo.util.Progress;
 
 public class ReSpefo {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         // Scan for annotations -> fill function managers
         FunctionManager.scan();

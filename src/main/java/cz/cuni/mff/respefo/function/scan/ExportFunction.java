@@ -44,7 +44,7 @@ public class ExportFunction implements SingleFileFunction, MultiFileFunction {
             return;
         }
 
-        String fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrumFile.getName()));
+        String fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrumFile.getPath()));
         if (fileName != null) {
             try {
                 if (exportTo(spectrum, fileName)) {

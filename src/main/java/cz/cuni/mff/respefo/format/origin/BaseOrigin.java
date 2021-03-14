@@ -7,11 +7,11 @@ import java.nio.file.Paths;
 public abstract class BaseOrigin {
     protected String fileName;
 
-    public BaseOrigin() {
+    protected BaseOrigin() {
         // default empty constructor
     }
 
-    public BaseOrigin(String fileName) {
+    protected BaseOrigin(String fileName) {
         this.fileName = FileUtils.getRelativePath(Paths.get(fileName)).toString();
     }
 
