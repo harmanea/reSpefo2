@@ -3,6 +3,8 @@ package cz.cuni.mff.respefo.format.formats.legacy;
 import cz.cuni.mff.respefo.format.origin.BaseOrigin;
 import cz.cuni.mff.respefo.format.origin.Origin;
 
+import java.util.Arrays;
+
 @Origin(key = "legacy")
 public class LegacySpefoOrigin extends BaseOrigin {
 
@@ -47,8 +49,8 @@ public class LegacySpefoOrigin extends BaseOrigin {
         this.starStep = starStep;
     }
 
-    public double[] getDispCoef() {
-        return dispCoef;
+    public double getDispCoef(int index) {
+        return dispCoef[index];
     }
 
     public void setDispCoef(double[] dispCoef) {
@@ -71,8 +73,12 @@ public class LegacySpefoOrigin extends BaseOrigin {
         this.maxInt = maxInt;
     }
 
-    public double[] getFilterWidth() {
-        return filterWidth;
+    public boolean hasValidFilterWidth() {
+        return Arrays.stream(filterWidth).anyMatch(d -> d != 0);
+    }
+
+    public double getFilterWidth(int index) {
+        return filterWidth[index];
     }
 
     public void setFilterWidth(double[] filterWidth) {
