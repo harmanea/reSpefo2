@@ -124,11 +124,12 @@ public class OpenFunction implements SingleFileFunction {
             }
 
             case "RV Corr": {
-                DoubleNumberDialog numberDialog = new DoubleNumberDialog("RV Corr", spectrum.getRvCorrection());
+                double rvCorr = spectrum.getRvCorrection();
+                DoubleNumberDialog numberDialog = new DoubleNumberDialog("RV Corr", isNaN(rvCorr) ? 0 : rvCorr);
                 if (numberDialog.openIsOk()) {
-                    if (Double.compare(spectrum.getRvCorrection(), numberDialog.getValue()) != 0
+                    if (Double.compare(rvCorr, numberDialog.getValue()) != 0
                             && Message.question("Do you want to adjust the spectrum values according to the difference?")) {
-                        double diff = numberDialog.getValue() - (isNaN(spectrum.getRvCorrection()) ? 0 : spectrum.getRvCorrection());
+                        double diff = numberDialog.getValue() - (isNaN(rvCorr) ? 0 : rvCorr);
                         double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
                                 .map(value -> value + diff * (value / Constants.SPEED_OF_LIGHT))
                                 .toArray();
@@ -146,6 +147,7 @@ public class OpenFunction implements SingleFileFunction {
                     spectrum.setExpTime(numberDialog.getValue());
                     trySave(spectrum, item, Double.toString(numberDialog.getValue()));
                 }
+                break;
             }
         }
     }

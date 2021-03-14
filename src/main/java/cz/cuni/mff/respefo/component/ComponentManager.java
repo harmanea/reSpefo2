@@ -1,12 +1,7 @@
 package cz.cuni.mff.respefo.component;
 
-import cz.cuni.mff.respefo.function.FunctionInfo;
-import cz.cuni.mff.respefo.function.FunctionManager;
-import cz.cuni.mff.respefo.function.ProjectFunction;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
-import cz.cuni.mff.respefo.function.scan.InspectJSONFunction;
-import cz.cuni.mff.respefo.function.scan.OpenFunction;
-import cz.cuni.mff.respefo.function.scan.RepairFunction;
+import cz.cuni.mff.respefo.function.*;
+import cz.cuni.mff.respefo.function.scan.*;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
@@ -211,10 +206,10 @@ public class ComponentManager extends UtilityClass {
 
         bar(shell,
                 header("&File",
-                        item("Open", () -> function(new OpenFunction())),
+                        item("Open", function(new OpenFunction())),
                         separator(),
-                        item("Import", () -> multipleFilesFunction(FileType.COMPATIBLE_SPECTRUM_FILES, "Import")),
-                        item("Export", () -> multipleFilesFunction(FileType.SPECTRUM, "Export")),
+                        item("Import", multipleFilesFunction(FileType.COMPATIBLE_SPECTRUM_FILES, new ImportFunction())),
+                        item("Export", multipleFilesFunction(FileType.SPECTRUM, new ExportFunction())),
                         separator(),
                         item("Quit", () -> shell.close())
                 ),
@@ -224,14 +219,14 @@ public class ComponentManager extends UtilityClass {
                         items(FunctionManager.getProjectFunctions(), FunctionInfo::getName, ComponentManager::projectFunction)
                 ),
                 header("&Window",
-                        item("Hide All Toolbars", ComponentManager::windowHideToolbars),
+                        item("Hide All Toolbars", ComponentManager::hideToolbars),
                         separator(),
                         item("Clear Scene", () -> clearScene(true)),
                         item("Focus Scene", () -> getScene().forceFocus())
                 ),
                 header("Debug",
-                        item("Inspect JSON", () -> function(new InspectJSONFunction())),
-                        item("Repair File", () -> function(new RepairFunction())),
+                        item("Inspect JSON", function(new InspectJSONFunction())),
+                        item("Repair File", function(new RepairFunction())),
                         item("Throw an Exception", () -> { throw new RuntimeException("This is a debug exception"); }),
                         subMenu("Log",
                                 item("Error", () -> Log.error("Test error log", new RuntimeException("This is a debug exception"))),
@@ -307,26 +302,32 @@ public class ComponentManager extends UtilityClass {
         return bottomToolBar;
     }
 
-    protected ComponentManager() throws IllegalAccessException {
-        super();
+    public static void hideToolbars() {
+        leftToolBar.hide();
+        bottomToolBar.hide();
+        rightToolBar.hide();
     }
 
-    private static void function(SingleFileFunction function) {
-        String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
-        if (fileName != null) {
-            function.execute(new File(fileName));
-        }
-    }
-
-    private static void multipleFilesFunction(FileType fileType, String functionName) {
-        java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(fileType);
-        if (!fileNames.isEmpty()) {
-            if (fileNames.size() > 1) {
-                FunctionManager.getMultiFileFunctionByName(functionName).execute(fileNames.stream().map(File::new).collect(toList()));
-            } else {
-                FunctionManager.getSingleFileFunctionByName(functionName).execute(new File(fileNames.get(0)));
+    private static Runnable function(SingleFileFunction function) {
+        return () -> {
+            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
+            if (fileName != null) {
+                function.execute(new File(fileName));
             }
-        }
+        };
+    }
+
+    private static <T extends SingleFileFunction & MultiFileFunction> Runnable multipleFilesFunction(FileType fileType, T function) {
+        return () -> {
+            java.util.List<String> fileNames = FileDialogs.openMultipleFilesDialog(fileType);
+            if (!fileNames.isEmpty()) {
+                if (fileNames.size() > 1) {
+                    function.execute(fileNames.stream().map(File::new).collect(toList()));
+                } else {
+                    function.execute(new File(fileNames.get(0)));
+                }
+            }
+        };
     }
 
     private static Runnable projectFunction(FunctionInfo<ProjectFunction> functionInfo) {
@@ -338,9 +339,7 @@ public class ComponentManager extends UtilityClass {
         };
     }
 
-    private static void windowHideToolbars() {
-        leftToolBar.hide();
-        bottomToolBar.hide();
-        rightToolBar.hide();
+    protected ComponentManager() throws IllegalAccessException {
+        super();
     }
 }
