@@ -14,10 +14,10 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.RowLayoutBuilder.rowLayout;
-import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
-import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.layout.RowLayoutBuilder.rowLayout;
+import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static java.lang.Boolean.TRUE;
 import static org.eclipse.swt.SWT.*;
 

@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.util.utils;
 
-import cz.cuni.mff.respefo.util.Point;
 import cz.cuni.mff.respefo.util.UtilityClass;
+import cz.cuni.mff.respefo.util.collections.Point;
 import org.swtchart.*;
 
 import java.util.Objects;

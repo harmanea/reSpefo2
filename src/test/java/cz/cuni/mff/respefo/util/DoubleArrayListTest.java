@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.util;
 
+import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import org.junit.Test;
 
 import java.util.ArrayList;

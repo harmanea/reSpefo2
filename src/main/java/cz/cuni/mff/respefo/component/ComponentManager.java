@@ -1,15 +1,22 @@
 package cz.cuni.mff.respefo.component;
 
 import cz.cuni.mff.respefo.function.*;
-import cz.cuni.mff.respefo.function.scan.*;
+import cz.cuni.mff.respefo.function.debug.InspectJSONFunction;
+import cz.cuni.mff.respefo.function.debug.RepairFunction;
+import cz.cuni.mff.respefo.function.open.OpenFunction;
+import cz.cuni.mff.respefo.function.port.ExportFunction;
+import cz.cuni.mff.respefo.function.port.ImportFunction;
 import cz.cuni.mff.respefo.logging.FancyLogListener;
 import cz.cuni.mff.respefo.logging.LabelLogListener;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.logging.LogLevel;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.util.*;
-import cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder;
+import cz.cuni.mff.respefo.util.info.VersionInfo;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
+import cz.cuni.mff.respefo.util.widget.CompositeBuilder;
+import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
+import nom.tam.fits.FitsFactory;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.layout.GridData;
@@ -17,12 +24,12 @@ import org.eclipse.swt.widgets.*;
 
 import java.io.File;
 
-import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
-import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.builders.MenuBuilder.*;
-import static cz.cuni.mff.respefo.util.builders.RowLayoutBuilder.rowLayout;
-import static cz.cuni.mff.respefo.util.builders.widgets.CompositeBuilder.newComposite;
-import static cz.cuni.mff.respefo.util.builders.widgets.LabelBuilder.newLabel;
+import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
+import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.layout.MenuBuilder.*;
+import static cz.cuni.mff.respefo.util.layout.RowLayoutBuilder.rowLayout;
+import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
+import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
@@ -225,8 +232,11 @@ public class ComponentManager extends UtilityClass {
                         item("Focus Scene", () -> getScene().forceFocus())
                 ),
                 header("Debug",
+                        checkItem("Allow FITS Header Repairs", FitsFactory::setAllowHeaderRepairs),
+                        separator(),
                         item("Inspect JSON", function(new InspectJSONFunction())),
                         item("Repair File", function(new RepairFunction())),
+                        separator(),
                         item("Throw an Exception", () -> { throw new RuntimeException("This is a debug exception"); }),
                         subMenu("Log",
                                 item("Error", () -> Log.error("Test error log", new RuntimeException("This is a debug exception"))),

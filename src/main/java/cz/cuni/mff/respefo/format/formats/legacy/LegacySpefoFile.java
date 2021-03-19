@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.format.formats.legacy;
 
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
-import cz.cuni.mff.respefo.util.DoubleArrayList;
+import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 
 import java.io.FileInputStream;
 import java.io.IOException;

@@ -2,11 +2,11 @@ package cz.cuni.mff.respefo.format.formats.legacy;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
-import cz.cuni.mff.respefo.function.asset.rectify.RectifyAsset;
-import cz.cuni.mff.respefo.function.scan.RectifyFunction;
-import cz.cuni.mff.respefo.util.DoubleArrayList;
+import cz.cuni.mff.respefo.function.rectify.RectifyAsset;
+import cz.cuni.mff.respefo.function.rectify.RectifyFunction;
+import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
+import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;

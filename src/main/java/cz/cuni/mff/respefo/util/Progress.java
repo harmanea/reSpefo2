@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.util;
 
-import cz.cuni.mff.respefo.component.SpefoDialog;
+import cz.cuni.mff.respefo.dialog.SpefoDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;

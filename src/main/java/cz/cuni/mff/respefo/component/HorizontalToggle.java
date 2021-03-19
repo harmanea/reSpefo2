@@ -5,7 +5,7 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
-import static cz.cuni.mff.respefo.util.builders.FillLayoutBuilder.fillLayout;
+import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
 
 public class HorizontalToggle extends Toggle {
 

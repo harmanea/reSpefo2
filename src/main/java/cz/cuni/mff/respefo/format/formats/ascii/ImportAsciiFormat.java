@@ -3,9 +3,9 @@ package cz.cuni.mff.respefo.format.formats.ascii;
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
 import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
-import cz.cuni.mff.respefo.util.DoubleArrayList;
+import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
+import cz.cuni.mff.respefo.util.collections.XYSeries;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

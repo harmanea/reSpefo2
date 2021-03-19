@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.util;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
-import cz.cuni.mff.respefo.component.ErrorDialog;
+import cz.cuni.mff.respefo.dialog.ErrorDialog;
 import cz.cuni.mff.respefo.logging.Log;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;

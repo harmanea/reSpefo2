@@ -11,8 +11,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Widget;
 
-import static cz.cuni.mff.respefo.util.builders.GridDataBuilder.gridData;
-import static cz.cuni.mff.respefo.util.builders.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
+import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 
 public class VerticalToggle extends Toggle {
 

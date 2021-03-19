@@ -2,8 +2,8 @@ package cz.cuni.mff.respefo.format.formats.ascii;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.format.formats.ExportFileFormat;
+import cz.cuni.mff.respefo.util.collections.XYSeries;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

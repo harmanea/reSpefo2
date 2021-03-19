@@ -14,7 +14,8 @@ import cz.cuni.mff.respefo.format.asset.FunctionAsset;
 import cz.cuni.mff.respefo.format.asset.FunctionAssetsDeserializer;
 import cz.cuni.mff.respefo.format.origin.OriginDeserializer;
 import cz.cuni.mff.respefo.format.origin.OriginSerializer;
-import cz.cuni.mff.respefo.util.*;
+import cz.cuni.mff.respefo.util.collections.*;
+import cz.cuni.mff.respefo.util.info.VersionInfo;
 
 import java.io.File;
 import java.io.IOException;

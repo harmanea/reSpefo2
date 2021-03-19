@@ -9,7 +9,7 @@ import java.io.FileFilter;
 import java.util.*;
 
 public class FunctionManager extends UtilityClass {
-    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.function.scan";
+    private static final String PACKAGE_TO_SCAN = "cz.cuni.mff.respefo.function";
 
     private static List<FunctionInfo<SingleFileFunction>> singleFileFunctions;
     private static List<FunctionInfo<MultiFileFunction>> multiFileFunctions;

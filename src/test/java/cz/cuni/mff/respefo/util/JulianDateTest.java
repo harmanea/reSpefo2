@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.util;
 
+import cz.cuni.mff.respefo.util.collections.JulianDate;
 import org.junit.Test;
 
 import java.time.LocalDate;

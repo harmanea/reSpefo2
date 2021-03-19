@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.util;
 
-import cz.cuni.mff.respefo.component.OverwriteDialog;
+import cz.cuni.mff.respefo.dialog.OverwriteDialog;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 
@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import static cz.cuni.mff.respefo.component.OverwriteDialog.*;
+import static cz.cuni.mff.respefo.dialog.OverwriteDialog.*;
 import static org.eclipse.swt.SWT.CANCEL;
 
 public class FileCopy {

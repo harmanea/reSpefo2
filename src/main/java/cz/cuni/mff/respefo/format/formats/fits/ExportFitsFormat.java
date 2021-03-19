@@ -2,11 +2,11 @@ package cz.cuni.mff.respefo.format.formats.fits;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.format.formats.ExportFileFormat;
 import cz.cuni.mff.respefo.format.formats.ascii.AsciiOrigin;
 import cz.cuni.mff.respefo.format.formats.legacy.LegacySpefoOrigin;
-import cz.cuni.mff.respefo.util.VersionInfo;
+import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.info.VersionInfo;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import nom.tam.fits.*;
 import nom.tam.fits.header.DataDescription;

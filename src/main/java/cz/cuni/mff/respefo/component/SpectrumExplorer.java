@@ -23,7 +23,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static cz.cuni.mff.respefo.util.builders.widgets.TableBuilder.newTable;
+import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static org.eclipse.swt.SWT.*;
 
 // Proof of concept, it's code should eventually be mostly shared with FileExplorer

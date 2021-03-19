@@ -3,31 +3,25 @@ package cz.cuni.mff.respefo.format.formats.fits;
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
 import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.XYSeries;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.logging.Log;
-import cz.cuni.mff.respefo.util.JulianDate;
+import cz.cuni.mff.respefo.util.collections.JulianDate;
+import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
+import cz.cuni.mff.respefo.util.utils.FitsUtils;
 import nom.tam.fits.*;
 import nom.tam.fits.header.Standard;
 import nom.tam.util.Cursor;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
-// TODO: There is a whole lot of useable header cards in nom.tam.fits.header(.extra), maybe use some of those as well
 public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
-
-    private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD"};
-    private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};
-    private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"}; // ObservationDurationDescription.EXPOSURE, ObservationDurationDescription.EXPTIME, SBFitsExt.DARKTIME
 
     @Override
     public Spectrum importFrom(String fileName) throws SpefoException {
@@ -126,92 +120,19 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return new XYSeries(xSeries, ySeries);
     }
 
-    private JulianDate getHJD(Header header) {
-        for (String alias : JULIAN_DATE_ALIASES) {
-            if (header.containsKey(alias)) {
-                return new JulianDate(header.getDoubleValue(alias));
-            }
-        }
-
-        return new JulianDate();
+    protected JulianDate getHJD(Header header) {
+        return FitsUtils.getHJD(header);
     }
 
-    private LocalDateTime getDateOfObservation(Header header) {
-        String dateValue = header.getStringValue(Standard.DATE_OBS);
-        LocalDateTime dateTime = parseDateTime(dateValue);
-        if (dateTime != null) {
-            return dateTime;
-        }
-
-        String timeValue = header.getStringValue("UT");
-        dateTime = parseDateAndTime(dateValue, timeValue);
-        if (dateTime != null) {
-            return dateTime;
-        }
-
-        timeValue = header.getStringValue("UT-OBS");
-        dateTime = parseDateAndTime(dateValue, timeValue);
-        if (dateTime != null) {
-            return dateTime;
-        }
-
-        long tmStart = (long) header.getDoubleValue("TM-START", 0);
-        dateTime = parseDateAndTmStart(dateValue, tmStart);
-        if (dateTime != null) {
-            return dateTime;
-        }
-
-        return LocalDateTime.MIN;
-    }
-
-    private LocalDateTime parseDateTime(String dateTimeValue) {
-        try {
-            return LocalDateTime.parse(dateTimeValue);
-
-        } catch (Exception exception) {
-            return null;
-        }
-    }
-
-    private LocalDateTime parseDateAndTime(String dateValue, String timeValue) {
-        try {
-            LocalDate localDate = LocalDate.parse(dateValue);
-            LocalTime localTime = LocalTime.parse(timeValue);
-            return localDate.atTime(localTime);
-
-        } catch (Exception exception) {
-            return null;
-        }
-    }
-
-    private LocalDateTime parseDateAndTmStart(String dateValue, long tmStart) {
-        try {
-            LocalDate localDate = LocalDate.parse(dateValue);
-            LocalTime localTime = LocalTime.ofSecondOfDay(tmStart);
-            return localDate.atTime(localTime);
-
-        } catch (Exception exception) {
-            return null;
-        }
+    protected LocalDateTime getDateOfObservation(Header header) {
+        return FitsUtils.getDateOfObservation(header);
     }
 
     protected double getRVCorrection(Header header) {
-        for (String alias : RV_CORR_ALIASES) {
-            if (header.containsKey(alias)) {
-                return header.getDoubleValue(alias);
-            }
-        }
-
-        return Double.NaN;
+        return FitsUtils.getRVCorrection(header);
     }
 
-    private double getExpTime(Header header) {
-        for (String alias : EXP_TIME_ALIASES) {
-            if (header.containsKey(alias)) {
-                return header.getBigDecimalValue(alias).doubleValue();
-            }
-        }
-
-        return Double.NaN;
+    protected double getExpTime(Header header) {
+        return FitsUtils.getExpTime(header);
     }
 }
