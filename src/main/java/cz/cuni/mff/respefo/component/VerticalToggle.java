@@ -77,4 +77,11 @@ public class VerticalToggle extends Toggle {
     public void setImage(Image image) {
         label.setImage(image);
     }
+
+    @Override
+    public void dispose() {
+        canvas.dispose();
+        label.dispose();
+        super.dispose();
+    }
 }

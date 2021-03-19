@@ -204,9 +204,15 @@ public class ToolBar {
                 hide();
             }
 
-            iconsComposite.dispose();
-            windowComposite.dispose();
-            toggle.dispose();
+            if (!iconsComposite.isDisposed()) {
+                iconsComposite.dispose();
+            }
+            if (!windowComposite.isDisposed()) {
+                windowComposite.dispose();
+            }
+            if (!toggle.isDisposed()) {
+                toggle.dispose();
+            }
         }
 
         public void show() {
