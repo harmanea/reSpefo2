@@ -17,12 +17,15 @@ import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.widget.CompositeBuilder;
 import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
 import nom.tam.fits.FitsFactory;
+import org.eclipse.swt.SWTError;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
 import java.io.File;
+import java.net.URL;
 
 import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
@@ -237,6 +240,7 @@ public class ComponentManager extends UtilityClass {
                         item("Inspect JSON", function(new InspectJSONFunction())),
                         item("Repair File", function(new RepairFunction())),
                         separator(),
+                        item("Long Running Task", longTask()),
                         item("Throw an Exception", () -> { throw new RuntimeException("This is a debug exception"); }),
                         subMenu("Log",
                                 item("Error", () -> Log.error("Test error log", new RuntimeException("This is a debug exception"))),
@@ -247,6 +251,9 @@ public class ComponentManager extends UtilityClass {
                                 separator(),
                                 item("Action", () -> Log.action("Test action log ", "Action", () -> Message.info("Test action!"), false))
                         )
+                ),
+                header("Help",
+                        item("Documentation", ComponentManager::showDocumentation)
                 )
         );
     }
@@ -347,6 +354,38 @@ public class ComponentManager extends UtilityClass {
                 functionInfo.getInstance().execute(asList(files));
             }
         };
+    }
+
+    private static Runnable longTask() {
+        return () -> Progress.withProgressTracking(
+                p -> {
+                    p.refresh("Long task", 25);
+                    for (int i = 0; i < 25; i++) {
+                        try {
+                            Thread.sleep(500);
+                            p.step();
+                        } catch (InterruptedException e) {
+                            Log.debug("Thread interrupted");
+                        }
+                    }
+
+                    return null;
+                }, n -> {}
+        );
+    }
+
+    private static void showDocumentation() {
+        try {
+            final Browser browser = new Browser(clearAndGetScene(), NONE);
+            browser.setLayoutData(new GridData(GridData.FILL_BOTH));
+            browser.addProgressListener(Progress.progressListener());
+            URL url = ComponentManager.class.getClassLoader().getResource("docs/documentation.html");
+            browser.setUrl(url.toString());
+            browser.requestLayout();
+
+        } catch (SWTError error) {
+            Message.error("Couldn't instantiate browser", error);
+        }
     }
 
     protected ComponentManager() throws IllegalAccessException {

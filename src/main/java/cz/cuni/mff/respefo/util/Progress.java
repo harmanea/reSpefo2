@@ -1,6 +1,8 @@
 package cz.cuni.mff.respefo.util;
 
 import cz.cuni.mff.respefo.dialog.SpefoDialog;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -44,6 +46,30 @@ public class Progress {
             }
         };
         new Thread(runnable).start();
+    }
+
+    public static ProgressListener progressListener() {
+        return new ProgressListener() {
+            private final Progress progress = new Progress();
+            private boolean running = false;
+
+            @Override
+            public void changed(ProgressEvent progressEvent) {
+                if (!running) {
+                    increaseCounter();
+                    running = true;
+                    progress.refresh("Loading", progressEvent.total);
+                }
+
+                progress.step(progressEvent.current - progress.selection);
+            }
+
+            @Override
+            public void completed(ProgressEvent progressEvent) {
+                running = false;
+                decreaseCounter();
+            }
+        };
     }
 
     private static void increaseCounter() {
