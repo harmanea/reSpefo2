@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.lang.Math.pow;
+import static java.util.stream.Collectors.toList;
 
 public class ComparisonLineMeasurements {
     private final List<ComparisonLineMeasurement> measurements;
@@ -83,12 +83,15 @@ public class ComparisonLineMeasurements {
         return new ComparisonLineResults(
                 measurements.stream()
                         .filter(ComparisonLineMeasurement::isMeasured)
-                        .collect(Collectors.toList())
+                        .collect(toList())
         );
     }
 
     public Iterator<Integer> unmeasuredIndicesIterator() {
-        int start = IntStream.range(0, size()).filter(index -> getMeasurement(index).isMeasured()).findFirst().orElseThrow(IllegalStateException::new);
+        int start = IntStream.range(0, size())
+                .filter(index -> getMeasurement(index).isMeasured())
+                .findFirst()
+                .orElseThrow(IllegalStateException::new);
 
         return new Iterator<Integer>() {
             boolean ascending = true;

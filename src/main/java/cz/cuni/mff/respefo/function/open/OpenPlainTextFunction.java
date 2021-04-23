@@ -9,7 +9,6 @@ import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.widget.CompositeBuilder;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,11 +45,11 @@ public class OpenPlainTextFunction implements SingleFileFunction {
                     .layout(gridLayout().margins(0).marginLeft(5))
                     .build(topComposite);
 
-            final Text text = newText(MULTI | READ_ONLY | WRAP | V_SCROLL)
+            newText(MULTI | READ_ONLY | WRAP | V_SCROLL)
                     .gridLayoutData(GridData.FILL_BOTH)
                     .text(content)
+                    .requestLayout()
                     .build(textComposite);
-            text.requestLayout();
 
         } catch (IOException exception) {
             Message.error("An error occurred while reading the file", exception);

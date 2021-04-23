@@ -5,7 +5,8 @@ public enum FileType {
     SPECTRUM("Spectrum Files", "*.spf"),
     FITS("FITS Files", "*.fits;*.fit;*.fts"),
     CMP("CMP Files", "*.cmp"),
-    STL("STL Files", "*.stl");
+    STL("STL Files", "*.stl"),
+    LST("LST Files", "*.lst");
 
     private final String filterNames;
     private final String filterExtensions;

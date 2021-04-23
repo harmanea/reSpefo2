@@ -10,6 +10,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -168,6 +169,16 @@ public class FileUtils extends UtilityClass {
         return (files.size() > 5 ? files.subList(0, 5)  : files)
                 .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining("\n"))
                 + (files.size() > 5 ? "\n\nand " + (files.size() - 5) + " more"  : "");
+    }
+
+    /**
+     * Returns a predicate that returns true if a given file has the specified extension and false otherwise.
+     * This method is meant to be used as a Stream.filter argument.
+     * @param extension to check files for
+     * @return a File predicate
+     */
+    public static Predicate<File> hasExtension(String extension) {
+        return file -> getFileExtension(file).equals(extension);
     }
 
     protected FileUtils() throws IllegalAccessException {

@@ -1,12 +1,10 @@
 package cz.cuni.mff.respefo.function.common;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.logging.Log;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,23 +19,11 @@ public class Measurements implements Iterable<Measurement> {
 
     public void loadMeasurements(String fileName, boolean isCorrection) {
         try {
-            parseFile(fileName, isCorrection);
-        } catch (SpefoException exception) {
-            Log.error("Couldn't load .stl file", exception);
-        }
-    }
+            Files.readAllLines(Paths.get(fileName))
+                    .forEach(line -> parseLine(line, isCorrection));
 
-    private void parseFile(String fileName, boolean isCorrection) throws SpefoException {
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                parseLine(line, isCorrection);
-            }
-
-        } catch (FileNotFoundException exception) {
-            throw new SpefoException("Couldn't find file", exception);
         } catch (IOException exception) {
-            throw new SpefoException("An error occurred while parsing file", exception);
+            Log.error("Couldn't load .stl file", exception);
         }
     }
 

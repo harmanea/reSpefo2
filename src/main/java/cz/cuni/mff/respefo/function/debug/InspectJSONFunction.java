@@ -8,7 +8,6 @@ import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,11 +25,11 @@ public class InspectJSONFunction implements SingleFileFunction {
             JsonNode root = mapper.readTree(file);
             ((ObjectNode) root).replace("series", null); // don't show the raw data
 
-            final Text text = newText(MULTI | READ_ONLY | WRAP | V_SCROLL)
+            newText(MULTI | READ_ONLY | WRAP | V_SCROLL)
                     .gridLayoutData(GridData.FILL_BOTH)
                     .text(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root))
+                    .requestLayout()
                     .build(ComponentManager.clearAndGetScene());
-            text.requestLayout();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -53,6 +53,6 @@ public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, B
     }
 
     public ButtonBuilder onSelection(Listener listener) {
-        return listener(SWT.Selection, listener);
+        return listener(SWT.Selection, listener).listener(SWT.DefaultSelection, listener);
     }
 }

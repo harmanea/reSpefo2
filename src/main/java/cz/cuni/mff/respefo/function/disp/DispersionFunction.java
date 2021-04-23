@@ -11,12 +11,15 @@ import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static cz.cuni.mff.respefo.function.port.ImportFunction.*;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
@@ -125,16 +128,11 @@ public class DispersionFunction implements SingleFileFunction {
     }
 
     private double[] readCmpData(String cmpFileName) throws SpefoException {
-        try (BufferedReader br = new BufferedReader(new FileReader(cmpFileName))) {
-            DoubleArrayList values = new DoubleArrayList();
-
-            String line;
-            while ((line = br.readLine()) != null) {
-                double value = Double.parseDouble(line);
-                values.add(value);
-            }
-
-            return values.toArray();
+        try {
+            return Files.readAllLines(Paths.get(cmpFileName))
+                    .stream()
+                    .mapToDouble(Double::parseDouble)
+                    .toArray();
 
         } catch (IOException exception) {
             throw new SpefoException("Couldn't read .cmp file", exception);

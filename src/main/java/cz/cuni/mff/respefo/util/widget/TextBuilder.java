@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.util.widget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -41,6 +42,16 @@ public final class TextBuilder extends AbstractControlBuilder<TextBuilder, Text>
 
     public TextBuilder text(String text) {
         addProperty(t -> t.setText(text));
+        return this;
+    }
+
+    public TextBuilder requestLayout() {
+        addProperty(Control::requestLayout);
+        return this;
+    }
+
+    public TextBuilder selectText() {
+        addProperty(t -> t.setSelection(0, t.getText().length()));
         return this;
     }
 
