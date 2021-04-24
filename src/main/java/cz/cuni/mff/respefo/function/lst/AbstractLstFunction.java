@@ -12,10 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cz.cuni.mff.respefo.function.lst.LstFile.DATE_TIME_FORMATTER;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 
@@ -25,8 +25,6 @@ public abstract class AbstractLstFunction<T> implements MultiFileFunction {
             "==============================================================================\n" +
             "   N.  Date & UT start       exp[s]      Filename       J.D.hel.  RVcorr\n" +
             "==============================================================================\n";
-
-    protected static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy MM dd HH mm ss");
 
     @Override
     public void execute(List<File> files) {

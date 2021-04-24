@@ -1,18 +1,13 @@
 package cz.cuni.mff.respefo.util.utils;
 
-import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.format.InvalidFileFormatException;
-import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import cz.cuni.mff.respefo.util.collections.JulianDate;
-import nom.tam.fits.*;
+import nom.tam.fits.Header;
 import nom.tam.fits.header.Standard;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Arrays;
 
 public class FitsUtils extends UtilityClass {
 
@@ -21,26 +16,6 @@ public class FitsUtils extends UtilityClass {
     private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD"};
     private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};
     private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"}; // ObservationDurationDescription.EXPOSURE, ObservationDurationDescription.EXPTIME, SBFitsExt.DARKTIME
-
-    public static Object extractData(String fileName) throws SpefoException {
-        try (Fits f = new Fits(fileName)) {
-            BasicHDU<?>[] hdus = f.read();
-
-            if (hdus.length == 0) {
-                throw new InvalidFileFormatException("There are no HDUs in the file");
-            } else if (hdus.length > 1) {
-                Log.warning("There are more than one HDUs in the file. The first ImageHDU will be chosen.");
-            }
-
-            ImageHDU imageHDU = (ImageHDU) Arrays.stream(hdus).filter(hdu -> hdu instanceof ImageHDU).findFirst()
-                    .orElseThrow(() -> new InvalidFileFormatException("No ImageHDU in the FITS file"));
-
-            return imageHDU.getKernel();
-
-        } catch (FitsException | IOException | ClassCastException exception) {
-            throw new SpefoException("Error while reading file", exception);
-        }
-    }
 
     public static JulianDate getHJD(Header header) {
         for (String alias : JULIAN_DATE_ALIASES) {

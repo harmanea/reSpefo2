@@ -3,10 +3,10 @@ package cz.cuni.mff.respefo.format.formats.fits;
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
 import cz.cuni.mff.respefo.format.Spectrum;
+import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import nom.tam.fits.FitsFactory;
-import nom.tam.fits.ImageHDU;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -25,8 +25,8 @@ public class ChironFitsFormat extends ImportFitsFormat {
     }
 
     @Override
-    public XYSeries parseData(ImageHDU imageHDU) throws SpefoException {
-        float[][][] data = castData(imageHDU);
+    public XYSeries parseData(FitsFile fits) throws SpefoException {
+        float[][][] data = castData(fits);
 
         SortedSet<Point> points = new TreeSet<>();
         for (int i = 0; i <= data.length - 1; i++) {
@@ -53,9 +53,9 @@ public class ChironFitsFormat extends ImportFitsFormat {
         return new XYSeries(xSeries, ySeries);
     }
 
-    private float[][][] castData(ImageHDU imageHDU) throws InvalidFileFormatException {
+    private float[][][] castData(FitsFile fits) throws InvalidFileFormatException {
         try {
-            return (float[][][]) imageHDU.getKernel();
+            return (float[][][]) fits.getData();
         } catch (ClassCastException exception) {
             throw new InvalidFileFormatException("The HDU kernel is not a 3-D array of type float");
         }

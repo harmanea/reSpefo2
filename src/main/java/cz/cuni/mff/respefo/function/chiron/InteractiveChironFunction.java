@@ -11,11 +11,10 @@ import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import cz.cuni.mff.respefo.util.utils.FitsUtils;
 import nom.tam.fits.FitsFactory;
-import nom.tam.fits.ImageHDU;
 
 import java.io.File;
 import java.util.List;
@@ -30,9 +29,11 @@ public class InteractiveChironFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {
         float[][][] data;
+        boolean allowHeaderRepairs = FitsFactory.isAllowHeaderRepairs();
         try {
             FitsFactory.setAllowHeaderRepairs(true);
-            data = (float[][][]) FitsUtils.extractData(file.getPath());
+            FitsFile fits = new FitsFile(file, false, true);
+            data = (float[][][]) fits.getData();
 
         } catch (ClassCastException classCastException) {
             Message.error("The HDU kernel is not a 3-D array of type float", classCastException);
@@ -43,7 +44,7 @@ public class InteractiveChironFunction implements SingleFileFunction {
             return;
 
         } finally {
-            FitsFactory.setAllowHeaderRepairs(false);
+            FitsFactory.setAllowHeaderRepairs(allowHeaderRepairs);
         }
 
         String[][] names = new String[data.length][3];
@@ -105,7 +106,7 @@ public class InteractiveChironFunction implements SingleFileFunction {
         }
 
         @Override
-        public XYSeries parseData(ImageHDU imageHDU) {
+        public XYSeries parseData(FitsFile fits) {
             return series;
         }
     }

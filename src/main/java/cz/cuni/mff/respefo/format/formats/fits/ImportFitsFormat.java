@@ -4,20 +4,20 @@ import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
-import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.JulianDate;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FitsUtils;
-import nom.tam.fits.*;
+import nom.tam.fits.BasicHDU;
+import nom.tam.fits.Header;
 import nom.tam.fits.header.Standard;
 import nom.tam.util.Cursor;
 
-import java.io.IOException;
+import java.io.File;
 import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -25,57 +25,43 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
 
     @Override
     public Spectrum importFrom(String fileName) throws SpefoException {
-        try (Fits f = new Fits(fileName)) {
-            BasicHDU<?>[] hdus = f.read();
+        FitsFile fits = new FitsFile(new File(fileName));
 
-            if (hdus.length == 0) {
-                throw new InvalidFileFormatException("There are no HDUs in the file");
-            } else if (hdus.length > 1) {
-                Log.warning("There are more than one HDUs in the file. The first ImageHDU will be chosen.");
-            }
+        XYSeries series = parseData(fits);
 
-            ImageHDU imageHdu = (ImageHDU) Arrays.stream(hdus).filter(hdu -> hdu instanceof ImageHDU).findFirst()
-                    .orElseThrow(() -> new InvalidFileFormatException("No ImageHDU in the FITS file"));
-
-            XYSeries series = parseData(imageHdu);
-
-            Header header = imageHdu.getHeader();
-            double bZero = header.getDoubleValue(Standard.BZERO, 0);
-            double bScale = header.getDoubleValue(Standard.BSCALE, 1);
-            if (bZero != 0 || bScale != 1) {
-                series.updateYSeries(ArrayUtils.applyBScale(series.getYSeries(), bZero, bScale));
-            }
-
-            List<HeaderCard> headerCards = new ArrayList<>();
-            for (Cursor<String, nom.tam.fits.HeaderCard> it = header.iterator(); it.hasNext(); ) {
-                nom.tam.fits.HeaderCard card = it.next();
-                headerCards.add(new HeaderCard(card.getComment(), card.getKey(), card.getValue()));
-            }
-
-            Spectrum spectrum = new Spectrum(series);
-            spectrum.setOrigin(new FitsOrigin(fileName, headerCards));
-            spectrum.setHjd(getHJD(header));
-            spectrum.setDateOfObservation(getDateOfObservation(header));
-            spectrum.setRvCorrection(getRVCorrection(header));
-            spectrum.setExpTime(getExpTime(header));
-
-            return spectrum;
-
-        } catch (IOException | FitsException exception) {
-            throw new SpefoException("Error while reading file", exception);
+        Header header = fits.getHeader();
+        double bZero = header.getDoubleValue(Standard.BZERO, 0);
+        double bScale = header.getDoubleValue(Standard.BSCALE, 1);
+        if (bZero != 0 || bScale != 1) {
+            series.updateYSeries(ArrayUtils.applyBScale(series.getYSeries(), bZero, bScale));
         }
+
+        List<HeaderCard> headerCards = new ArrayList<>();
+        for (Cursor<String, nom.tam.fits.HeaderCard> it = header.iterator(); it.hasNext(); ) {
+            nom.tam.fits.HeaderCard card = it.next();
+            headerCards.add(new HeaderCard(card.getComment(), card.getKey(), card.getValue()));
+        }
+
+        Spectrum spectrum = new Spectrum(series);
+        spectrum.setOrigin(new FitsOrigin(fileName, headerCards));
+        spectrum.setHjd(getHJD(header));
+        spectrum.setDateOfObservation(getDateOfObservation(header));
+        spectrum.setRvCorrection(getRVCorrection(header));
+        spectrum.setExpTime(getExpTime(header));
+
+        return spectrum;
     }
 
-    protected XYSeries parseData(ImageHDU imageHdu) throws SpefoException, FitsException {
-        Object data = imageHdu.getKernel();
+    protected XYSeries parseData(FitsFile fits) throws SpefoException {
+        Object data = fits.getData();
         if (data == null || !data.getClass().isArray()) {
             throw new InvalidFileFormatException("The HDU does not contain array data");
         }
 
         int nDims = ArrayUtils.nDims(data);
         if (nDims == 1) {
-            double[] ySeries = getSeriesFromData(data, imageHdu.getBitPix());
-            double[] xSeries = getSeriesFromCData(imageHdu.getHeader(), ySeries.length);
+            double[] ySeries = getSeriesFromData(data, fits.getBitPix());
+            double[] xSeries = getSeriesFromCData(fits.getHeader(), ySeries.length);
 
             return new XYSeries(xSeries, ySeries);
         } else if (nDims == 2) {
@@ -84,7 +70,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
                 throw new InvalidFileFormatException("The 2-D data array is too long in the first dimension");
             }
 
-            return getBothSeriesFromData(data, imageHdu.getBitPix());
+            return getBothSeriesFromData(data, fits.getBitPix());
         } else {
             throw new InvalidFileFormatException("The data array is " + nDims + "-dimensional");
         }
