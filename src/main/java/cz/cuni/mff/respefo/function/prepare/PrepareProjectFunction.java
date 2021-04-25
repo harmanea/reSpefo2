@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function.rename;
+package cz.cuni.mff.respefo.function.prepare;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.FileExplorer;
@@ -23,7 +23,6 @@ import java.util.Objects;
 
 import static cz.cuni.mff.respefo.function.lst.LstFile.DATE_TIME_FORMATTER;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.hasExtension;
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static java.util.stream.Collectors.toList;
 
 @Fun(name = "Prepare")
@@ -59,12 +58,13 @@ public class PrepareProjectFunction implements ProjectFunction {
             }
 
         } else {
-            try (PrintWriter writer = new PrintWriter(Project.getRootFileName("hec2"))) {
+            File hec2File = Project.getRootDirectory().toPath().resolve(prefix + ".hec2").toFile();
+            try (PrintWriter writer = new PrintWriter(hec2File)) {
                 for (int i = 0; i < fitsFiles.size(); i++) {
                     FitsFile fits = fitsFiles.get(i);
 
                     writer.println(String.join(" ",
-                            formatInteger(i + 1, 5),
+                            String.format("%05d", i + 1),
                             FitsUtils.getDateOfObservation(fits.getHeader()).format(DATE_TIME_FORMATTER),
                             Double.toString(FitsUtils.getExpTime(fits.getHeader()))));
                 }
@@ -78,7 +78,8 @@ public class PrepareProjectFunction implements ProjectFunction {
             Path path = fitsFiles.get(i).getFile().toPath();
 
             try {
-                Files.move(path, path.resolveSibling(prefix + String.format("%05d", i + 1) + FileUtils.getFileExtension(path.toFile())));
+                String newFileName = prefix + String.format("%05d", i + 1) + "." + FileUtils.getFileExtension(path.toFile());
+                Files.move(path, path.resolveSibling(newFileName));
             } catch (IOException exception) {
                 Log.error("Couldn't rename file [" + path.toFile().getName() + "]", exception);
             }

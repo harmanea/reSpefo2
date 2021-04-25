@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function.rename;
+package cz.cuni.mff.respefo.function.prepare;
 
 import cz.cuni.mff.respefo.dialog.TitleAreaDialog;
 import cz.cuni.mff.respefo.resources.ImageResource;
