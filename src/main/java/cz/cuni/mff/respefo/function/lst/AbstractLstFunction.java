@@ -16,15 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static cz.cuni.mff.respefo.function.lst.LstFile.DATE_TIME_FORMATTER;
+import static cz.cuni.mff.respefo.function.lst.LstFile.TABLE_HEADER;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 
 public abstract class AbstractLstFunction<T> implements MultiFileFunction {
-
-    protected static final String TABLE_HEADER =
-            "==============================================================================\n" +
-            "   N.  Date & UT start       exp[s]      Filename       J.D.hel.  RVcorr\n" +
-            "==============================================================================\n";
 
     @Override
     public void execute(List<File> files) {

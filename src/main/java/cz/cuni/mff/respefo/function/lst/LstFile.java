@@ -20,6 +20,10 @@ import static java.lang.Integer.parseInt;
 
 public class LstFile {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy MM dd HH mm ss");
+    public static final String TABLE_HEADER =
+            "==============================================================================\n" +
+            "   N.  Date & UT start       exp[s]      Filename       J.D.hel.  RVcorr\n" +
+            "==============================================================================\n";
 
     private final String header;
     private final List<Record> records;

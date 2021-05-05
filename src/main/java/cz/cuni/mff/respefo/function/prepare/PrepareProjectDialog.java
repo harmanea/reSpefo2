@@ -21,24 +21,26 @@ import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
 
 public class PrepareProjectDialog extends TitleAreaDialog {
 
+    public static final int HEC2 = -1;
+    public static final int NEW_LST = -2;
+    public static final int USE_LST = -3;
+
+    private int status;
+
     private String prefix;
-    private boolean useLst;
     private String lstFileName;
 
     protected PrepareProjectDialog(String suggestedPrefix, boolean useLst, String lstFileName) {
         super("Prepare project");
 
         this.prefix = suggestedPrefix;
-        this.useLst = useLst;
         this.lstFileName = lstFileName;
+
+        status = useLst ? USE_LST : HEC2;
     }
 
     public String getPrefix() {
         return prefix;
-    }
-
-    public boolean useLst() {
-        return useLst;
     }
 
     public String getLstFileName() {
@@ -81,33 +83,43 @@ public class PrepareProjectDialog extends TitleAreaDialog {
         group.setLayout(gridLayout().verticalSpacing(10).build());
         group.setText("Mode");
 
-        final Button firstButton = newButton(SWT.RADIO)
+        newButton(SWT.RADIO)
                 .text("Generate hec2 input data")
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .onSelection(event -> useLst = false)
+                .selection(status == HEC2)
+                .onSelection(event -> status = HEC2)
                 .build(group);
 
-        final Button secondButton = newButton(SWT.RADIO)
+        newButton(SWT.RADIO)
+                .text("Generate .lst file")
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .onSelection(event -> useLst = true)
+                .onSelection(event -> status = NEW_LST)
+                .build(group);
+
+        final Button thirdButton = newButton(SWT.RADIO)
+                .gridLayoutData(GridData.FILL_HORIZONTAL)
+                .selection(status == USE_LST)
+                .onSelection(event -> status = USE_LST)
                 .build(group);
 
         final Composite lstFileComposite = newComposite()
-                .layout(gridLayout(2, false).marginLeft(secondButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).x).marginHeight(0))
+                .layout(gridLayout(2, false).marginLeft(thirdButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).x).marginHeight(0))
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
                 .build(group);
 
-        secondButton.setText("Use existing .lst file");
+        thirdButton.setText("Use existing .lst file");
 
         final Text lstFileNameText = newText(SWT.SINGLE | SWT.BORDER)
                 .text(lstFileName)
                 .gridLayoutData(GridData.FILL_BOTH)
+                .enabled(status == USE_LST)
                 .onModify(event -> lstFileName = ((Text) event.widget).getText())
                 .build(lstFileComposite);
 
         final Button lstButton = newButton(SWT.PUSH)
                 .image(ImageResource.FOLDER)
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END)
+                .enabled(status == USE_LST)
                 .onSelection(event -> {
                     String fileName = FileDialogs.openFileDialog(FileType.LST);
                     if (fileName != null) {
@@ -116,17 +128,18 @@ public class PrepareProjectDialog extends TitleAreaDialog {
                 })
                 .build(lstFileComposite);
 
-        secondButton.addSelectionListener(new DefaultSelectionListener(event -> {
-            lstFileNameText.setEnabled(secondButton.getSelection());
-            lstButton.setEnabled(secondButton.getSelection());
+        thirdButton.addSelectionListener(new DefaultSelectionListener(event -> {
+            lstFileNameText.setEnabled(thirdButton.getSelection());
+            lstButton.setEnabled(thirdButton.getSelection());
         }));
+    }
 
-        if (useLst) {
-            secondButton.setSelection(true);
-        } else {
-            firstButton.setSelection(true);
-            lstFileNameText.setEnabled(false);
-            lstButton.setEnabled(false);
+    @Override
+    protected void buttonPressed(int returnCode) {
+        if (returnCode == SWT.OK) {
+            returnCode = status;
         }
+
+        super.buttonPressed(returnCode);
     }
 }
