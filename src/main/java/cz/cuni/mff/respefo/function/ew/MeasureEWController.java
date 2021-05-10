@@ -67,13 +67,15 @@ public class MeasureEWController {
         tab.addTopBarButton("Previous line", ImageResource.LEFT_ARROW, () -> {
             if (index > 0) {
                 index--;
-                measureSingle();
+                ComponentManager.getDisplay().asyncExec(this::measureSingle);
             }
         });
         tab.addTopBarButton("Next line", ImageResource.RIGHT_ARROW, () -> {
             if (index + 1 < measurements.size()) {
                 index++;
-                measureSingle();
+                ComponentManager.getDisplay().asyncExec(this::measureSingle);
+            } else {
+                finish();
             }
         });
 
@@ -234,7 +236,6 @@ public class MeasureEWController {
             return;
         }
 
-        ComponentManager.clearScene(true);
-        callback.accept(results);
+        callback.andThen(r -> ComponentManager.clearScene(true)).accept(results);
     }
 }

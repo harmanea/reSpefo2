@@ -167,7 +167,7 @@ public class FileExplorer {
             final File itemFile = (File) treeItem.getData();
             final File checkFile = checkFiles[filesIndex];
 
-            int comparison = checkFile.getName().compareToIgnoreCase(itemFile.getName());
+            int comparison = checkFile.getName().compareTo(itemFile.getName());
             if (comparison == 0) {
                 // same file -> recursively refresh as well
 
