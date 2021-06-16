@@ -14,7 +14,7 @@ import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.widget.ChartBuilder;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static cz.cuni.mff.respefo.function.rectify.RectifyFunction.*;
 import static cz.cuni.mff.respefo.resources.ColorResource.GRAY;
@@ -27,44 +27,43 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 
 public class InteractiveChironController {
 
-    private static final Map<Integer, RectifyAsset> previousAssets = new HashMap<>();
+    private static final Map<Integer, RectifyAsset> assets = new HashMap<>();
 
     private final float[][][] data;
-    private final boolean[] selected;
+    private final List<Integer> selectedIndices;
+    private final Iterator<Integer> indicesIterator;
 
-    private List<XYSeries> rectifiedData;
-    private Consumer<XYSeries> callback;
+    private BiConsumer<XYSeries, Optional<RectifyAsset>> callback;
 
     private int currentIndex;
 
-    public InteractiveChironController(float[][][] data, boolean[] selected) {
+    public InteractiveChironController(float[][][] data, List<Integer> selectedIndices) {
         this.data = data;
-        this.selected = selected;
+        this.selectedIndices = selectedIndices;
+        this.indicesIterator = selectedIndices.iterator();
     }
 
-    public void rectify(Consumer<XYSeries> callback) {
-        rectifiedData = new ArrayList<>();
+    public void rectify(BiConsumer<XYSeries, Optional<RectifyAsset>> callback) {
         this.callback = callback;
+        rectifyNext();
+    }
 
-        currentIndex = 0;
-        rectifySingle();
+    private void rectifyNext() {
+        if (indicesIterator.hasNext()) {
+            currentIndex = indicesIterator.next();
+            ComponentManager.getDisplay().asyncExec(this::rectifySingle);
+
+        } else {
+            finish();
+        }
     }
 
     private void rectifySingle() {
-        if (currentIndex >= data.length) {
-            finish();
-            return;
-        } else if (!selected[currentIndex]) {
-            currentIndex++;
-            ComponentManager.getDisplay().asyncExec(this::rectifySingle);
-            return;
-        }
-
         XYSeries current = dataToSeries(currentIndex);
         List<XYSeries> neighbours = dataToSeries(currentIndex -2, currentIndex -1, currentIndex +1, currentIndex +2);
 
-        RectifyAsset asset = previousAssets.containsKey(currentIndex)
-                ? previousAssets.get(currentIndex).adjustToNewData(current)
+        RectifyAsset asset = assets.containsKey(currentIndex)
+                ? assets.get(currentIndex).adjustToNewData(current)
                 : RectifyAsset.withDefaultPoints(current);
 
         int middle = current.getLength() / 2;
@@ -107,12 +106,8 @@ public class InteractiveChironController {
                         () -> updateAllSeries(ch, asset, current),
                         newIndex -> updateActivePoint(ch, asset, newIndex),
                         () -> {
-                            double[] newYSeries = ArrayUtils.divideArrayValues(current.getYSeries(), asset.getIntepData(current.getXSeries()));
-                            rectifiedData.add(new XYSeries(current.getXSeries(), newYSeries));
-                            previousAssets.put(currentIndex, asset);
-
-                            currentIndex++;
-                            ComponentManager.getDisplay().asyncExec(this::rectifySingle);
+                            assets.put(currentIndex, asset);
+                            rectifyNext();
                         }))
                 .mouseAndMouseMoveListener(ch -> new RectifyMouseListener(ch,
                         POINTS_SERIES_NAME,
@@ -167,23 +162,35 @@ public class InteractiveChironController {
     }
 
     private void finish() {
-        SortedSet<Point> points = new TreeSet<>();
-        for (XYSeries series : rectifiedData) {
-            for (int i = 0; i < series.getLength(); i++) {
-                points.add(new Point(series.getX(i), series.getY(i)));
+        if (selectedIndices.size() == 1) {
+            int i = selectedIndices.get(0);
+            XYSeries series = dataToSeries(i);
+            RectifyAsset asset = assets.get(i);
+            callback.accept(series, Optional.of(asset));
+
+        } else {
+            SortedSet<Point> points = new TreeSet<>();
+
+            for (Integer i : selectedIndices) {
+                XYSeries series = dataToSeries(i);
+                RectifyAsset asset = assets.get(i);
+                double[] rectifiedSeries = ArrayUtils.divideArrayValues(series.getYSeries(), asset.getIntepData(series.getXSeries()));
+                for (int j = 0; j < rectifiedSeries.length; j++) {
+                    points.add(new Point(series.getX(j), rectifiedSeries[j]));
+                }
             }
+
+            double[] xSeries = new double[points.size()];
+            double[] ySeries = new double[points.size()];
+
+            int i = 0;
+            for (Point point : points) {
+                xSeries[i] = point.getX();
+                ySeries[i] = point.getY();
+                i++;
+            }
+
+            callback.accept(new XYSeries(xSeries, ySeries), Optional.empty());
         }
-
-        double[] xSeries = new double[points.size()];
-        double[] ySeries = new double[points.size()];
-
-        int i = 0;
-        for (Point point : points) {
-            xSeries[i] = point.getX();
-            ySeries[i] = point.getY();
-            i++;
-        }
-
-        callback.accept(new XYSeries(xSeries, ySeries));
     }
 }
