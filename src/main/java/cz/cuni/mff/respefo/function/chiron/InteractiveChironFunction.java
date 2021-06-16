@@ -22,10 +22,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.function.port.ImportFunction.*;
-import static java.util.stream.Collectors.toList;
 
 @Fun(name = "Interactive Chiron Rectification", fileFilter = FitsFileFilter.class, group = "FITS")
 public class InteractiveChironFunction implements SingleFileFunction {
@@ -64,9 +62,7 @@ public class InteractiveChironFunction implements SingleFileFunction {
             return;
         }
 
-        boolean[] selected = dialog.getSelected();
-        List<Integer> selectedIndices = IntStream.range(0, selected.length)
-                .filter(i -> selected[i]).boxed().collect(toList());
+        List<Integer> selectedIndices = dialog.getSelectedIndices();
 
         new InteractiveChironController(data, selectedIndices)
                 .rectify((series, asset) -> saveSpectrum(series, asset, file, selectedIndices));

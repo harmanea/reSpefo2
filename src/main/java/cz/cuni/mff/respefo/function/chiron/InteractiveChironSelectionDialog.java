@@ -8,12 +8,14 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
+import static java.util.stream.Collectors.toList;
 
 public class InteractiveChironSelectionDialog extends TitleAreaDialog {
 
@@ -27,8 +29,10 @@ public class InteractiveChironSelectionDialog extends TitleAreaDialog {
         this.selected = new boolean[names.length];
     }
 
-    public boolean[] getSelected() {
-        return selected;
+    public List<Integer> getSelectedIndices() {
+        return IntStream.range(0, selected.length)
+                .filter(i -> selected[i])
+                .boxed().collect(toList());
     }
 
     @Override
