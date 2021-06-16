@@ -40,9 +40,4 @@ public class HorizontalToggle extends Toggle {
         label.setToolTipText(tooltipText);
     }
 
-    @Override
-    public void dispose() {
-        label.dispose();
-        super.dispose();
-    }
 }
