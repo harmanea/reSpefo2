@@ -20,9 +20,13 @@ import cz.cuni.mff.respefo.util.info.VersionInfo;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Optional;
+
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
+import static java.lang.Double.isNaN;
 
 public class Spectrum {
     private static final int CURRENT_FORMAT = 1;
@@ -173,6 +177,15 @@ public class Spectrum {
         this.rvCorrection = rvCorrection;
     }
 
+    public void updateRvCorrection(double newRvCorrection) {
+        double diff = newRvCorrection - (isNaN(rvCorrection) ? 0 : rvCorrection);
+        double[] updatedXSeries = Arrays.stream(series.getXSeries())
+                .map(value -> value + diff * (value / SPEED_OF_LIGHT))
+                .toArray();
+        series.updateXSeries(updatedXSeries);
+        setRvCorrection(newRvCorrection);
+    }
+
     public double getExpTime() {
         return expTime;
     }
@@ -229,6 +242,7 @@ public class Spectrum {
     }
 
     public static Comparator<Spectrum> hjdComparator() {
-        return Comparator.comparing(left -> left.hjd);
+        Comparator<Spectrum> comparator = Comparator.comparing(a -> a.hjd);
+        return comparator.thenComparing(a -> a.file);
     }
 }

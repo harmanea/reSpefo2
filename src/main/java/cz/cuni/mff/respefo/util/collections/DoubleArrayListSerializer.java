@@ -19,7 +19,7 @@ public class DoubleArrayListSerializer extends StdSerializer<DoubleArrayList> {
     @Override
     public void serialize(DoubleArrayList doubles, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartArray();
-        for (double element: doubles) {
+        for (double element : doubles) {
             jsonGenerator.writeNumber(element);
         }
         jsonGenerator.writeEndArray();

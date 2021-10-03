@@ -118,11 +118,8 @@ public class RectifyAsset implements FunctionAsset {
     }
 
     public static RectifyAsset withDefaultPoints(XYSeries data) {
-        double[] xSeries = data.getXSeries();
-        double[] ySeries = data.getYSeries();
-
-        DoubleArrayList xCoordinates = new DoubleArrayList(new double[]{xSeries[0], xSeries[xSeries.length - 1]});
-        DoubleArrayList yCoordinates = new DoubleArrayList(new double[]{ySeries[0], ySeries[ySeries.length - 1]});
+        DoubleArrayList xCoordinates = new DoubleArrayList(new double[]{data.getX(0), data.getLastX()});
+        DoubleArrayList yCoordinates = new DoubleArrayList(new double[]{data.getY(0), data.getLastY()});
 
         return new RectifyAsset(xCoordinates, yCoordinates);
     }

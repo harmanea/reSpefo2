@@ -95,6 +95,16 @@ public class DoubleArrayListTest {
     }
 
     @Test
+    public void testGetLast() {
+        DoubleArrayList list = new DoubleArrayList(arrayOf(1, 2, 3, 4, 5));
+
+        for (int i = 5; i > 0; i--) {
+            assertEquals(i, list.getLast(), DOUBLE_PRECISION);
+            list.remove(list.size() - 1);
+        }
+    }
+
+    @Test
     public void testSet() {
         DoubleArrayList list = new DoubleArrayList(arrayOf(1, 2, 3, 4, 5));
 
@@ -204,6 +214,12 @@ public class DoubleArrayListTest {
         list.get(5);
     }
 
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testGetLastEmptyList() {
+        DoubleArrayList list = new DoubleArrayList();
+        list.getLast();
+    }
+
     @Test
     public void testStreamAndCollect() {
         DoubleArrayList list = new DoubleArrayList(arrayOf(42, 0.0001, 5e9, -1, 555_555_555));
@@ -214,5 +230,13 @@ public class DoubleArrayListTest {
         assertArrayEquals(arrayOf(1, 4, 9, 16, 25),
                 IntStream.rangeClosed(1, 5).mapToDouble(x -> x * x).boxed().collect(DoubleArrayList.toDoubleArrayList()).toArray(),
                 DOUBLE_PRECISION);
+    }
+
+    @Test
+    public void testSort() {
+        DoubleArrayList list = new DoubleArrayList(arrayOf(42, 0.0001, 5e9, -1, 555_555_555));
+        list.sort();
+
+        assertArrayEquals(arrayOf(-1, 0.0001, 42, 555_555_555, 5e9), list.toArray(), DOUBLE_PRECISION);
     }
 }

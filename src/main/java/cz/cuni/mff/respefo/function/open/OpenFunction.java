@@ -13,7 +13,6 @@ import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.resources.ImageResource;
-import cz.cuni.mff.respefo.util.Constants;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.JulianDate;
 import org.eclipse.swt.SWT;
@@ -129,16 +128,15 @@ public class OpenFunction implements SingleFileFunction {
                 double rvCorr = spectrum.getRvCorrection();
                 DoubleNumberDialog numberDialog = new DoubleNumberDialog("RV Corr", isNaN(rvCorr) ? 0 : rvCorr);
                 if (numberDialog.openIsOk()) {
-                    if (Double.compare(rvCorr, numberDialog.getValue()) != 0
-                            && Message.question("Do you want to adjust the spectrum values according to the difference?")) {
-                        double diff = numberDialog.getValue() - (isNaN(rvCorr) ? 0 : rvCorr);
-                        double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
-                                .map(value -> value + diff * (value / Constants.SPEED_OF_LIGHT))
-                                .toArray();
-                        spectrum.getSeries().updateXSeries(updatedXSeries);
+                    double newRvCorrection = numberDialog.getValue();
+                    if (Double.compare(rvCorr, newRvCorrection) != 0) {
+                        if (Message.question("Do you want to adjust the spectrum values according to the difference?")) {
+                            spectrum.updateRvCorrection(newRvCorrection);
+                        } else {
+                            spectrum.setRvCorrection(newRvCorrection);
+                        }
+                        trySave(spectrum, item, Double.toString(numberDialog.getValue()));
                     }
-                    spectrum.setRvCorrection(numberDialog.getValue());
-                    trySave(spectrum, item, Double.toString(numberDialog.getValue()));
                 }
                 break;
             }

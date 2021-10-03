@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.*;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 
 import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
@@ -351,6 +352,7 @@ public class ComponentManager extends UtilityClass {
         return () -> {
             File[] files = Project.getRootDirectory().listFiles(functionInfo.getFileFilter());
             if (files != null) {
+                Arrays.sort(files);
                 functionInfo.getInstance().execute(asList(files));
             }
         };

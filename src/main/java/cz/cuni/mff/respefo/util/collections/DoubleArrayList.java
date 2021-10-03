@@ -3,6 +3,7 @@ package cz.cuni.mff.respefo.util.collections;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.RandomAccess;
 import java.util.stream.Collector;
 import java.util.stream.DoubleStream;
 
@@ -10,7 +11,7 @@ import java.util.stream.DoubleStream;
  * A resizable list holding primitive <code>double</code> elements. It is designed to be fast and scalable as well as
  * to ease the transition between arrays and streams by removing the need to use <code>List&lt;Double&gt;</code> and boxing.
  */
-public class DoubleArrayList implements Iterable<Double> {
+public class DoubleArrayList implements Iterable<Double>, RandomAccess {
     private static final int DEFAULT_INITIAL_CAPACITY = 10;
 
     private int size;
@@ -48,8 +49,9 @@ public class DoubleArrayList implements Iterable<Double> {
     public DoubleArrayList(double[] elements) {
         Objects.requireNonNull(elements);
 
-        this.elements = Arrays.copyOf(elements, elements.length);
-        this.size = elements.length;
+        this.elements = new double[elements.length];
+        System.arraycopy(elements, 0, this.elements, 0, elements.length);
+        size = elements.length;
     }
 
     /**
@@ -143,6 +145,20 @@ public class DoubleArrayList implements Iterable<Double> {
     public double get(int index) {
         boundsCheck(index);
         return elements[index];
+    }
+
+    /**
+     * Returns the last element in this list.
+     *
+     * @return the last element in this list
+     * @throws IndexOutOfBoundsException if this list contains no elements
+     */
+    public double getLast() {
+        if (size == 0) {
+            throw new IndexOutOfBoundsException("Tried to access the last element in an empty list");
+        }
+
+        return elements[size - 1];
     }
 
     /**
@@ -262,5 +278,12 @@ public class DoubleArrayList implements Iterable<Double> {
 
     public static Collector<Double, DoubleArrayList, DoubleArrayList> toDoubleArrayList() {
         return Collector.of(DoubleArrayList::new, DoubleArrayList::add, (left, right) -> { left.addAll(right); return left; });
+    }
+
+    /**
+     * Sorts this list.
+     */
+    public void sort() {
+        Arrays.sort(elements, 0, size);
     }
 }

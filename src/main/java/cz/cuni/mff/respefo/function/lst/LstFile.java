@@ -12,8 +12,9 @@ import java.io.IOException;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -26,10 +27,13 @@ public class LstFile {
             "==============================================================================\n";
 
     private final String header;
-    private final List<Record> records;
+
+    private final Map<Integer, Record> recordsByIndex;
+    private final Map<String, Record> recordsByFileName;
 
     public LstFile(File file) throws SpefoException {
-        records = new ArrayList<>();
+        recordsByIndex = new HashMap<>();
+        recordsByFileName = new HashMap<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             StringBuilder headerBuilder = new StringBuilder();
@@ -54,7 +58,11 @@ public class LstFile {
                 }
 
                 Record record = parseLine(line);
-                records.add(record);
+
+                recordsByIndex.put(record.getIndex(), record);
+                if (record.getFileName() != null) {
+                    recordsByFileName.put(record.getFileName(), record);
+                }
             }
 
         } catch (IndexOutOfBoundsException | NumberFormatException | DateTimeException exception) {
@@ -68,12 +76,12 @@ public class LstFile {
         return header;
     }
 
-    public List<Record> getRecords() {
-        return records;
+    public Optional<Record> getRecordByIndex(int index) {
+        return Optional.ofNullable(recordsByIndex.get(index));
     }
 
-    public Record getRecord(int index) {
-        return records.get(index);
+    public Optional<Record> getRecordByFileName(String fileName) {
+        return Optional.ofNullable(recordsByFileName.get(fileName));
     }
 
     private String readNonNullLine(BufferedReader br) throws IOException, InvalidFileFormatException {

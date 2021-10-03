@@ -64,8 +64,8 @@ public class MeasureRVFunction implements SingleFileFunction {
     private static XYSeries transformToEquidistant(XYSeries series, double deltaRV) {
         DoubleArrayList xList = new DoubleArrayList();
         xList.add(series.getX(0));
-        while (xList.get(xList.size() - 1) < series.getLastX()) {
-            xList.add(xList.get(xList.size() - 1) * (1 + deltaRV / SPEED_OF_LIGHT));
+        while (xList.getLast() < series.getLastX()) {
+            xList.add(xList.getLast() * (1 + deltaRV / SPEED_OF_LIGHT));
         }
 
         double[] newXSeries = xList.toArray();

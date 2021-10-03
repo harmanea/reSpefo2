@@ -15,7 +15,10 @@ import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.function.lst.LstFile;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.logging.Log;
-import cz.cuni.mff.respefo.util.*;
+import cz.cuni.mff.respefo.util.FileDialogs;
+import cz.cuni.mff.respefo.util.FileType;
+import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.collections.JulianDate;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
@@ -271,9 +274,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
     private static void updateSpectrumUsingLstFile(Spectrum spectrum, LstFile lstFile, String originalFileName) {
         // Try matching filename in the lst file
-        Optional<LstFile.Record> optionalRecord = lstFile.getRecords().stream()
-                .filter(record -> originalFileName.equals(record.getFileName()))
-                .findFirst();
+        Optional<LstFile.Record> optionalRecord = lstFile.getRecordByFileName(originalFileName);
 
         if (optionalRecord.isPresent()) {
             updateSpectrumUsingLstFileRecord(spectrum, optionalRecord.get());
@@ -283,10 +284,10 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             String strippedFileName = stripFileExtension(originalFileName);
             try {
                 int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 4));
-                LstFile.Record record = lstFile.getRecord(fileIndex - 1);
+                LstFile.Record record = lstFile.getRecordByIndex(fileIndex).get();
                 updateSpectrumUsingLstFileRecord(spectrum, record);
 
-            } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            } catch (NumberFormatException | NoSuchElementException e) {
                 // Filename does not conform to the naming convention
             }
         }
@@ -308,13 +309,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
         double rvCorr = record.getRvCorr();
         if (isNotNaN(rvCorr) && rvCorr != 0) {
-            // Apply the correction
-            double diff = rvCorr - (isNaN(spectrum.getRvCorrection()) ? 0 : spectrum.getRvCorrection());
-            double[] updatedXSeries = Arrays.stream(spectrum.getSeries().getXSeries())
-                    .map(value -> value + diff * (value / Constants.SPEED_OF_LIGHT))
-                    .toArray();
-            spectrum.getSeries().updateXSeries(updatedXSeries);
-            spectrum.setRvCorrection(rvCorr);
+            spectrum.updateRvCorrection(rvCorr);
         }
 
         if (isNaN(spectrum.getExpTime()) && isNotNaN(record.getExpTime())) {
