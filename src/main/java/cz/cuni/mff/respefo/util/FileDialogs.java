@@ -93,8 +93,8 @@ public class FileDialogs extends UtilityClass {
         FileDialog dialog = new FileDialog(ComponentManager.getShell(), style);
 
         dialog.setText("Select file");
-        dialog.setFilterNames(new String[] {fileType.getFilterNames(), "All Files"});
-        dialog.setFilterExtensions(new String[] {fileType.getFilterExtensions(), "*.*"});
+        dialog.setFilterNames(fileType.getFilterNames());
+        dialog.setFilterExtensions(fileType.getFilterExtensions());
 
         if (fileName != null) {
             dialog.setFileName(stripParent(fileName));
@@ -173,8 +173,8 @@ public class FileDialogs extends UtilityClass {
         FileDialog dialog = new FileDialog(ComponentManager.getShell(), SWT.OPEN | SWT.MULTI);
 
         dialog.setText("Select files");
-        dialog.setFilterNames(new String[] {fileType.getFilterNames(), "All Files"});
-        dialog.setFilterExtensions(new String[] {fileType.getFilterExtensions(), "*.*"});
+        dialog.setFilterNames(fileType.getFilterNames());
+        dialog.setFilterExtensions(fileType.getFilterExtensions());
         dialog.setFilterPath(getFilterPath());
 
         String filePath = dialog.open();
