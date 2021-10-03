@@ -76,7 +76,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         }
     }
 
-    private double[] getSeriesFromData(Object data, int bitPix) throws SpefoException {
+    protected double[] getSeriesFromData(Object data, int bitPix) throws SpefoException {
         switch (bitPix) {
             case BasicHDU.BITPIX_DOUBLE:
                 return (double[]) data;
@@ -91,7 +91,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         }
     }
 
-    private double[] getSeriesFromCData(Header header, int size) {
+    protected double[] getSeriesFromCData(Header header, int size) {
         double crpix = header.getDoubleValue(Standard.CRPIXn.n(1), 1);
         double cdelt = header.getDoubleValue(Standard.CDELTn.n(1), 1);
         double crval = header.getDoubleValue(Standard.CRVALn.n(1), 0);
@@ -99,7 +99,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return ArrayUtils.fillArray(size, (1 - crpix) * cdelt + crval, cdelt);
     }
 
-    private XYSeries getBothSeriesFromData(Object data, int bitPix) throws SpefoException {
+    protected XYSeries getBothSeriesFromData(Object data, int bitPix) throws SpefoException {
         double[] xSeries = getSeriesFromData(Array.get(data, 0), bitPix);
         double[] ySeries = getSeriesFromData(Array.get(data, 1), bitPix);
 
