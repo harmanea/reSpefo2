@@ -28,7 +28,7 @@ public class ExportAsciiFormat extends AsciiFormat implements ExportFileFormat {
             if (spectrum.getOrigin() instanceof AsciiOrigin) {
                 String originalFirstLine = ((AsciiOrigin) spectrum.getOrigin()).getFirstLine();
                 if (originalFirstLine != null) {
-                    writer.println(originalFirstLine);
+                    writer.println("# " + originalFirstLine);
                 }
 
             } else {
