@@ -4,6 +4,8 @@ import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -91,6 +93,53 @@ public class StringUtils extends UtilityClass {
     public static boolean isBlank(String str) {
         Objects.requireNonNull(str);
         return str.chars().allMatch(Character::isWhitespace);
+    }
+
+    /**
+     * Combine a list of integers into a concise string.
+     * <p><p>
+     * For example:
+     * <p>
+     * 1, 2, 3, 4, 5 => "1-5"
+     * <p>
+     * 3, 5, 9 => "3,5,9"
+     * <p>
+     * 100, 101, 102, 105 => "100-102,105"
+     *
+     * @param indices list of integer indices
+     * @return a concise representation of the indices
+     */
+    public static String combineIndices(List<Integer> indices) {
+        if (indices.isEmpty()) {
+            return "";
+        }
+
+        List<String> fragments = new ArrayList<>();
+
+        int low = indices.get(0);
+        int high = low;
+
+        for (int index : indices) {
+            if (index > high + 1) {
+                fragments.add(fragment(low, high));
+
+                low = index;
+            }
+
+            high = index;
+        }
+
+        fragments.add(fragment(low, high));
+
+        return String.join(",", fragments);
+    }
+
+    private static String fragment(int low, int high) {
+        if (high > low) {
+            return low + "-" + high;
+        } else {
+            return String.valueOf(low);
+        }
     }
 
     protected StringUtils() throws IllegalAccessException {

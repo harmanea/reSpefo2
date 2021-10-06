@@ -16,12 +16,12 @@ import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
+import cz.cuni.mff.respefo.util.utils.StringUtils;
 import nom.tam.fits.FitsFactory;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static cz.cuni.mff.respefo.function.port.ImportFunction.*;
 
@@ -79,7 +79,8 @@ public class InteractiveChironFunction implements SingleFileFunction {
                 spectrum.putFunctionAsset(RectifyFunction.SERIALIZE_KEY, asset.get());
             }
 
-            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, getSuggestedFileName(originalFile.getPath(), selectedIndices));
+            String suggestedFileName = FileUtils.stripFileExtension(originalFile.getPath()) + StringUtils.combineIndices(selectedIndices) + ".spf";
+            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, suggestedFileName);
             if (newFileName == null) {
                 return;
             }
@@ -92,18 +93,6 @@ public class InteractiveChironFunction implements SingleFileFunction {
         } catch (SpefoException exception) {
             Message.error("Spectrum file couldn't be saved.", exception);
         }
-    }
-
-    private String getSuggestedFileName(String fileName, List<Integer> selectedIndices) {
-        String suggestedFileName = FileUtils.stripFileExtension(fileName);
-
-        if (selectedIndices.size() <= 5) {
-            suggestedFileName += "-" + selectedIndices.stream()
-                    .map(i -> Integer.toString(i + 1))
-                    .collect(Collectors.joining(","));
-        }
-
-        return suggestedFileName + ".spf";
     }
 
     private static class InteractiveChironFitsImportFormat extends ChironFitsFormat {
