@@ -22,6 +22,7 @@ import nom.tam.fits.FitsFactory;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static cz.cuni.mff.respefo.function.port.ImportFunction.*;
 
@@ -79,7 +80,8 @@ public class InteractiveChironFunction implements SingleFileFunction {
                 spectrum.putFunctionAsset(RectifyFunction.SERIALIZE_KEY, asset.get());
             }
 
-            String suggestedFileName = FileUtils.stripFileExtension(originalFile.getPath()) + StringUtils.combineIndices(selectedIndices) + ".spf";
+            String suggestedFileName = FileUtils.stripFileExtension(originalFile.getPath()) + "-"
+                    + StringUtils.combineIndices(selectedIndices.stream().map(i -> i + 1).collect(Collectors.toList())) + ".spf";
             String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, suggestedFileName);
             if (newFileName == null) {
                 return;
