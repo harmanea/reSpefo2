@@ -32,7 +32,7 @@ public class BeSSFitsFormat extends ImportFitsFormat {
         }
 
         double BSS_RQHV = header.getDoubleValue("BSS_RQHV");
-        applyCorrection = true;
+        applyCorrection = BSS_RQHV != 0.0;
 
         return -BSS_RQHV;
     }
