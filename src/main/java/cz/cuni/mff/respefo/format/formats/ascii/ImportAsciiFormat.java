@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.format.formats.ascii;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
+import cz.cuni.mff.respefo.format.SimpleSpectrum;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
@@ -33,7 +34,7 @@ public class ImportAsciiFormat extends AsciiFormat implements ImportFileFormat {
 
             XYSeries series = new XYSeries(xList.toArray(), yList.toArray());
 
-            Spectrum spectrum = new Spectrum(series);
+            Spectrum spectrum = new SimpleSpectrum(series);
             spectrum.setOrigin(new AsciiOrigin(fileName, firstLine));
             return spectrum;
 

@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.format.formats.fits;
 
 import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.format.InvalidFileFormatException;
+import cz.cuni.mff.respefo.format.SimpleSpectrum;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
@@ -42,7 +43,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
             headerCards.add(new HeaderCard(card.getComment(), card.getKey(), card.getValue()));
         }
 
-        Spectrum spectrum = new Spectrum(series);
+        Spectrum spectrum = new SimpleSpectrum(series);
         spectrum.setOrigin(new FitsOrigin(fileName, headerCards));
         spectrum.setHjd(getHJD(header));
         spectrum.setDateOfObservation(getDateOfObservation(header));

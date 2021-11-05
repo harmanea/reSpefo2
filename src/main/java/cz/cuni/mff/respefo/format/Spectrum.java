@@ -20,16 +20,9 @@ import cz.cuni.mff.respefo.util.info.VersionInfo;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Optional;
+import java.util.*;
 
-import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
-import static java.lang.Double.isNaN;
-
-public class Spectrum {
-    private static final int CURRENT_FORMAT = 1;
+public abstract class Spectrum {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     static {
         MAPPER.disable(MapperFeature.AUTO_DETECT_CREATORS,
@@ -47,24 +40,28 @@ public class Spectrum {
         MAPPER.registerModule(doubleArrayListModule);
     }
 
+    private static final Map<Integer, Class<? extends Spectrum>> formats = new HashMap<>();
+    static {
+        formats.put(SimpleSpectrum.FORMAT, SimpleSpectrum.class);
+        formats.put(EchelleSpectrum.FORMAT, EchelleSpectrum.class);
+    }
+
     private transient File file;
 
-    private int format;
+    protected int format;
     private String version;
 
     @JsonDeserialize(using = OriginDeserializer.class)
     @JsonSerialize(using = OriginSerializer.class)
-    private Object origin;
+    protected Object origin;
 
-    private JulianDate hjd;
-    private LocalDateTime dateOfObservation;
-    private double rvCorrection; // Maybe add support for different types in the future
-    private double expTime;
+    protected JulianDate hjd;
+    protected LocalDateTime dateOfObservation;
+    protected double rvCorrection; // Maybe add support for different types in the future
+    protected double expTime;
 
     @JsonDeserialize(using = FunctionAssetsDeserializer.class)
-    private LinkedHashMap<String, FunctionAsset> functionAssets;
-
-    private XYSeries series;
+    protected LinkedHashMap<String, FunctionAsset> functionAssets;
 
     public static Spectrum open(File file) throws SpefoException {
         Spectrum spectrum = readFile(file);
@@ -74,7 +71,9 @@ public class Spectrum {
 
     private static Spectrum readFile(File file) throws SpefoException {
         try {
-            return MAPPER.readValue(file, Spectrum.class);
+            JsonNode root = MAPPER.readTree(file);
+            int format = root.get("format").asInt();
+            return MAPPER.treeToValue(root, formats.get(format));
 
         } catch (JsonParseException | JsonMappingException exception) {
             throw new SpefoException("An error occurred while processing JSON", exception);
@@ -104,21 +103,19 @@ public class Spectrum {
         }
     }
 
-    private Spectrum() {
+    protected Spectrum() {
         // default empty constructor
     }
 
-    public Spectrum(XYSeries series) {
-        format = CURRENT_FORMAT;
+    protected Spectrum(int format) {
+        this.format = format;
+
         version = VersionInfo.getVersion();
         functionAssets = new LinkedHashMap<>();
-
         hjd = new JulianDate();
         dateOfObservation = LocalDateTime.MIN;
         rvCorrection = Double.NaN;
         expTime = Double.NaN;
-
-        this.series = series;
     }
 
     public File getFile() {
@@ -133,16 +130,8 @@ public class Spectrum {
         return format;
     }
 
-    public void setFormat(int format) {
-        this.format = format;
-    }
-
     public String getVersion() {
         return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
     }
 
     public Object getOrigin() {
@@ -177,14 +166,7 @@ public class Spectrum {
         this.rvCorrection = rvCorrection;
     }
 
-    public void updateRvCorrection(double newRvCorrection) {
-        double diff = newRvCorrection - (isNaN(rvCorrection) ? 0 : rvCorrection);
-        double[] updatedXSeries = Arrays.stream(series.getXSeries())
-                .map(value -> value + diff * (value / SPEED_OF_LIGHT))
-                .toArray();
-        series.updateXSeries(updatedXSeries);
-        setRvCorrection(newRvCorrection);
-    }
+    public abstract void updateRvCorrection(double newRvCorrection);
 
     public double getExpTime() {
         return expTime;
@@ -194,16 +176,10 @@ public class Spectrum {
         this.expTime = expTime;
     }
 
-    public XYSeries getSeries() {
-        return series;
-    }
-
-    public void setSeries(XYSeries series) {
-        this.series = series;
-    }
+    public abstract XYSeries getSeries();
 
     public XYSeries getProcessedSeries() {
-        XYSeries processedSeries = series;
+        XYSeries processedSeries = getSeries();
 
         for (FunctionAsset asset : functionAssets.values()) {
             processedSeries = asset.process(processedSeries);
@@ -213,7 +189,7 @@ public class Spectrum {
     }
 
     public XYSeries getProcessedSeriesWithout(FunctionAsset omittedAsset) {
-        XYSeries processedSeries = this.series;
+        XYSeries processedSeries = getSeries();
 
         for (FunctionAsset asset : functionAssets.values()) {
             if (asset != omittedAsset) {

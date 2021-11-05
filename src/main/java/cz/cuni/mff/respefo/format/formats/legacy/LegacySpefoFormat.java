@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.format.formats.legacy;
 
 import cz.cuni.mff.respefo.SpefoException;
+import cz.cuni.mff.respefo.format.SimpleSpectrum;
 import cz.cuni.mff.respefo.format.Spectrum;
 import cz.cuni.mff.respefo.format.formats.ImportFileFormat;
 import cz.cuni.mff.respefo.function.rectify.RectifyAsset;
@@ -77,7 +78,7 @@ public class LegacySpefoFormat implements ImportFileFormat {
             }
         }
 
-        Spectrum spectrum = new Spectrum(new XYSeries(xSeries, spefoFile.getYSeries()));
+        Spectrum spectrum = new SimpleSpectrum(new XYSeries(xSeries, spefoFile.getYSeries()));
         spectrum.setOrigin(createOrigin(spefoFile, fileName));
 
         if (spefoFile.getRvCorr() != 0) {
