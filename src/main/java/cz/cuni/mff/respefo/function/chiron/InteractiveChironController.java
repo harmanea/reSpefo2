@@ -7,14 +7,14 @@ import cz.cuni.mff.respefo.function.rectify.RectifyAsset;
 import cz.cuni.mff.respefo.function.rectify.RectifyKeyListener;
 import cz.cuni.mff.respefo.function.rectify.RectifyMouseListener;
 import cz.cuni.mff.respefo.resources.ColorResource;
-import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
-import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
-import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.widget.ChartBuilder;
 
-import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.function.rectify.RectifyFunction.*;
 import static cz.cuni.mff.respefo.resources.ColorResource.GRAY;
@@ -27,24 +27,26 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 
 public class InteractiveChironController {
 
-    private static final Map<Integer, RectifyAsset> assets = new HashMap<>();
+    private static final Map<Integer, RectifyAsset> previousAssets = new HashMap<>();
 
-    private final float[][][] data;
-    private final List<Integer> selectedIndices;
+    private final XYSeries[] series;
+    private final Map<Integer, RectifyAsset> assets;
+
     private final Iterator<Integer> indicesIterator;
-
-    private BiConsumer<XYSeries, Optional<RectifyAsset>> callback;
-
     private int currentIndex;
 
-    public InteractiveChironController(float[][][] data, List<Integer> selectedIndices) {
-        this.data = data;
-        this.selectedIndices = selectedIndices;
+    private Consumer<Map<Integer, RectifyAsset>> callback;
+
+    public InteractiveChironController(XYSeries[] series, Map<Integer, RectifyAsset> assets, List<Integer> selectedIndices) {
+        this.series = series;
+        this.assets = assets;
+
         this.indicesIterator = selectedIndices.iterator();
     }
 
-    public void rectify(BiConsumer<XYSeries, Optional<RectifyAsset>> callback) {
+    public void rectify(Consumer<Map<Integer, RectifyAsset>> callback) {
         this.callback = callback;
+
         rectifyNext();
     }
 
@@ -54,20 +56,18 @@ public class InteractiveChironController {
             ComponentManager.getDisplay().asyncExec(this::rectifySingle);
 
         } else {
-            finish();
+            callback.accept(assets);
         }
     }
 
     private void rectifySingle() {
-        XYSeries current = dataToSeries(currentIndex);
-        List<XYSeries> neighbours = dataToSeries(currentIndex -2, currentIndex -1, currentIndex +1, currentIndex +2);
+        XYSeries current = series[currentIndex];
 
         RectifyAsset asset = assets.containsKey(currentIndex)
-                ? assets.get(currentIndex).adjustToNewData(current)
-                : RectifyAsset.withDefaultPoints(current);
-
-        int middle = current.getLength() / 2;
-        asset.addPoint(current.getX(middle), current.getY(middle));
+                ? assets.get(currentIndex)
+                : (previousAssets.containsKey(currentIndex)
+                    ? previousAssets.get(currentIndex).adjustToNewData(current)
+                    : RectifyAsset.withDefaultPoints(current));
 
         ChartBuilder chartBuilder = newChart()
                 .title("#" + (currentIndex + 1))
@@ -94,9 +94,16 @@ public class InteractiveChironController {
                         .symbolSize(3)
                         .series(asset.getActivePoint()));
 
-        for (XYSeries series : neighbours) {
+        // draw neighbors
+        int lowerBound = currentIndex == 0 ? 1 : Math.max(currentIndex - 2, 0);
+        int upperBound = currentIndex == series.length - 1 ? series.length - 2 : Math.min(currentIndex + 2, series.length - 1);
+        for (int i = lowerBound; i <= upperBound; i++) {
+            if (i == currentIndex) {
+                continue;
+            }
+
             chartBuilder.series(lineSeries()
-                    .series(series)
+                    .series(series[i])
                     .color(GRAY));
         }
 
@@ -107,6 +114,7 @@ public class InteractiveChironController {
                         newIndex -> updateActivePoint(ch, asset, newIndex),
                         () -> {
                             assets.put(currentIndex, asset);
+                            previousAssets.put(currentIndex, asset);
                             rectifyNext();
                         }))
                 .mouseAndMouseMoveListener(ch -> new RectifyMouseListener(ch,
@@ -132,65 +140,5 @@ public class InteractiveChironController {
                 .makeAllSeriesEqualRange()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
-    }
-
-    private List<XYSeries> dataToSeries(int ... indices) {
-        List<XYSeries> xySeries = new ArrayList<>(indices.length);
-
-        for (int index : indices) {
-            if (index < 0 || index >= data.length) {
-                continue;
-            }
-
-            xySeries.add(dataToSeries(index));
-        }
-
-        return xySeries;
-    }
-
-    private XYSeries dataToSeries(int index) {
-        DoubleArrayList xList = new DoubleArrayList(data[0].length);
-        DoubleArrayList yList = new DoubleArrayList(data[0].length);
-
-        float[][] matrix = data[index];
-        for (float[] row : matrix) {
-            xList.add(row[0]);
-            yList.add(row[1]);
-        }
-
-        return new XYSeries(xList.toArray(), yList.toArray());
-    }
-
-    private void finish() {
-        if (selectedIndices.size() == 1) {
-            int i = selectedIndices.get(0);
-            XYSeries series = dataToSeries(i);
-            RectifyAsset asset = assets.get(i);
-            callback.accept(series, Optional.of(asset));
-
-        } else {
-            SortedSet<Point> points = new TreeSet<>();
-
-            for (Integer i : selectedIndices) {
-                XYSeries series = dataToSeries(i);
-                RectifyAsset asset = assets.get(i);
-                double[] rectifiedSeries = ArrayUtils.divideArrayValues(series.getYSeries(), asset.getIntepData(series.getXSeries()));
-                for (int j = 0; j < rectifiedSeries.length; j++) {
-                    points.add(new Point(series.getX(j), rectifiedSeries[j]));
-                }
-            }
-
-            double[] xSeries = new double[points.size()];
-            double[] ySeries = new double[points.size()];
-
-            int i = 0;
-            for (Point point : points) {
-                xSeries[i] = point.getX();
-                ySeries[i] = point.getY();
-                i++;
-            }
-
-            callback.accept(new XYSeries(xSeries, ySeries), Optional.empty());
-        }
     }
 }

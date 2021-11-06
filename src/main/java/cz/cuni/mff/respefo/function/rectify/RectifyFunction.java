@@ -8,7 +8,7 @@ import cz.cuni.mff.respefo.function.Serialize;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
-import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
+import cz.cuni.mff.respefo.function.filter.SimpleSpectrumFileFilter;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
@@ -25,7 +25,7 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lin
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 
-@Fun(name = "Rectify", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
+@Fun(name = "Rectify", fileFilter = SimpleSpectrumFileFilter.class, group = "Preprocessing")
 @Serialize(key = RectifyFunction.SERIALIZE_KEY, assetClass = RectifyAsset.class)
 public class RectifyFunction implements SingleFileFunction {
 

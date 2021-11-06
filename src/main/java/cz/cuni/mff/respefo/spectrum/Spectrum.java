@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public abstract class Spectrum {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
     static {
         MAPPER.disable(MapperFeature.AUTO_DETECT_CREATORS,
                 MapperFeature.AUTO_DETECT_GETTERS,

@@ -1,9 +1,13 @@
 package cz.cuni.mff.respefo.spectrum.format;
 
+import cz.cuni.mff.respefo.function.rectify.RectifyAsset;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
@@ -14,6 +18,8 @@ public class EchelleSpectrum extends Spectrum {
 
     private XYSeries[] series;
 
+    private Map<Integer, RectifyAsset> rectifyAssets;
+
     private EchelleSpectrum() {
         super();  // default empty constructor
     }
@@ -22,6 +28,19 @@ public class EchelleSpectrum extends Spectrum {
         super(FORMAT);
 
         this.series = series;
+        rectifyAssets = new LinkedHashMap<>();
+    }
+
+    public XYSeries[] getOriginalSeries() {
+        return series;
+    }
+
+    public Map<Integer, RectifyAsset> getRectifyAssets() {
+        return rectifyAssets;
+    }
+
+    public void setRectifyAssets(Map<Integer, RectifyAsset> rectifyAssets) {
+        this.rectifyAssets = rectifyAssets;
     }
 
     @Override
@@ -42,14 +61,32 @@ public class EchelleSpectrum extends Spectrum {
     public XYSeries getSeries() {
         // k-way mergesort, could be cached if necessary
 
-        double[] xSeries = new double[series.length * series[0].getLength()];
-        double[] ySeries = new double[series.length * series[0].getLength()];
+        double[] xSeries;
+        double[] ySeries;
 
         int i = 0;
 
         PriorityQueue<XYSeriesContainer> heap = new PriorityQueue<>(series.length);
-        for (XYSeries xySeries : series) {
-            heap.add(new XYSeriesContainer(xySeries));
+        if (rectifyAssets.isEmpty()) {
+            for (XYSeries xySeries : series) {
+                heap.add(new XYSeriesContainer(xySeries));
+            }
+
+            xSeries = new double[series.length * series[0].getLength()];
+            ySeries = new double[series.length * series[0].getLength()];
+
+        } else {
+            for (Map.Entry<Integer, RectifyAsset> entry : rectifyAssets.entrySet()) {
+                XYSeries xySeries = series[entry.getKey()];
+
+                double[] rectifiedSeries = ArrayUtils.divideArrayValues(xySeries.getYSeries(),
+                        entry.getValue().getIntepData(xySeries.getXSeries()));
+
+                heap.add(new XYSeriesContainer(new XYSeries(xySeries.getXSeries(), rectifiedSeries)));
+            }
+
+            xSeries = new double[rectifyAssets.size() * series[0].getLength()];
+            ySeries = new double[rectifyAssets.size() * series[0].getLength()];
         }
 
         while (!heap.isEmpty()) {
