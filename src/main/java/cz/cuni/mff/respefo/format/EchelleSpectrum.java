@@ -9,7 +9,7 @@ import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static java.lang.Double.isNaN;
 
 public class EchelleSpectrum extends Spectrum {
-    protected static final int FORMAT = 2;
+    public static final int FORMAT = 2;
 
     private XYSeries[] series;
 
@@ -39,6 +39,8 @@ public class EchelleSpectrum extends Spectrum {
 
     @Override
     public XYSeries getSeries() {
+        // k-way mergesort, could be cached if necessary
+
         double[] xSeries = new double[series.length * series[0].getLength()];
         double[] ySeries = new double[series.length * series[0].getLength()];
 
@@ -65,8 +67,8 @@ public class EchelleSpectrum extends Spectrum {
     }
 
     private static class XYSeriesContainer implements Comparable<XYSeriesContainer> {
-        XYSeries series;
-        int index;
+        private final XYSeries series;
+        private int index;
 
         XYSeriesContainer(XYSeries series) {
             this.series = series;

@@ -28,22 +28,15 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
     public Spectrum importFrom(String fileName) throws SpefoException {
         FitsFile fits = new FitsFile(new File(fileName));
 
-        XYSeries series = parseData(fits);
+        Spectrum spectrum = createSpectrum(fits);
 
         Header header = fits.getHeader();
-        double bZero = header.getDoubleValue(Standard.BZERO, 0);
-        double bScale = header.getDoubleValue(Standard.BSCALE, 1);
-        if (bZero != 0 || bScale != 1) {
-            series.updateYSeries(ArrayUtils.applyBScale(series.getYSeries(), bZero, bScale));
-        }
-
         List<HeaderCard> headerCards = new ArrayList<>();
         for (Cursor<String, nom.tam.fits.HeaderCard> it = header.iterator(); it.hasNext(); ) {
             nom.tam.fits.HeaderCard card = it.next();
             headerCards.add(new HeaderCard(card.getComment(), card.getKey(), card.getValue()));
         }
 
-        Spectrum spectrum = new SimpleSpectrum(series);
         spectrum.setOrigin(new FitsOrigin(fileName, headerCards));
         spectrum.setHjd(getHJD(header));
         spectrum.setDateOfObservation(getDateOfObservation(header));
@@ -53,7 +46,19 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return spectrum;
     }
 
-    protected XYSeries parseData(FitsFile fits) throws SpefoException {
+    protected Spectrum createSpectrum(FitsFile fits) throws SpefoException {
+        XYSeries series = parseData(fits);
+
+        double bZero = fits.getHeader().getDoubleValue(Standard.BZERO, 0);
+        double bScale = fits.getHeader().getDoubleValue(Standard.BSCALE, 1);
+        if (bZero != 0 || bScale != 1) {
+            series.updateYSeries(ArrayUtils.applyBScale(series.getYSeries(), bZero, bScale));
+        }
+
+        return new SimpleSpectrum(series);
+    }
+
+    private XYSeries parseData(FitsFile fits) throws SpefoException {
         Object data = fits.getData();
         if (data == null || !data.getClass().isArray()) {
             throw new InvalidFileFormatException("The HDU does not contain array data");
@@ -77,7 +82,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         }
     }
 
-    protected double[] getSeriesFromData(Object data, int bitPix) throws SpefoException {
+    private double[] getSeriesFromData(Object data, int bitPix) throws SpefoException {
         switch (bitPix) {
             case BasicHDU.BITPIX_DOUBLE:
                 return (double[]) data;
@@ -92,7 +97,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         }
     }
 
-    protected double[] getSeriesFromCData(Header header, int size) {
+    private double[] getSeriesFromCData(Header header, int size) {
         double crpix = header.getDoubleValue(Standard.CRPIXn.n(1), 1);
         double cdelt = header.getDoubleValue(Standard.CDELTn.n(1), 1);
         double crval = header.getDoubleValue(Standard.CRVALn.n(1), 0);
@@ -100,7 +105,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return ArrayUtils.fillArray(size, (1 - crpix) * cdelt + crval, cdelt);
     }
 
-    protected XYSeries getBothSeriesFromData(Object data, int bitPix) throws SpefoException {
+    private XYSeries getBothSeriesFromData(Object data, int bitPix) throws SpefoException {
         double[] xSeries = getSeriesFromData(Array.get(data, 0), bitPix);
         double[] ySeries = getSeriesFromData(Array.get(data, 1), bitPix);
 

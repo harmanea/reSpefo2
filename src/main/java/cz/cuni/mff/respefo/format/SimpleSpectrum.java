@@ -8,7 +8,7 @@ import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static java.lang.Double.isNaN;
 
 public class SimpleSpectrum extends Spectrum {
-    protected static final int FORMAT = 1;
+    public static final int FORMAT = 1;
 
     private XYSeries series;
 

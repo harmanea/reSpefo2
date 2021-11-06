@@ -40,15 +40,15 @@ public abstract class Spectrum {
         MAPPER.registerModule(doubleArrayListModule);
     }
 
-    private static final Map<Integer, Class<? extends Spectrum>> formats = new HashMap<>();
+    private static final Map<Integer, Class<? extends Spectrum>> FORMATS = new HashMap<>();
     static {
-        formats.put(SimpleSpectrum.FORMAT, SimpleSpectrum.class);
-        formats.put(EchelleSpectrum.FORMAT, EchelleSpectrum.class);
+        FORMATS.put(SimpleSpectrum.FORMAT, SimpleSpectrum.class);
+        FORMATS.put(EchelleSpectrum.FORMAT, EchelleSpectrum.class);
     }
 
     private transient File file;
 
-    protected int format;
+    private int format;
     private String version;
 
     @JsonDeserialize(using = OriginDeserializer.class)
@@ -73,7 +73,7 @@ public abstract class Spectrum {
         try {
             JsonNode root = MAPPER.readTree(file);
             int format = root.get("format").asInt();
-            return MAPPER.treeToValue(root, formats.get(format));
+            return MAPPER.treeToValue(root, FORMATS.get(format));
 
         } catch (JsonParseException | JsonMappingException exception) {
             throw new SpefoException("An error occurred while processing JSON", exception);
