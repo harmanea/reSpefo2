@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function.port;
 
 import cz.cuni.mff.respefo.dialog.SpefoDialog;
-import cz.cuni.mff.respefo.format.formats.FileFormat;
+import cz.cuni.mff.respefo.spectrum.port.FileFormat;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;

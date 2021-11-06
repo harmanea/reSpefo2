@@ -1,15 +1,15 @@
 package cz.cuni.mff.respefo.function.ew;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.Project;
-import cz.cuni.mff.respefo.format.Spectrum;
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.ProjectFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.collections.XYSeries;

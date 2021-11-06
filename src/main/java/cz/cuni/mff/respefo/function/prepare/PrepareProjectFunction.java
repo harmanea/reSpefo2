@@ -1,8 +1,8 @@
 package cz.cuni.mff.respefo.function.prepare;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.Project;
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.ProjectFunction;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;

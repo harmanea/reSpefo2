@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.function.filter;
 
-import cz.cuni.mff.respefo.format.formats.ascii.AsciiFormat;
+import cz.cuni.mff.respefo.spectrum.port.ascii.AsciiFormat;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 
 import java.io.File;

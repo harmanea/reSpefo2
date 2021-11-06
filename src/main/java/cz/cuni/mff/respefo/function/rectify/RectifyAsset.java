@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.function.rectify;
 
-import cz.cuni.mff.respefo.format.asset.FunctionAsset;
+import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;

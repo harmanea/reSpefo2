@@ -1,17 +1,17 @@
 package cz.cuni.mff.respefo.function.port;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.dialog.OverwriteDialog;
-import cz.cuni.mff.respefo.format.FormatManager;
-import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.UnknownFileFormatException;
-import cz.cuni.mff.respefo.format.formats.ExportFileFormat;
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.spectrum.Spectrum;
+import cz.cuni.mff.respefo.spectrum.port.ExportFileFormat;
+import cz.cuni.mff.respefo.spectrum.port.FormatManager;
+import cz.cuni.mff.respefo.spectrum.port.UnknownFileFormatException;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;

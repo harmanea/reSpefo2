@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.util.collections;
 
-import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.format.InvalidFileFormatException;
+import cz.cuni.mff.respefo.exception.InvalidFileFormatException;
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.logging.Log;
 import nom.tam.fits.*;
 

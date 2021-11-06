@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.function.ew;
 
-import cz.cuni.mff.respefo.format.asset.FunctionAsset;
+import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 
 import java.util.ArrayList;
 import java.util.Iterator;

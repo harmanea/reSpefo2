@@ -1,11 +1,11 @@
 package cz.cuni.mff.respefo;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
-import cz.cuni.mff.respefo.format.FormatManager;
-import cz.cuni.mff.respefo.format.origin.OriginManager;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ImageManager;
+import cz.cuni.mff.respefo.spectrum.origin.OriginManager;
+import cz.cuni.mff.respefo.spectrum.port.FormatManager;
 import cz.cuni.mff.respefo.util.Progress;
 
 public class ReSpefo {

@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.resources;
 
-import cz.cuni.mff.respefo.format.FormatManager;
+import cz.cuni.mff.respefo.spectrum.port.FormatManager;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;

@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.function.clean;
 
-import cz.cuni.mff.respefo.format.asset.FunctionAsset;
+import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 

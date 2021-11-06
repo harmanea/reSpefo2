@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function.lst;
 
-import cz.cuni.mff.respefo.SpefoException;
-import cz.cuni.mff.respefo.format.InvalidFileFormatException;
+import cz.cuni.mff.respefo.exception.InvalidFileFormatException;
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.util.collections.JulianDate;
 import cz.cuni.mff.respefo.util.utils.StringUtils;
 

@@ -1,8 +1,7 @@
 package cz.cuni.mff.respefo.function.compare;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.ComponentManager;
-import cz.cuni.mff.respefo.format.Spectrum;
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.common.ChartKeyListener;
@@ -10,6 +9,7 @@ import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.resources.ColorResource;
+import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FileUtils;

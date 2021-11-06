@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.function;
 
-import cz.cuni.mff.respefo.format.asset.FunctionAsset;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.util.UtilityClass;
 import org.reflections.Reflections;
 

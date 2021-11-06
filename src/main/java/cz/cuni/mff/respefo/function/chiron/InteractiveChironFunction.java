@@ -1,15 +1,15 @@
 package cz.cuni.mff.respefo.function.chiron;
 
-import cz.cuni.mff.respefo.SpefoException;
 import cz.cuni.mff.respefo.component.Project;
-import cz.cuni.mff.respefo.format.Spectrum;
-import cz.cuni.mff.respefo.format.formats.fits.ChironFitsFormat;
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.function.rectify.RectifyAsset;
 import cz.cuni.mff.respefo.function.rectify.RectifyFunction;
+import cz.cuni.mff.respefo.spectrum.Spectrum;
+import cz.cuni.mff.respefo.spectrum.port.fits.ChironFitsFormat;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
@@ -105,9 +105,8 @@ public class InteractiveChironFunction implements SingleFileFunction {
             this.series = series;
         }
 
-        @Override
-        public XYSeries parseData(FitsFile fits) {
-            return series;
-        }
+//        public XYSeries parseData(FitsFile fits) {
+//            return series;
+//        }
     }
 }
