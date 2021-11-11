@@ -17,6 +17,9 @@ import cz.cuni.mff.respefo.spectrum.format.SimpleSpectrum;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.widget.ChartBuilder;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 
@@ -114,11 +117,6 @@ public class RectifyFunction implements SingleFileFunction {
 
     private static void rectifySingleEchelle(EchelleSpectrum spectrum, Iterator<Integer> indicesIterator,
                                              XYSeries[] series, SortedMap<Integer, RectifyAsset> assets) {
-        if (!indicesIterator.hasNext()) {
-            finishEchelleSpectrum(spectrum, assets);
-            return;
-        }
-
         int currentIndex = indicesIterator.next();
         XYSeries currentSeries = series[currentIndex];
         RectifyAsset currentAsset = assets.containsKey(currentIndex)
@@ -129,9 +127,7 @@ public class RectifyFunction implements SingleFileFunction {
 
         rectify("#" + (currentIndex + 1), currentSeries, currentAsset,
                 builder -> {
-                    int lowerBound = currentIndex == 0 ? 1 : Math.max(currentIndex - 2, 0);
-                    int upperBound = currentIndex == series.length - 1 ? series.length - 2 : Math.min(currentIndex + 2, series.length - 1);
-                    for (int i = lowerBound; i <= upperBound; i++) {
+                    for (int i = Math.max(currentIndex - 2, 0); i <= Math.min(currentIndex + 2, series.length - 1); i++) {
                         if (i == currentIndex) {
                             continue;
                         }
@@ -140,7 +136,16 @@ public class RectifyFunction implements SingleFileFunction {
                                 .series(series[i])
                                 .color(GRAY));
                     }
-                    return builder;
+
+                    return builder
+                            .keyListener(ch -> new KeyAdapter() {
+                                @Override
+                                public void keyPressed(KeyEvent e) {
+                                    if (e.keyCode == SWT.END && Message.question("Are you sure you want to finish?")) {
+                                        finishEchelleSpectrum(spectrum, assets);
+                                    }
+                                }
+                            });
                 },
                 asset -> {
                     assets.put(currentIndex, asset);
@@ -155,7 +160,7 @@ public class RectifyFunction implements SingleFileFunction {
     }
 
     private static void rectify(String title, XYSeries series, RectifyAsset asset,
-                                                     UnaryOperator<ChartBuilder> extraSeries,
+                                                     UnaryOperator<ChartBuilder> operator,
                                                      Consumer<RectifyAsset> finish) {
         newChart()
                 .title(title)
@@ -181,7 +186,7 @@ public class RectifyFunction implements SingleFileFunction {
                         .color(ColorResource.RED)
                         .symbolSize(3)
                         .series(asset.getActivePoint()))
-                .apply(extraSeries)
+                .apply(operator)
                 .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
                 .keyListener(ch -> new RectifyKeyListener(ch, asset,
                         () -> updateAllSeries(ch, asset, series),
