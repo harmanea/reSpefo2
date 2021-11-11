@@ -76,7 +76,7 @@ public class FileExplorer {
         addDoubleClickListener();
         addKeyListener();
 
-        clipboard = new Clipboard(ComponentManager.getDisplay());
+        clipboard = new Clipboard(parent.getDisplay());
 
         new FileExplorerMenu();
     }

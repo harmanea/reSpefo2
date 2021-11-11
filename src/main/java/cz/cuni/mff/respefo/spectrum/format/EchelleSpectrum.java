@@ -3,14 +3,13 @@ package cz.cuni.mff.respefo.spectrum.format;
 import cz.cuni.mff.respefo.function.rectify.RectifyAsset;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
-import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.PriorityQueue;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.divideArrayValues;
 import static java.lang.Double.isNaN;
 
 public class EchelleSpectrum extends Spectrum {
@@ -61,77 +60,23 @@ public class EchelleSpectrum extends Spectrum {
     public XYSeries getSeries() {
         // k-way mergesort, could be cached if necessary
 
-        double[] xSeries;
-        double[] ySeries;
-
-        int i = 0;
-
-        PriorityQueue<XYSeriesContainer> heap = new PriorityQueue<>(series.length);
         if (rectifyAssets.isEmpty()) {
-            for (XYSeries xySeries : series) {
-                heap.add(new XYSeriesContainer(xySeries));
-            }
-
-            xSeries = new double[series.length * series[0].getLength()];
-            ySeries = new double[series.length * series[0].getLength()];
+            return XYSeries.merge(series);
 
         } else {
-            for (Map.Entry<Integer, RectifyAsset> entry : rectifyAssets.entrySet()) {
-                XYSeries xySeries = series[entry.getKey()];
+            XYSeries[] rectifiedSeries = rectifyAssets.entrySet().stream()
+                    .map(entry -> {
+                        XYSeries xySeries = series[entry.getKey()];
+                        RectifyAsset asset = entry.getValue();
 
-                double[] rectifiedSeries = ArrayUtils.divideArrayValues(xySeries.getYSeries(),
-                        entry.getValue().getIntepData(xySeries.getXSeries()));
+                        return new XYSeries(
+                                xySeries.getXSeries(),
+                                divideArrayValues(xySeries.getYSeries(), asset.getIntepData(xySeries.getXSeries()))
+                        );
+                    })
+                    .toArray(XYSeries[]::new);
 
-                heap.add(new XYSeriesContainer(new XYSeries(xySeries.getXSeries(), rectifiedSeries)));
-            }
-
-            xSeries = new double[rectifyAssets.size() * series[0].getLength()];
-            ySeries = new double[rectifyAssets.size() * series[0].getLength()];
-        }
-
-        while (!heap.isEmpty()) {
-            XYSeriesContainer container = heap.poll();
-            xSeries[i] = container.getX();
-            ySeries[i] = container.getY();
-            i++;
-
-            if (container.isNotEmpty()) {
-                container.increment();
-                heap.add(container);
-            }
-        }
-
-        return new XYSeries(xSeries, ySeries);
-    }
-
-    private static class XYSeriesContainer implements Comparable<XYSeriesContainer> {
-        private final XYSeries series;
-        private int index;
-
-        XYSeriesContainer(XYSeries series) {
-            this.series = series;
-            index = 0;
-        }
-
-        double getX() {
-            return series.getX(index);
-        }
-
-        double getY() {
-            return series.getY(index);
-        }
-
-        void increment() {
-            index++;
-        }
-
-        boolean isNotEmpty() {
-            return index < series.getLength() - 1;
-        }
-
-        @Override
-        public int compareTo(XYSeriesContainer other) {
-            return Double.compare(getX(), other.getX());
+            return XYSeries.merge(rectifiedSeries);
         }
     }
 }

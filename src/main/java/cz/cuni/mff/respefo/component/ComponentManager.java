@@ -137,7 +137,7 @@ public class ComponentManager extends UtilityClass {
         projectTab.show();
 
         ToolBar.Tab spectraTab = leftToolBar.addTab(parent -> new VerticalToggle(parent, UP),
-                "Spectra", "Spectra (Preview)", ImageResource.SPECTRA_LARGE);
+                "Spectra", "Spectra", ImageResource.SPECTRA_LARGE);
 
         SpectrumExplorer spectrumExplorer = new SpectrumExplorer(spectraTab.getWindow());
         spectrumExplorer.setLayoutData(new GridData(GridData.FILL_BOTH));

@@ -9,11 +9,11 @@ import static java.lang.System.out;
  */
 public class ConsoleLogListener implements LogListener {
 
-    private static final String PATTERN = "[%s] %s - %s";
+    private static final String PATTERN = "[%s] %s - %s%n";
 
     @Override
     public void notify(LogEntry entry) {
-        out.println(String.format(PATTERN, entry.getDateTime(), entry.getLevel().toString(), entry.getMessage()));
+        out.printf(PATTERN, entry.getDateTime(), entry.getLevel().toString(), entry.getMessage());
 
         if (entry.getCause() != null) {
             entry.getCause().printStackTrace(out);

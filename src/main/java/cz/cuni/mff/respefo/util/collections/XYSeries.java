@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.util.collections;
 
 import java.util.Objects;
+import java.util.PriorityQueue;
 
 /**
  * A collection for storing a 2-D sequence of real numbers. The underlying arrays cannot be null and are guaranteed
@@ -88,5 +89,87 @@ public class XYSeries {
         }
 
         return ySeries[ySeries.length - 1];
+    }
+
+    /**
+     * K-way merge of x-sorted XYSeries
+     * @param xySeries any number of x-sorted series
+     * @return a new x-sorted series containing all the values from the original collections
+     */
+    public static XYSeries merge(XYSeries ... xySeries) {
+        PriorityQueue<Container> heap = new PriorityQueue<>(xySeries.length);
+
+        int n = 0;
+        for (XYSeries series : xySeries) {
+            heap.add(new Container(series));
+            n += series.getLength();
+        }
+
+        double[] xSeries = new double[n];
+        double[] ySeries = new double[n];
+
+        int i = 0;
+        while (!heap.isEmpty()) {
+            Container container = heap.poll();
+            xSeries[i] = container.getX();
+            ySeries[i] = container.getY();
+            i++;
+
+            if (container.isNotEmpty()) {
+                container.increment();
+                heap.add(container);
+            }
+        }
+
+        return new XYSeries(xSeries, ySeries);
+    }
+
+    private static class Container implements Comparable<Container> {
+        private final XYSeries series;
+        private int index;
+
+        Container(XYSeries series) {
+            this.series = Objects.requireNonNull(series);
+            index = 0;
+        }
+
+        double getX() {
+            return series.getX(index);
+        }
+
+        double getY() {
+            return series.getY(index);
+        }
+
+        void increment() {
+            index++;
+        }
+
+        boolean isNotEmpty() {
+            return index < series.getLength() - 1;
+        }
+
+        @Override
+        public int compareTo(Container other) {
+            return Double.compare(getX(), other.getX());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Container container = (Container) o;
+
+            if (index != container.index) return false;
+            return series.equals(container.series);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = series.hashCode();
+            result = 31 * result + index;
+            return result;
+        }
     }
 }

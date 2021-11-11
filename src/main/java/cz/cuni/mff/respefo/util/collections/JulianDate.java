@@ -12,7 +12,7 @@ import java.util.Objects;
  * Algorithms taken from <a href='https://en.wikipedia.org/wiki/Julian_day'>Wikipedia</a>
  */
 public class JulianDate implements Comparable<JulianDate> {
-    public static final double REDUCTION = 2_400_000;
+    private static final double REDUCTION = 2_400_000;
 
     private final double jd;
 
@@ -22,6 +22,13 @@ public class JulianDate implements Comparable<JulianDate> {
 
     public JulianDate(double jd) {
         this.jd = jd;
+    }
+
+    /**
+     * @param rjd reduced Julian date
+     */
+    public static JulianDate fromRJD(double rjd) {
+        return new JulianDate(rjd + REDUCTION);
     }
 
     public static JulianDate fromDate(LocalDate date) {

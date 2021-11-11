@@ -14,6 +14,7 @@ public class TestUtils {
         return new double[0];
     }
 
+    @SafeVarargs
     public static <T> List<T> listOf(T ... values) {
         return Arrays.asList(values);
     }

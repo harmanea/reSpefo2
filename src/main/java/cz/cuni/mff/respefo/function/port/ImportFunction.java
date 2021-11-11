@@ -298,7 +298,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         if (isNaN(spectrum.getHjd().getJD()) && isNotNaN(hjd.getJD())) {
             if (hjd.getJD() < 100_000) {
                 // Convert reduced julian date to full date
-                hjd = new JulianDate(hjd.getJD() + JulianDate.REDUCTION);
+                hjd = JulianDate.fromRJD(hjd.getJD());
             }
             spectrum.setHjd(hjd);
         }
