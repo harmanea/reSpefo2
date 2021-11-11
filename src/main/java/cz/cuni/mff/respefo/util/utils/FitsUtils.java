@@ -11,7 +11,7 @@ import java.time.LocalTime;
 
 public class FitsUtils extends UtilityClass {
 
-    // TODO: There is a whole lot of useable header cards in nom.tam.fits.header(.extra), maybe use some of those as well
+    // TODO: There is a whole lot of usable header cards in nom.tam.fits.header(.extra), maybe use some of those as well
 
     private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD"};
     private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};

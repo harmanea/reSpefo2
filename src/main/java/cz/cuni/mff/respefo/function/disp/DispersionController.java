@@ -208,7 +208,7 @@ public class DispersionController {
         double[] x = results.getX();
         double[] laboratoryValues = results.getLaboratoryValues();
 
-        double[] coeffs = results.getCoeffs();
+        double[] coefficients = results.getCoefficients();
 
         double[] actualY = results.getActualY();
         double[] residuals = results.getResiduals();
@@ -290,7 +290,7 @@ public class DispersionController {
                     int index = ((Table) event.widget).getSelectionIndex();
                     if (index >= 0 && index < ((Table) event.widget).getItemCount() - 1 && event.keyCode == SWT.DEL) {
                         results.inverseUsed(index);
-                        results.calculateCoeffs();
+                        results.calculateCoefficients();
                         results.calculateValues();
                         thirdStage(results);
                     }
@@ -299,7 +299,7 @@ public class DispersionController {
 
         newText(SWT.MULTI | SWT.READ_ONLY)
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_END)
-                .text("Coefficients of dispersion polynomial:\n\n" + stream(coeffs).mapToObj(Double::toString).collect(joining("\n")))
+                .text("Coefficients of dispersion polynomial:\n\n" + stream(coefficients).mapToObj(Double::toString).collect(joining("\n")))
                 .build(tableComposite);
 
         final Composite buttonsComposite = newComposite()
@@ -315,7 +315,7 @@ public class DispersionController {
                     NumberDialog dialog = new NumberDialog(5, "Select poly degree", "Poly number:");
                     if (dialog.openIsOk()) {
                         results.setPolyDegree(dialog.getNumber());
-                        results.calculateCoeffs();
+                        results.calculateCoefficients();
                         results.calculateValues();
                         thirdStage(results);
                     }
@@ -329,7 +329,7 @@ public class DispersionController {
 
         buttonBuilder
                 .text("Finish")
-                .onSelection(event -> finishCallback.accept(coeffs))
+                .onSelection(event -> finishCallback.accept(coefficients))
                 .build(buttonsComposite);
 
         ComponentManager.getScene().layout();

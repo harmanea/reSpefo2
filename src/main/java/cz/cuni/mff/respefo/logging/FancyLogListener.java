@@ -129,9 +129,9 @@ public class FancyLogListener implements LogListener, LogActionListener {
     }
 
     private static class ActionRange {
-        int upper;
-        Runnable action;
-        boolean oneShot;
+        final int upper;
+        final Runnable action;
+        final boolean oneShot;
 
         ActionRange(int upper, Runnable action, boolean oneShot) {
             this.upper = upper;

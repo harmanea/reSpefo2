@@ -191,7 +191,7 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
 
     @SuppressWarnings("unchecked")
     public abstract static class SeriesBuilder<B extends SeriesBuilder<B>> {
-        static AtomicInteger nameCounter = new AtomicInteger();
+        static final AtomicInteger nameCounter = new AtomicInteger();
 
         final ISeries.SeriesType seriesType;
         LineStyle lineStyle = LineStyle.NONE;

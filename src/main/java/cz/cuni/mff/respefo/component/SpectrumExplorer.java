@@ -169,9 +169,9 @@ public class SpectrumExplorer {
                 public void menuShown(MenuEvent e) {
                     int selectionCount = table.getSelectionCount();
                     if (selectionCount == 1 && lastSelectionCount != 1) {
-                        createMenuitems(SpectrumExplorerMenu.this::getSingleSelection, singleFileGroups, singleFileFunctions, SingleFileFunction::execute);
+                        createMenuItems(SpectrumExplorerMenu.this::getSingleSelection, singleFileGroups, singleFileFunctions, SingleFileFunction::execute);
                     } else if (selectionCount > 1 && lastSelectionCount <= 1) {
-                        createMenuitems(SpectrumExplorerMenu.this::getMultiSelection, multiFileGroups, multiFileFunctions, MultiFileFunction::execute);
+                        createMenuItems(SpectrumExplorerMenu.this::getMultiSelection, multiFileGroups, multiFileFunctions, MultiFileFunction::execute);
                     } else if (selectionCount == 0 && lastSelectionCount > 0) {
                         disposeItems();
                     }
@@ -197,7 +197,7 @@ public class SpectrumExplorer {
                     .collect(Collectors.toList());
         }
 
-        private <S, T> void createMenuitems(Supplier<S> selection, List<String> groups, List<FunctionInfo<T>> functions, BiConsumer<T, S> executor) {
+        private <S, T> void createMenuItems(Supplier<S> selection, List<String> groups, List<FunctionInfo<T>> functions, BiConsumer<T, S> executor) {
             disposeItems();
 
             Map<String, Menu> menuGroups = new HashMap<>();

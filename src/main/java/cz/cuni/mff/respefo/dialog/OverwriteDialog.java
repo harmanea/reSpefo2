@@ -35,7 +35,7 @@ public class OverwriteDialog extends TitleAreaDialog {
     private final File originalFile;
     private final File replaceWith;
 
-    private final boolean originalFileisDirectory;
+    private final boolean originalFileIsDirectory;
     private final boolean replaceWithIsDirectory;
 
     private String newName = null;
@@ -47,7 +47,7 @@ public class OverwriteDialog extends TitleAreaDialog {
         this.originalFile = file;
         this.replaceWith = null;
 
-        originalFileisDirectory = file.isDirectory();
+        originalFileIsDirectory = file.isDirectory();
         replaceWithIsDirectory = false;
     }
 
@@ -57,7 +57,7 @@ public class OverwriteDialog extends TitleAreaDialog {
         this.originalFile = originalFile;
         this.replaceWith = replaceWith;
 
-        originalFileisDirectory = originalFile.isDirectory();
+        originalFileIsDirectory = originalFile.isDirectory();
         replaceWithIsDirectory = replaceWith.isDirectory();
     }
 
@@ -71,7 +71,7 @@ public class OverwriteDialog extends TitleAreaDialog {
 
     @Override
     protected void createButtons(Composite parent) {
-        createButton(parent, DEFAULT, originalFileisDirectory && replaceWithIsDirectory ? "Merge" : "Replace", true);
+        createButton(parent, DEFAULT, originalFileIsDirectory && replaceWithIsDirectory ? "Merge" : "Replace", true);
         createButton(parent, SKIP, "Skip", false);
     }
 
@@ -80,7 +80,7 @@ public class OverwriteDialog extends TitleAreaDialog {
         if (returnCode == DEFAULT) {
             if (newName != null) {
                 returnCode = RENAME;
-            } else if (originalFileisDirectory && replaceWithIsDirectory) {
+            } else if (originalFileIsDirectory && replaceWithIsDirectory) {
                 returnCode = MERGE;
             } else {
                 returnCode = REPLACE;
@@ -92,13 +92,13 @@ public class OverwriteDialog extends TitleAreaDialog {
 
     @Override
     protected void createDialogArea(Composite parent) {
-        if (originalFileisDirectory && replaceWithIsDirectory) {
+        if (originalFileIsDirectory && replaceWithIsDirectory) {
             setMessage("Another folder with the same name already exists.\n" +
                     "Merging will ask for confirmation before replacing\n" +
                     "any files in the folder that conflict with the files\n" +
                     "being copied.", SWT.ICON_WARNING);
 
-        } else if (originalFileisDirectory) {
+        } else if (originalFileIsDirectory) {
             setMessage("An older directory with the same name already exists.\n" +
                     "Replacing it will overwrite its content.", SWT.ICON_WARNING);
 
@@ -139,7 +139,7 @@ public class OverwriteDialog extends TitleAreaDialog {
         fileLabel.text("Original file").build(originalFileComposite);
 
         newLabel().text(
-                originalFileisDirectory
+                originalFileIsDirectory
                         ? "Contents: " + directoryContents(originalFile) + " items"
                         : "Size: " + StringUtils.humanReadableByteCountSI(originalFile.length()))
                 .build(originalFileComposite);
@@ -151,7 +151,7 @@ public class OverwriteDialog extends TitleAreaDialog {
 
             final Composite replaceWithComposite = fileCompositeBuilder.build(fileDetailsComposite);
 
-            fileLabel.text(originalFileisDirectory && replaceWithIsDirectory ? "Merge" : "Replace" + " with")
+            fileLabel.text(originalFileIsDirectory && replaceWithIsDirectory ? "Merge" : "Replace" + " with")
                     .build(replaceWithComposite);
 
             newLabel().text(replaceWithIsDirectory
@@ -216,7 +216,7 @@ public class OverwriteDialog extends TitleAreaDialog {
         newNameText.addListener(SWT.Modify, event -> {
             Button defaultButton = getButton(DEFAULT);
             if (newNameText.getText().equals(originalFile.getName())) {
-                defaultButton.setText(originalFileisDirectory && replaceWithIsDirectory ? "Merge" : "Replace");
+                defaultButton.setText(originalFileIsDirectory && replaceWithIsDirectory ? "Merge" : "Replace");
                 newName = null;
                 applyToAllButton.setEnabled(true);
             } else {

@@ -18,7 +18,7 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
     private final double[] x;
     private final double[] laboratoryValues;
     private final boolean[] used;
-    private double[] coeffs;
+    private double[] coefficients;
     private double[] actualY;
     private double[] residuals;
 
@@ -38,14 +38,14 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
         for (int i = 0; i < n; i++) {
             ComparisonLineMeasurement measurement = validMeasurements.get(i);
 
-            xUp[i] = measurement.getxUp();
-            xDown[i] = measurement.getxDown();
+            xUp[i] = measurement.getXUp();
+            xDown[i] = measurement.getXDown();
             x[i] = measurement.getX();
             laboratoryValues[i] = measurement.getLaboratoryValue();
             used[i] = true;
         }
 
-        calculateCoeffs();
+        calculateCoefficients();
         calculateValues();
 
         double threshold = meanRms() * 1.5;
@@ -55,11 +55,11 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
             }
         }
 
-        calculateCoeffs();
+        calculateCoefficients();
         calculateValues();
     }
 
-    public void calculateCoeffs() {
+    public void calculateCoefficients() {
         DoubleArrayList usedXs = new DoubleArrayList();
         DoubleArrayList usedLaboratoryValues = new DoubleArrayList();
 
@@ -70,7 +70,7 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
             }
         }
 
-        coeffs = MathUtils.fitPolynomial(usedXs.toArray(), usedLaboratoryValues.toArray(), polyDegree);
+        coefficients = MathUtils.fitPolynomial(usedXs.toArray(), usedLaboratoryValues.toArray(), polyDegree);
     }
 
     public void setPolyDegree(int polyDegree) {
@@ -78,7 +78,7 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
     }
 
     public void calculateValues() {
-        actualY = ArrayUtils.createArray(x.length, i -> MathUtils.polynomial(x[i], coeffs));
+        actualY = ArrayUtils.createArray(x.length, i -> MathUtils.polynomial(x[i], coefficients));
         residuals = ArrayUtils.createArray(x.length, i -> actualY[i] - laboratoryValues[i]);
     }
 
@@ -94,8 +94,8 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
         return laboratoryValues;
     }
 
-    public double[] getCoeffs() {
-        return coeffs;
+    public double[] getCoefficients() {
+        return coefficients;
     }
 
     public double[] getActualY() {

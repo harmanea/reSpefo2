@@ -105,7 +105,7 @@ public class FileUtils extends UtilityClass {
     }
 
     /**
-     * @param file whose path should be relativized
+     * @param file whose path should be turned relative
      * @return path relative to the currently opened project
      */
     public static Path getRelativePath(File file) {
@@ -114,7 +114,7 @@ public class FileUtils extends UtilityClass {
     }
 
     /**
-     * @param path that should be relativized
+     * @param path that should be turned relative
      * @return path relative to the currently opened project
      */
     public static Path getRelativePath(Path path) {

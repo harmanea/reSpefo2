@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class MeasureEWResults implements FunctionAsset, Iterable<MeasureEWResult> {
-    List<MeasureEWResult> results;
+    final List<MeasureEWResult> results;
 
     public MeasureEWResults() {
         results = new ArrayList<>();

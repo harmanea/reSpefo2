@@ -70,12 +70,12 @@ public abstract class AbstractControlBuilder<B extends AbstractControlBuilder<?,
         return layoutData(() -> new GridData(style));
     }
 
-    public B gridLayoutData(int horizontalAlignment, int vericalAlignment, boolean grabHorizontal, boolean grabVertical) {
-        return layoutData(() -> new GridData(horizontalAlignment, vericalAlignment, grabHorizontal, grabVertical));
+    public B gridLayoutData(int horizontalAlignment, int verticalAlignment, boolean grabHorizontal, boolean grabVertical) {
+        return layoutData(() -> new GridData(horizontalAlignment, verticalAlignment, grabHorizontal, grabVertical));
     }
 
-    public B gridLayoutData(int horizontalAlignment, int vericalAlignment, boolean grabHorizontal, boolean grabVertical, int horizontalSpan, int verticalSpan) {
-        return layoutData(() -> new GridData(horizontalAlignment, vericalAlignment, grabHorizontal, grabVertical, horizontalSpan, verticalSpan));
+    public B gridLayoutData(int horizontalAlignment, int verticalAlignment, boolean grabHorizontal, boolean grabVertical, int horizontalSpan, int verticalSpan) {
+        return layoutData(() -> new GridData(horizontalAlignment, verticalAlignment, grabHorizontal, grabVertical, horizontalSpan, verticalSpan));
     }
 
     public B toolTip(String toolTipText) {

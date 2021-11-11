@@ -107,7 +107,7 @@ public class ExportFunction implements SingleFileFunction, MultiFileFunction {
                     Spectrum spectrum = Spectrum.open(spectrumFile);
                     spectra.add(spectrum);
                 } catch (SpefoException exception) {
-                    Log.error("An error occured while opening file " + spectrumFile.toPath(), exception);
+                    Log.error("An error occurred while opening file " + spectrumFile.toPath(), exception);
                     failedFiles.add(spectrumFile);
                 } finally {
                     p.step();
@@ -127,7 +127,7 @@ public class ExportFunction implements SingleFileFunction, MultiFileFunction {
                     }
 
                 } catch (SpefoException exception) {
-                    Log.error("An error occured while exporting file " + spectrum.getFile().toPath(), exception);
+                    Log.error("An error occurred while exporting file " + spectrum.getFile().toPath(), exception);
                     failedFiles.add(spectrum.getFile());
                 } finally {
                     p.step();

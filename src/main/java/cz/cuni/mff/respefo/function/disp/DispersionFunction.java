@@ -44,7 +44,7 @@ public class DispersionFunction implements SingleFileFunction {
 
             new DispersionController(cmpValues, seriesA, seriesB)
                     .start(results -> printToCmfFile(dialog.getCmpFileName(), dialog.getLabFileNameA(), dialog.getLabFileNameB(), results),
-                            coeffs -> saveSpectrum(file, coeffs));
+                            coefficients -> saveSpectrum(file, coefficients));
 
         } catch (SpefoException e) {
             Message.error("An error occurred while reading files", e);
@@ -79,9 +79,9 @@ public class DispersionFunction implements SingleFileFunction {
             writer.println(formatDouble(results.meanRms(), 4, 3));
             writer.println("\n\n  Coefficients of dispersion polynomial:\n");
 
-            double[] coeffs = results.getCoeffs();
-            for (int i = 0; i < coeffs.length; i++) {
-                writer.println("   order  " + i + "    " + String.format("%1.8e", coeffs[i]));
+            double[] coefficients = results.getCoefficients();
+            for (int i = 0; i < coefficients.length; i++) {
+                writer.println("   order  " + i + "    " + String.format("%1.8e", coefficients[i]));
             }
 
             if (writer.checkError()) {
@@ -94,13 +94,13 @@ public class DispersionFunction implements SingleFileFunction {
         }
     }
 
-    private void saveSpectrum(File originalFile, double[] coeffs) {
+    private void saveSpectrum(File originalFile, double[] coefficients) {
         try {
             Spectrum spectrum = new ImportFitsFormat().importFrom(originalFile.getPath());
 
             double[] xSeries = spectrum.getSeries().getXSeries();
             for (int i = 0; i < xSeries.length; i++) {
-                xSeries[i] = MathUtils.polynomial(i, coeffs);
+                xSeries[i] = MathUtils.polynomial(i, coefficients);
 
                 if (isNotNaN(spectrum.getRvCorrection())) {
                     xSeries[i] += spectrum.getRvCorrection() * (xSeries[i] / SPEED_OF_LIGHT);

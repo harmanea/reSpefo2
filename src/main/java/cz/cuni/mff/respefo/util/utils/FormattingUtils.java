@@ -9,7 +9,7 @@ import static cz.cuni.mff.respefo.util.utils.StringUtils.repeat;
 public class FormattingUtils extends UtilityClass {
     /**
      * Formats a double to String and pads it with spaces from the left if necessary.
-     * @param number to be formated
+     * @param number to be formatted
      * @param before number of digits before decimal point
      * @param after number of digits after decimal point
      * @param sign include sign
@@ -28,7 +28,7 @@ public class FormattingUtils extends UtilityClass {
 
     /**
      * Formats a double to String and pads it with spaces from the left if necessary, including sign.
-     * @param number to be formated
+     * @param number to be formatted
      * @param before number of digits before decimal point
      * @param after number of digits after decimal point
      * @return formatted String

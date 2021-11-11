@@ -362,7 +362,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
                 MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
 
                 if (isNaN(results.getRvOfCategory("corr"))) {
-                    Log.warning("Spectrum " + spectrum.getFile().getName() + " was skipped because it does not have meaured corrections.");
+                    Log.warning("Spectrum " + spectrum.getFile().getName() + " was skipped because it does not have measured corrections.");
                     continue;
                 }
 
@@ -395,7 +395,7 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
                 MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
 
                 if (isNaN(results.getRvOfCategory("corr"))) {
-                    Log.warning("Spectrum " + spectrum.getFile().getName() + " was skipped because it does not have meaured corrections.");
+                    Log.warning("Spectrum " + spectrum.getFile().getName() + " was skipped because it does not have measured corrections.");
                     continue;
                 }
 

@@ -18,19 +18,19 @@ public class ComparisonLineMeasurement {
         return laboratoryValue;
     }
 
-    public void setxUp(double xUp) {
+    public void setXUp(double xUp) {
         this.xUp = xUp;
     }
 
-    public void setxDown(double xDown) {
+    public void setXDown(double xDown) {
         this.xDown = xDown;
     }
 
-    public double getxUp() {
+    public double getXUp() {
         return xUp;
     }
 
-    public double getxDown() {
+    public double getXDown() {
         return xDown;
     }
 

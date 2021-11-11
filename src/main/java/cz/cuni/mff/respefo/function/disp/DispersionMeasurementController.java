@@ -38,8 +38,8 @@ public class DispersionMeasurementController {
     public void measure(ComparisonLineMeasurement measurement, double hint, Runnable callback) {
         measureSingle(seriesA, "A", measurement, hint, xUp ->
             measureSingle(seriesB, "B", measurement, hint, xDown -> {
-                measurement.setxUp(xUp);
-                measurement.setxDown(xDown);
+                measurement.setXUp(xUp);
+                measurement.setXDown(xDown);
                 ComponentManager.getDisplay().asyncExec(callback);
             }));
     }
