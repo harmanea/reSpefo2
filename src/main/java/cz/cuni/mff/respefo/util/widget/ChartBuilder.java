@@ -17,6 +17,7 @@ import org.swtchart.ILineSeries.PlotSymbolType;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 
@@ -143,6 +144,10 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
     public ChartBuilder forceFocus() {
         addProperty(Control::forceFocus);
         return this;
+    }
+
+    public ChartBuilder apply(UnaryOperator<ChartBuilder> operator) {
+        return operator.apply(this);
     }
 
     private void adjustExtraSeries(Chart chart, ILineSeries lineSeries) {

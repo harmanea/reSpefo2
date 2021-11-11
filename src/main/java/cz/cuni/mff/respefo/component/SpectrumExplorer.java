@@ -10,6 +10,7 @@ import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
+import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.events.MenuAdapter;
@@ -86,7 +87,8 @@ public class SpectrumExplorer {
                 item.setText(0, FileUtils.stripParent(spectrum.getFile().getName()));
                 item.setImage(0, ImageManager.getImage(ImageResource.SPECTRUM_FILE));
 
-                if (spectrum.containsFunctionAsset("rectify")) {
+                if (spectrum.containsFunctionAsset("rectify")
+                        || (spectrum.getFormat() == EchelleSpectrum.FORMAT && !((EchelleSpectrum) spectrum).getRectifyAssets().isEmpty())) {
                     item.setImage(1, ImageManager.getImage(ImageResource.RECTIFY));
                 }
 

@@ -5,8 +5,8 @@ import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.ArrayUtils.divideArrayValues;
@@ -17,7 +17,7 @@ public class EchelleSpectrum extends Spectrum {
 
     private XYSeries[] series;
 
-    private Map<Integer, RectifyAsset> rectifyAssets;
+    private SortedMap<Integer, RectifyAsset> rectifyAssets;
 
     private EchelleSpectrum() {
         super();  // default empty constructor
@@ -27,18 +27,18 @@ public class EchelleSpectrum extends Spectrum {
         super(FORMAT);
 
         this.series = series;
-        rectifyAssets = new LinkedHashMap<>();
+        rectifyAssets = new TreeMap<>();
     }
 
     public XYSeries[] getOriginalSeries() {
         return series;
     }
 
-    public Map<Integer, RectifyAsset> getRectifyAssets() {
+    public SortedMap<Integer, RectifyAsset> getRectifyAssets() {
         return rectifyAssets;
     }
 
-    public void setRectifyAssets(Map<Integer, RectifyAsset> rectifyAssets) {
+    public void setRectifyAssets(SortedMap<Integer, RectifyAsset> rectifyAssets) {
         this.rectifyAssets = rectifyAssets;
     }
 

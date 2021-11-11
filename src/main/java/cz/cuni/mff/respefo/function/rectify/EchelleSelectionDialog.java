@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function.chiron;
+package cz.cuni.mff.respefo.function.rectify;
 
 import cz.cuni.mff.respefo.dialog.TitleAreaDialog;
 import org.eclipse.swt.SWT;
@@ -17,12 +17,12 @@ import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.util.stream.Collectors.toList;
 
-public class InteractiveChironSelectionDialog extends TitleAreaDialog {
+public class EchelleSelectionDialog extends TitleAreaDialog {
 
     private final String[][] names;
     private final boolean[] selected;
 
-    public InteractiveChironSelectionDialog(String[][] names, boolean[] selected) {
+    public EchelleSelectionDialog(String[][] names, boolean[] selected) {
         super("Select echelle orders");
 
         this.names = names;
