@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 public class ArrayUtils extends UtilityClass {
 
     /**
-     * Find first array entry that is greater than target.
+     * Find first array entry that is greater than target. If there are multiple such values, the first one is returned.
      * @param array to search, must be sorted in ascending order
      * @param target to search for
      * @return index of the value matching the criteria, returns array.length if all values are smaller than or equal to the target
@@ -20,6 +20,9 @@ public class ArrayUtils extends UtilityClass {
 
         int index = Arrays.binarySearch(array, target);
         if (index >= 0) {
+            while (index < array.length - 1 && array[index] == array[index + 1]) {
+                index++;
+            }
             return index + 1;
         } else {
             return -1 * (index + 1);

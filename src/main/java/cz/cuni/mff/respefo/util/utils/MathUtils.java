@@ -11,91 +11,69 @@ public class MathUtils extends UtilityClass {
     public static final double DOUBLE_PRECISION = 0.0000001;
 
     /**
-     * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine"). This implementation is based on the FORTRAN code stated therein.
+     * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine").
+     * This implementation is based on the FORTRAN code stated therein.
+     * Values outside of given bounds are replaced with the last value within the bounds.
      *
-     * @param x      Independent values sorted in strictly ascending order
+     * @param x      Independent values sorted in ascending order
      * @param y      Dependent values
      * @param xinter Values at which to interpolate the tabulated data given by 'x' and 'y'
      * @return Interpolated values at the locations specified by 'xinter'
      */
     public static double[] intep(double[] x, double[] y, double[] xinter) {
-        return intep(x, y, xinter, null);
-    }
-
-    /**
-     * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine"). This implementation is based on the FORTRAN code stated therein.
-     *
-     * @param x         Independent values sorted in strictly ascending order
-     * @param y         Dependent values
-     * @param xinter    Values at which to interpolate the tabulated data given by 'x' and 'y'
-     * @param fillValue This value will be used to represent values outside of the given bounds, if null, the last value in the bounds will be used
-     * @return Interpolated values at the locations specified by 'xinter'
-     */
-    public static double[] intep(double[] x, double[] y, double[] xinter, Double fillValue) {
         Objects.requireNonNull(x);
         Objects.requireNonNull(y);
         Objects.requireNonNull(xinter);
 
-        // create result array
         double[] result = new double[xinter.length];
 
-        // treat points outside of given bounds
-        int ilow = 0; // lowest index of xinter value in the given bounds
+        // Treat points outside of given bounds
+        int iLow = xinter.length; // lowest index of xinter value in the given bounds
         for (int i = 0; i < xinter.length; i++) {
-            if (xinter[i] < x[0]) {
-                ilow = i + 1;
-                if (fillValue == null) {
-                    result[i] = y[0];
-                } else {
-                    result[i] = fillValue;
-                }
+            if (xinter[i] <= x[0]) {
+                result[i] = y[0];
             } else {
+                iLow = i;
                 break;
             }
         }
-        int iup = xinter.length - 1; // highest index of xinter value in the given bounds
+        int iHigh = -1; // highest index of xinter value in the given bounds
         for (int i = xinter.length - 1; i >= 0; i--) {
-            if (xinter[i] > x[x.length - 1]) {
-                iup = i - 1;
-                if (fillValue == null) {
-                    result[i] = y[y.length - 1];
-                } else {
-                    result[i] = fillValue;
-                }
+            if (xinter[i] >= x[x.length - 1]) {
+                result[i] = y[y.length - 1];
             } else {
+                iHigh = i;
                 break;
             }
         }
 
-        // treat points inside bounds
-        for (int i = ilow; i <= iup; i++) {
+        // Treat points inside bounds
+        for (int i = iLow; i <= iHigh; i++) {
             double xp = xinter[i];
-            int infl = ArrayUtils.findFirstGreaterThan(x, xp);
-            if (infl == x.length) {
-                result[i] = y[y.length - 1];
-                continue;
-            }
-            infl--;
-            double lp1 = 1 / (x[infl] - x[infl + 1]);
+
+            int j = ArrayUtils.findFirstGreaterThan(x, xp) - 1;
+
+            double lp1 = 1 / (x[j] - x[j + 1]);
             double lp2 = -lp1;
 
-            double fp1 = infl <= 0
+            double fp1 = j <= 0
                     ? (y[1] - y[0]) / (x[1] - x[0]) // first point
-                    : (y[infl + 1] - y[infl - 1]) / (x[infl + 1] - x[infl - 1]);
+                    : (y[j + 1] - y[j - 1]) / (x[j + 1] - x[j - 1]);
 
-            double fp2 = infl >= x.length - 2
+            double fp2 = j >= x.length - 2
                     ? (y[y.length - 1] - y[y.length - 2]) / (x[x.length - 1] - x[x.length - 2]) // last point
-                    : (y[infl + 2] - y[infl]) / (x[infl + 2] - x[infl]);
+                    : (y[j + 2] - y[j]) / (x[j + 2] - x[j]);
 
-            double xpi1 = xp - x[infl + 1];
-            double xpi = xp - x[infl];
+            double xpi1 = xp - x[j + 1];
+            double xpi = xp - x[j];
             double l1 = xpi1 * lp1;
             double l2 = xpi * lp2;
 
-            result[i] = y[infl] * (1 - 2 * lp1 * xpi) * l1 * l1 + y[infl + 1] * (1 - 2 * lp2 * xpi1) * l2 * l2
-                    + fp2 * xpi1 * l2 * l2 + fp1 * xpi * l1 * l1;
+            result[i] = y[j] * (1 - 2 * lp1 * xpi) * l1 * l1
+                    + y[j + 1] * (1 - 2 * lp2 * xpi1) * l2 * l2
+                    + fp2 * xpi1 * l2 * l2
+                    + fp1 * xpi * l1 * l1;
         }
-
 
         return result;
     }

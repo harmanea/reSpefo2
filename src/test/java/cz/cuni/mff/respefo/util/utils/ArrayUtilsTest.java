@@ -19,6 +19,12 @@ public class ArrayUtilsTest {
         assertEquals(0, findFirstGreaterThan(arrayOf(1), 0));
         assertEquals(1, findFirstGreaterThan(arrayOf(1), 1));
         assertEquals(0, findFirstGreaterThan(emptyArray(), 1));
+        assertEquals(8, findFirstGreaterThan(arrayOf(1, 1, 1, 1, 1, 1, 1, 1), 1));
+        assertEquals(0, findFirstGreaterThan(arrayOf(1, 1, 1, 1, 1, 1, 1, 1), 0));
+        assertEquals(6, findFirstGreaterThan(arrayOf(1, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 6), 3));
+        assertEquals(6, findFirstGreaterThan(arrayOf(1, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 6), 3.5));
+        assertEquals(8, findFirstGreaterThan(arrayOf(1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 6), 4));
+        assertEquals(4, findFirstGreaterThan(arrayOf(1, 1, 1, 1, 2, 2, 2, 2), 1));
     }
 
     @Test
