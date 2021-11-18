@@ -11,7 +11,7 @@ public class FitsFormat implements FileFormat {
     public static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("fits", "fts", "fit"));
 
     @Override
-    public List<String> fileExtensions() {
+    public final List<String> fileExtensions() {
         return FILE_EXTENSIONS;
     }
 

@@ -31,7 +31,9 @@ public class FitsFile {
                 Log.warning("There are more than one HDUs in the file. The first ImageHDU will be chosen.");
             }
 
-            ImageHDU imageHdu = (ImageHDU) Arrays.stream(hdus).filter(hdu -> hdu instanceof ImageHDU).findFirst()
+            ImageHDU imageHdu = (ImageHDU) Arrays.stream(hdus)
+                    .filter(ImageHDU.class::isInstance)
+                    .findFirst()
                     .orElseThrow(() -> new InvalidFileFormatException("No ImageHDU in the FITS file"));
 
             header = loadHeader ? imageHdu.getHeader() : null;
