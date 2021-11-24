@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.UtilityClass;
 import cz.cuni.mff.respefo.util.collections.JulianDate;
+import nom.tam.fits.FitsFactory;
 import nom.tam.fits.Header;
 import nom.tam.fits.header.Standard;
 
@@ -16,6 +17,11 @@ public class FitsUtils extends UtilityClass {
     private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD", "JD-HEL"};
     private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};
     private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"};
+
+    static {
+        FitsFactory.setAllowHeaderRepairs(true);
+        FitsFactory.setAllowTerminalJunk(true);
+    }
 
     public static JulianDate getHJD(Header header) {
         for (String alias : JULIAN_DATE_ALIASES) {

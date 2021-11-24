@@ -16,7 +16,6 @@ import cz.cuni.mff.respefo.util.info.VersionInfo;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.widget.CompositeBuilder;
 import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
-import nom.tam.fits.FitsFactory;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.ShellAdapter;
@@ -236,7 +235,6 @@ public class ComponentManager extends UtilityClass {
                         item("Focus Scene", () -> getScene().forceFocus())
                 ),
                 header("Debug",
-                        checkItem("Allow FITS Header Repairs", FitsFactory::setAllowHeaderRepairs),
                         separator(),
                         item("Inspect JSON", function(new InspectJSONFunction())),
                         item("Repair File", function(new RepairFunction())),

@@ -6,20 +6,8 @@ import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
-import nom.tam.fits.FitsFactory;
 
 public class ChironFitsFormat extends ImportFitsFormat {
-
-    @Override
-    public Spectrum importFrom(String fileName) throws SpefoException {
-        boolean previousSetting = FitsFactory.isAllowHeaderRepairs();
-        FitsFactory.setAllowHeaderRepairs(true);
-        try {
-            return super.importFrom(fileName);
-        } finally {
-            FitsFactory.setAllowHeaderRepairs(previousSetting);
-        }
-    }
 
     @Override
     protected Spectrum createSpectrum(FitsFile fits) throws SpefoException {
