@@ -283,11 +283,11 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             // Try using a number in the filename
             String strippedFileName = stripFileExtension(originalFileName);
             try {
-                int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 4));
+                int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 5));
                 LstFile.Record record = lstFile.getRecordByIndex(fileIndex).get();
                 updateSpectrumUsingLstFileRecord(spectrum, record);
 
-            } catch (NumberFormatException | NoSuchElementException e) {
+            } catch (NumberFormatException | IndexOutOfBoundsException | NoSuchElementException e) {
                 // Filename does not conform to the naming convention
             }
         }
