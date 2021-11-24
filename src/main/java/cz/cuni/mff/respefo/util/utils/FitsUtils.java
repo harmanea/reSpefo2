@@ -13,9 +13,9 @@ public class FitsUtils extends UtilityClass {
 
     // TODO: There is a whole lot of usable header cards in nom.tam.fits.header(.extra), maybe use some of those as well
 
-    private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD"};
+    private static final String[] JULIAN_DATE_ALIASES = {"HJD", "HCJD", "MID-HJD", "JD-HEL"};
     private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};
-    private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"}; // ObservationDurationDescription.EXPOSURE, ObservationDurationDescription.EXPTIME, SBFitsExt.DARKTIME
+    private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"};
 
     public static JulianDate getHJD(Header header) {
         for (String alias : JULIAN_DATE_ALIASES) {

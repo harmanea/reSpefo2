@@ -28,7 +28,7 @@ public class BeSSFitsFormat extends ImportFitsFormat {
         double vhel = header.getDoubleValue("BSS_VHEL");
 
         if (vhel != 0) {
-            return -vhel;
+            return vhel;
         }
 
         double rqhv = header.getDoubleValue("BSS_RQHV");
