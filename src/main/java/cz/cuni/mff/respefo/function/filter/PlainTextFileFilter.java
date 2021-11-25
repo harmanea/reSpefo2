@@ -17,7 +17,7 @@ public class PlainTextFileFilter implements FileFilter {
         Set<String> set = new HashSet<>();
 
         set.addAll(AsciiFormat.FILE_EXTENSIONS);
-        set.addAll(Arrays.asList("stl", "lst", "rvr", "dat", "rv", "ac", "cor", "rvs", "res", "inp", "par", "eqw", "cmf", "cmp"));
+        set.addAll(Arrays.asList("stl", "rvr", "dat", "rv", "ac", "cor", "rvs", "res", "inp", "par", "eqw", "cmf", "cmp"));
 
         FILE_EXTENSIONS = Collections.unmodifiableSet(set);
     }

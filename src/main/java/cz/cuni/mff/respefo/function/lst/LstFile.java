@@ -12,14 +12,15 @@ import java.io.IOException;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
-public class LstFile {
+public class LstFile implements Iterable<LstFile.Record> {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy MM dd HH mm ss");
     public static final String TABLE_HEADER =
             "==============================================================================\n" +
@@ -32,8 +33,8 @@ public class LstFile {
     private final Map<String, Record> recordsByFileName;
 
     public LstFile(File file) throws SpefoException {
-        recordsByIndex = new HashMap<>();
-        recordsByFileName = new HashMap<>();
+        recordsByIndex = new LinkedHashMap<>();
+        recordsByFileName = new LinkedHashMap<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             StringBuilder headerBuilder = new StringBuilder();
@@ -66,7 +67,7 @@ public class LstFile {
             }
 
         } catch (IndexOutOfBoundsException | NumberFormatException | DateTimeException exception) {
-            throw new InvalidFileFormatException("The lst file is invalid", exception);
+            throw new InvalidFileFormatException("The .lst file is invalid", exception);
         } catch (IOException exception) {
             throw new SpefoException("An error occurred while reading file", exception);
         }
@@ -114,6 +115,11 @@ public class LstFile {
         double rvCorr = parseDouble(tokens[9 + offset]);
 
         return new Record(index, dateTimeStart, expTime, fileName, hjd, rvCorr);
+    }
+
+    @Override
+    public Iterator<Record> iterator() {
+        return recordsByIndex.values().iterator();
     }
 
     public static class Record {

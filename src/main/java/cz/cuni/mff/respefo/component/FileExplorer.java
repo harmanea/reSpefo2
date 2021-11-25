@@ -290,6 +290,9 @@ public class FileExplorer {
                 } else if (FileUtils.getFileExtension(file).equals("spf")) {
                     FunctionManager.getSingleFileFunctionByName("Open").execute(file);
 
+                } else if (FileUtils.getFileExtension(file).equals("lst")) {
+                    FunctionManager.getSingleFileFunctionByName("Open .lst File").execute(file);
+
                 } else if (PlainTextFileFilter.FILE_EXTENSIONS.contains(FileUtils.getFileExtension(file))) {
                     FunctionManager.getSingleFileFunctionByName("Open Plain Text").execute(file);
                 }

@@ -248,7 +248,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                     updateSpectrumUsingLstFile(spectrum, lstFile, originalFile.getName());
 
                 } catch (SpefoException exception) {
-                    Log.error("Couldn't load lst file", exception);
+                    Log.error("Couldn't load .lst file", exception);
                 }
             }
         }
