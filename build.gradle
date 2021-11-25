@@ -7,8 +7,6 @@ plugins {
 group 'cz.cuni.mff'
 version gitVersion().replace('.dirty', '') // There is a JGit bug
 
-sourceCompatibility = 1.8
-
 // Default values for running swt locally
 // use 'gradle -PswtRelease=<release> -PswtPlatform=<platform> fatJar' to build jars for a target swt platform and version
 ext.swtRelease = project.properties['swtRelease'] ?: '4.12.0'

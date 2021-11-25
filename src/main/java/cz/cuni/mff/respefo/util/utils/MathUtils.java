@@ -13,12 +13,12 @@ public class MathUtils extends UtilityClass {
     /**
      * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine").
      * This implementation is based on the FORTRAN code stated therein.
-     * Values outside of given bounds are replaced with the last value within the bounds.
      *
      * @param x      Independent values sorted in ascending order
      * @param y      Dependent values
      * @param xinter Values at which to interpolate the tabulated data given by 'x' and 'y'
-     * @return Interpolated values at the locations specified by 'xinter'
+     * @return Interpolated values at the locations specified by 'xinter',
+     *  values outside of given bounds are replaced with the last value within the bounds
      */
     public static double[] intep(double[] x, double[] y, double[] xinter) {
         Objects.requireNonNull(x);
@@ -52,6 +52,10 @@ public class MathUtils extends UtilityClass {
             double xp = xinter[i];
 
             int j = ArrayUtils.findFirstGreaterThan(x, xp) - 1;
+            if (x[j] == xp) {
+                result[i] = y[j];  // short-circuit speedup
+                continue;
+            }
 
             double lp1 = 1 / (x[j] - x[j + 1]);
             double lp2 = -lp1;
@@ -89,7 +93,7 @@ public class MathUtils extends UtilityClass {
      * @return y coordinate
      */
     public static double linearInterpolation(double x0, double y0, double x1, double y1, double x) {
-        if (x0 == x1) {
+        if (doublesEqual(x0, x1)) {
             throw new IllegalArgumentException("The given points must be different");
         }
 
