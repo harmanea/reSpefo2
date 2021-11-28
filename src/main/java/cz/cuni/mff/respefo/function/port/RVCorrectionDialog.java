@@ -11,6 +11,7 @@ import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
+import static java.lang.Double.isFinite;
 
 public class RVCorrectionDialog extends SpefoDialog {
 
@@ -48,7 +49,7 @@ public class RVCorrectionDialog extends SpefoDialog {
     private void verifyValue(Text text) {
         try {
             rvCorr = Double.parseDouble(text.getText());
-            getButton(SWT.OK).setEnabled(true);
+            getButton(SWT.OK).setEnabled(isFinite(rvCorr));
         } catch (NumberFormatException exception) {
             getButton(SWT.OK).setEnabled(false);
         }
