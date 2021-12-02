@@ -26,15 +26,17 @@ public class BeSSFitsFormat extends ImportFitsFormat {
     @Override
     protected double getRVCorrection(Header header) {
         double vhel = header.getDoubleValue("BSS_VHEL");
-
-        if (vhel != 0) {
+        if (vhel != 0.0) {
             return vhel;
         }
 
-        double rqhv = header.getDoubleValue("BSS_RQHV");
-        applyCorrection = rqhv != 0.0;
+        double rqvh = header.getDoubleValue("BSS_RQVH");
+        if (rqvh != 0.0) {
+            applyCorrection = true;
+            return -rqvh;
+        }
 
-        return -rqhv;
+        return Double.NaN;
     }
 
     @Override
