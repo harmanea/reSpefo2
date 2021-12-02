@@ -18,7 +18,7 @@ public class FitsUtils extends UtilityClass {
     private static final String[] RV_CORR_ALIASES = {"VHELIO", "HCRV", "SUN_COR"};
     private static final String[] EXP_TIME_ALIASES = {"EXPTIME", "CTIME", "ITIME", "DARKTIME"};
 
-    static {
+    public static void init() {
         FitsFactory.setAllowHeaderRepairs(true);
         FitsFactory.setAllowTerminalJunk(true);
     }
