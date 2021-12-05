@@ -92,4 +92,9 @@ public abstract class AbstractControlBuilder<B extends AbstractControlBuilder<?,
         addProperty(Control::setFocus);
         return (B) this;
     }
+
+    public B pack() {
+        addProperty(Control::pack);
+        return (B) this;
+    }
 }

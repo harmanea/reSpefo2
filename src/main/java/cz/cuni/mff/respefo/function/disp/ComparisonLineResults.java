@@ -50,7 +50,7 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
 
         double threshold = meanRms() * 1.5;
         for (int i = 0; i < n; i++) {
-            if (residuals[i] > threshold) {
+            if (Math.abs(residuals[i]) > threshold) {
                 used[i] = false;
             }
         }
@@ -83,6 +83,7 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
     }
 
     public double meanRms() {
+        // TODO: This is just average, not root mean square
         return Arrays.stream(residuals).map(Math::abs).average().orElseThrow(IllegalStateException::new);
     }
 

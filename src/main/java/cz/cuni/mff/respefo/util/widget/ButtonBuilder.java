@@ -8,7 +8,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
-// The following properties were not included: alignment, grayed
+// The following properties were not included: alignment
 // Maybe add defaults for push (and other type) buttons
 public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, Button> {
 
@@ -44,6 +44,11 @@ public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, B
 
     public ButtonBuilder selection(boolean selected) {
         addProperty(b -> b.setSelection(selected));
+        return this;
+    }
+
+    public ButtonBuilder grayed(boolean grayed) {
+        addProperty(b -> b.setGrayed(grayed));
         return this;
     }
 

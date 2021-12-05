@@ -157,7 +157,7 @@ public class MeasureEWController {
                         results.add(result);
                         if (index + 1 < measurements.size()) {
                             index += 1;
-                            ComponentManager.getDisplay().asyncExec(() -> measureSingle());
+                            ComponentManager.getDisplay().asyncExec(MeasureEWController.this::measureSingle);
                         } else {
                             finish();
                         }
