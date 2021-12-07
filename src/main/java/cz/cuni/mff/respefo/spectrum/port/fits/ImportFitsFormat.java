@@ -112,19 +112,19 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return new XYSeries(xSeries, ySeries);
     }
 
-    protected JulianDate getHJD(Header header) {
+    public JulianDate getHJD(Header header) {
         return FitsUtils.getHJD(header);
     }
 
-    protected LocalDateTime getDateOfObservation(Header header) {
+    public LocalDateTime getDateOfObservation(Header header) {
         return FitsUtils.getDateOfObservation(header);
     }
 
-    protected double getRVCorrection(Header header) {
+    public double getRVCorrection(Header header) {
         return FitsUtils.getRVCorrection(header);
     }
 
-    protected double getExpTime(Header header) {
+    public double getExpTime(Header header) {
         return FitsUtils.getExpTime(header);
     }
 }

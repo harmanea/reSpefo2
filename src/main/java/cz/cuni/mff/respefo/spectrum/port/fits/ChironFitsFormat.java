@@ -1,7 +1,6 @@
 package cz.cuni.mff.respefo.spectrum.port.fits;
 
 import cz.cuni.mff.respefo.exception.InvalidFileFormatException;
-import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
@@ -10,7 +9,7 @@ import cz.cuni.mff.respefo.util.collections.XYSeries;
 public class ChironFitsFormat extends ImportFitsFormat {
 
     @Override
-    protected Spectrum createSpectrum(FitsFile fits) throws SpefoException {
+    protected Spectrum createSpectrum(FitsFile fits) throws InvalidFileFormatException {
         float[][][] data = castData(fits);
 
         XYSeries[] series = new XYSeries[data.length];

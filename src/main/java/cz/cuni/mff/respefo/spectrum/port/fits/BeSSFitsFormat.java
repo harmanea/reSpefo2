@@ -24,7 +24,7 @@ public class BeSSFitsFormat extends ImportFitsFormat {
     }
 
     @Override
-    protected double getRVCorrection(Header header) {
+    public double getRVCorrection(Header header) {
         double vhel = header.getDoubleValue("BSS_VHEL");
         if (vhel != 0.0) {
             return vhel;

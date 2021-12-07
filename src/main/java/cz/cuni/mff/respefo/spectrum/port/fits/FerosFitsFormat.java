@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 
 public class FerosFitsFormat extends ImportFitsFormat {
     @Override
-    protected double getRVCorrection(Header header) {
+    public double getRVCorrection(Header header) {
         Cursor<String, HeaderCard> cursor = header.iterator();
         while (cursor.hasNext()) {
             HeaderCard card = cursor.next();
@@ -20,7 +20,7 @@ public class FerosFitsFormat extends ImportFitsFormat {
                     HeaderCard nextCard = cursor.next();
                     return Double.parseDouble(nextCard.getComment());
 
-                } catch (NoSuchElementException | NumberFormatException exception) {
+                } catch (NoSuchElementException | NumberFormatException | NullPointerException exception) {
                     Log.error("RV correction could not be determined from the FITS header", exception);
                     break;  // invalid format, break to immediately return NaN
                 }

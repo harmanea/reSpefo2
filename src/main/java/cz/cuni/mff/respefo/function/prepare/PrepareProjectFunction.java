@@ -6,11 +6,15 @@ import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.ProjectFunction;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
+import cz.cuni.mff.respefo.function.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.spectrum.port.FormatManager;
+import cz.cuni.mff.respefo.spectrum.port.ImportFileFormat;
+import cz.cuni.mff.respefo.spectrum.port.UnknownFileFormatException;
+import cz.cuni.mff.respefo.spectrum.port.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import cz.cuni.mff.respefo.util.utils.FitsUtils;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
@@ -19,6 +23,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,22 +41,23 @@ public class PrepareProjectFunction implements ProjectFunction {
     public void execute(List<File> files) {
         List<File> lstFiles = files.stream().filter(hasExtension("lst")).sorted().collect(toList());
 
-        String suggestedPrefix = Project.getRootDirectory().getName();
-        boolean suggestedUseLst = !lstFiles.isEmpty();
-        String lstFileName = lstFiles.isEmpty() ? "" : lstFiles.get(0).getName();
-        PrepareProjectDialog dialog = new PrepareProjectDialog(suggestedPrefix, suggestedUseLst, lstFileName);
+        PrepareProjectDialog dialog = prepareProjectDialog(lstFiles);
         int status = dialog.open();
         if (status == SWT.CANCEL) {
             return;
         }
-
         String prefix = dialog.getPrefix();
+
+        ImportFitsFormat format = importFormat();
+        if (format == null) {
+            return;
+        }
 
         List<FitsFile> fitsFiles = files.stream()
                 .filter(new FitsFileFilter()::accept)
                 .map(PrepareProjectFunction::openFile)
                 .filter(Objects::nonNull)
-                .sorted(PrepareProjectFunction::compareDates)
+                .sorted(Comparator.comparing(f -> format.getDateOfObservation(f.getHeader())))
                 .collect(toList());
 
         switch (status) {
@@ -74,8 +80,8 @@ public class PrepareProjectFunction implements ProjectFunction {
 
                         writer.println(String.join(" ",
                                 String.format("%05d", i + 1),
-                                FitsUtils.getDateOfObservation(fits.getHeader()).format(DATE_TIME_FORMATTER),
-                                Double.toString(FitsUtils.getExpTime(fits.getHeader()))));
+                                format.getDateOfObservation(fits.getHeader()).format(DATE_TIME_FORMATTER),
+                                Double.toString(format.getExpTime(fits.getHeader()))));
                     }
 
                 } catch (IOException exception) {
@@ -86,7 +92,7 @@ public class PrepareProjectFunction implements ProjectFunction {
             case PrepareProjectDialog.NEW_LST: {
                 /* Generate new lst file */
                 // TODO: Try to refactor this duplicate code
-                String fileName = Project.getRootFileName(".lst");
+                String fileName = prefix + ".lst";
                 try (PrintWriter writer = new PrintWriter(fileName)) {
                     writer.print("\n\n\n\n"); // TODO: generate some relevant header
                     writer.print(TABLE_HEADER);
@@ -96,11 +102,11 @@ public class PrepareProjectFunction implements ProjectFunction {
 
                         writer.println(String.join(" ",
                                 formatInteger(i + 1, 5),
-                                FitsUtils.getDateOfObservation(fits.getHeader()).format(DATE_TIME_FORMATTER),
-                                formatDouble(FitsUtils.getExpTime(fits.getHeader()), 5, 3, false),
+                                format.getDateOfObservation(fits.getHeader()).format(DATE_TIME_FORMATTER),
+                                formatDouble(format.getExpTime(fits.getHeader()), 5, 3, false),
                                 fits.getFile().getName(),
-                                formatDouble(FitsUtils.getHJD(fits.getHeader()).getRJD(), 5, 4),
-                                formatDouble(FitsUtils.getRVCorrection(fits.getHeader()), 3, 2)));
+                                formatDouble(format.getHJD(fits.getHeader()).getRJD(), 5, 4),
+                                formatDouble(format.getRVCorrection(fits.getHeader()), 3, 2)));
                     }
 
                 } catch (IOException exception) {
@@ -136,8 +142,25 @@ public class PrepareProjectFunction implements ProjectFunction {
         }
     }
 
-    private static int compareDates(FitsFile a, FitsFile b) {
-        return FitsUtils.getDateOfObservation(a.getHeader())
-                .compareTo(FitsUtils.getDateOfObservation(b.getHeader()));
+    private static PrepareProjectDialog prepareProjectDialog(List<File> lstFiles) {
+        String suggestedPrefix = Project.getRootDirectory().getName();
+        boolean suggestedUseLst = !lstFiles.isEmpty();
+        String lstFileName = lstFiles.isEmpty() ? "" : lstFiles.get(0).getName();
+
+        return new PrepareProjectDialog(suggestedPrefix, suggestedUseLst, lstFileName);
+    }
+
+    private static ImportFitsFormat importFormat() {
+        try {
+            List<ImportFileFormat> fileFormats = FormatManager.getImportFileFormats("abc.fits");
+            FileFormatSelectionDialog<ImportFileFormat> formatDialog = new FileFormatSelectionDialog<>(fileFormats, "Import");
+            if (formatDialog.openIsOk()) {
+                 return (ImportFitsFormat) formatDialog.getFileFormat();
+            }
+        } catch (UnknownFileFormatException exception) {
+            // Cannot occur, can be ignored
+        }
+
+        return null;
     }
 }
