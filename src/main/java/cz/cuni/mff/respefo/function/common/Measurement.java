@@ -29,6 +29,10 @@ public class Measurement {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public boolean isCorrection() {
         return isCorrection;
     }

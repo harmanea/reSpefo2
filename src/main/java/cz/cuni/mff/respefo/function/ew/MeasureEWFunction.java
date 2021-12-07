@@ -47,6 +47,8 @@ public class MeasureEWFunction implements SingleFileFunction {
             return;
         }
 
+        measurements.removeDuplicateNames();
+
         new MeasureEWController(data)
                 .measure(measurements, results -> saveResults(spectrum, results));
     }

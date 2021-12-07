@@ -5,10 +5,10 @@ import cz.cuni.mff.respefo.logging.Log;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 
 public class Measurements implements Iterable<Measurement> {
     private final List<Measurement> elements;
@@ -48,6 +48,21 @@ public class Measurements implements Iterable<Measurement> {
         double max = xSeries[xSeries.length - 1];
 
         elements.removeIf(measurement -> min > measurement.getL0() || measurement.getL0() > max);
+    }
+
+    public void removeDuplicateNames() {
+        Set<String> duplicateNames = elements.stream()
+                .collect(groupingBy(Measurement::getName))
+                .entrySet().stream()
+                .filter(e -> e.getValue().size() > 1)
+                .map(Map.Entry::getKey)
+                .collect(toSet());
+
+        for (Measurement measurement : elements) {
+            if (duplicateNames.contains(measurement.getName())) {
+                measurement.setName(measurement.getName() + " " + measurement.getL0());
+            }
+        }
     }
 
     public boolean isEmpty() {
