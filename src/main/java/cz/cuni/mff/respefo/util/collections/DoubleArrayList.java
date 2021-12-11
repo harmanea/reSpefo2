@@ -190,7 +190,7 @@ public class DoubleArrayList implements Iterable<Double>, RandomAccess {
 
     /**
      * Trims the capacity of this <tt>DoubleArrayList</tt> instance to be the list's current size.
-     * An application can use this operation to minimize the storage of an <tt>DoubleArrayList</tt> instance.
+     * An application can use this operation to minimize the storage of a <tt>DoubleArrayList</tt> instance.
      */
     public void trimToSize() {
         if (elements.length > size) {
@@ -234,7 +234,7 @@ public class DoubleArrayList implements Iterable<Double>, RandomAccess {
 
     @Override
     public Iterator<Double> iterator() {
-        return Arrays.stream(toArray()).iterator();
+        return Arrays.stream(elements, 0, size).iterator();
     }
 
     /**
@@ -273,7 +273,7 @@ public class DoubleArrayList implements Iterable<Double>, RandomAccess {
      * @return a sequential {@code Stream} over the elements in this collection
      */
     public DoubleStream stream() {
-        return Arrays.stream(toArray());
+        return Arrays.stream(elements, 0, size);
     }
 
     public static Collector<Double, DoubleArrayList, DoubleArrayList> toDoubleArrayList() {
