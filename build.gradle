@@ -23,6 +23,7 @@ repositories {
     mavenCentral()
     maven { url 'https://buchen.github.io/maven-repo' } // for swtchart
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } // for nom-tam-fits snapshot
+    maven { url 'https://jitpack.io' }  // for least-squares fitting
 }
 
 configurations.all {
@@ -42,6 +43,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.4.1'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.4.1'
     implementation 'org.reflections:reflections:0.9.11'
+    implementation 'com.github.odinsbane:least-squares-in-java:8cbeb60'
 }
 
 tasks.withType(JavaExec) {

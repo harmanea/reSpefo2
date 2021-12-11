@@ -150,6 +150,11 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return operator.apply(this);
     }
 
+    public ChartBuilder data(String key, Object value) {
+        addProperty(ch -> ch.setData(key, value));
+        return this;
+    }
+
     private void adjustExtraSeries(Chart chart, ILineSeries lineSeries) {
         int yAxisId = chart.getAxisSet().createYAxis();
         IAxis yAxis = chart.getAxisSet().getYAxis(yAxisId);
