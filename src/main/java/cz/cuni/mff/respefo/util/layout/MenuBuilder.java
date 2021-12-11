@@ -46,6 +46,11 @@ public class MenuBuilder {
         return new MultiActionMenuItemBuilder<>(items, nameFunction, actionFunction);
     }
 
+    public static <T> MenuItemBuilder subMenuItems(Iterable<String> texts, Function<String, Iterable<T>> subMenuItemsFunction,
+                                                   Function<T, String> nameFunction, Function<T, Runnable> actionFunction) {
+        return new MultiSubMenuMenuItemBuilder<>(texts, subMenuItemsFunction, nameFunction, actionFunction);
+    }
+
     public static class HeaderBuilder {
         private final String text;
         private final MenuItemBuilder[] items;
@@ -155,6 +160,38 @@ public class MenuBuilder {
                 final MenuItem menuItem = new MenuItem(menu, PUSH);
                 menuItem.setText(nameFunction.apply(t));
                 menuItem.addSelectionListener(new DefaultSelectionListener(event -> actionFunction.apply(t).run()));
+            }
+        }
+    }
+
+    private static class MultiSubMenuMenuItemBuilder<T> implements MenuItemBuilder {
+        private final Iterable<String> texts;
+        private final Function<String, Iterable<T>> subMenuItemsFunction;
+        private final Function<T, String> nameFunction;
+        private final Function<T, Runnable> actionFunction;
+
+        private MultiSubMenuMenuItemBuilder(Iterable<String> texts, Function<String, Iterable<T>> subMenuItemsFunction,
+                                            Function<T, String> nameFunction, Function<T, Runnable> actionFunction) {
+            this.texts = texts;
+            this.subMenuItemsFunction = subMenuItemsFunction;
+            this.nameFunction = nameFunction;
+            this.actionFunction = actionFunction;
+        }
+
+        @Override
+        public void build(Menu menu) {
+            for (String text : texts) {
+                final MenuItem menuItem = new MenuItem(menu, CASCADE);
+                menuItem.setText(text);
+
+                final Menu subMenu = new Menu(menu.getShell(), DROP_DOWN | NO_RADIO_GROUP);
+                menuItem.setMenu(subMenu);
+
+                for (T t : subMenuItemsFunction.apply(text)) {
+                    final MenuItem subMenuItem = new MenuItem(subMenu, PUSH);
+                    subMenuItem.setText(nameFunction.apply(t));
+                    subMenuItem.addSelectionListener(new DefaultSelectionListener(event -> actionFunction.apply(t).run()));
+                }
             }
         }
     }

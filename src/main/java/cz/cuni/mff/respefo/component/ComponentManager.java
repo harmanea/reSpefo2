@@ -226,7 +226,9 @@ public class ComponentManager extends UtilityClass {
                 header("&Project",
                         item("Change Directory", Project::changeRootDirectory),
                         separator(),
-                        items(FunctionManager.getProjectFunctions(), FunctionInfo::getName, ComponentManager::projectFunction)
+                        subMenuItems(projectFunctionGroups(), ComponentManager::projectFunctionsForGroup, FunctionInfo::getName, ComponentManager::projectFunction),
+                        separator(),
+                        items(projectFunctionsWithoutGroup(), FunctionInfo::getName, ComponentManager::projectFunction)
                 ),
                 header("&Window",
                         item("Hide All Toolbars", ComponentManager::hideToolbars),
@@ -354,6 +356,27 @@ public class ComponentManager extends UtilityClass {
                 functionInfo.getInstance().execute(asList(files));
             }
         };
+    }
+
+    private static Iterable<String> projectFunctionGroups() {
+        return FunctionManager.getProjectFunctions().stream()
+                .filter(functionInfo -> functionInfo.getGroup().isPresent())
+                .map(functionInfo -> functionInfo.getGroup().get())
+                .distinct()
+                .sorted()
+                .collect(toList());
+    }
+
+    private static Iterable<FunctionInfo<ProjectFunction>> projectFunctionsWithoutGroup() {
+        return FunctionManager.getProjectFunctions().stream()
+                .filter(functionInfo -> !functionInfo.getGroup().isPresent())
+                .collect(toList());
+    }
+
+    private static Iterable<FunctionInfo<ProjectFunction>> projectFunctionsForGroup(String groupName) {
+        return FunctionManager.getProjectFunctions().stream()
+                .filter(functionInfo -> groupName.equals(functionInfo.getGroup().orElse(null)))
+                .collect(toList());
     }
 
     private static Runnable longTask() {
