@@ -272,7 +272,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         return false;
     }
 
-    private static void updateSpectrumUsingLstFile(Spectrum spectrum, LstFile lstFile, String originalFileName) {
+    public static void updateSpectrumUsingLstFile(Spectrum spectrum, LstFile lstFile, String originalFileName) {
         // Try matching filename in the lst file
         Optional<LstFile.Record> optionalRecord = lstFile.getRecordByFileName(originalFileName);
 
