@@ -14,11 +14,11 @@ import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.Collections.unmodifiableList;
 
 public class LegacySpefoFormat implements ImportFileFormat {
@@ -87,7 +87,9 @@ public class LegacySpefoFormat implements ImportFileFormat {
 
         if (spefoFile.isRectified()) {
             RectifyAsset rectifyAsset = new RectifyAsset(
-                    new DoubleArrayList(Arrays.stream(spefoFile.getRectX()).mapToDouble(index -> xSeries[index]).toArray()),
+                    stream(spefoFile.getRectX())
+                            .mapToDouble(index -> xSeries[index - 1])
+                            .collect(DoubleArrayList::new, DoubleArrayList::add, DoubleArrayList::addAll),
                     spefoFile.getRectY()
             );
             spectrum.putFunctionAsset(RectifyFunction.SERIALIZE_KEY, rectifyAsset);
