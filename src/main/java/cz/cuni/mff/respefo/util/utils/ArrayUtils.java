@@ -4,6 +4,7 @@ import cz.cuni.mff.respefo.util.UtilityClass;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.IntPredicate;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -15,7 +16,7 @@ public class ArrayUtils extends UtilityClass {
      * @param target to search for
      * @return index of the value matching the criteria, returns array.length if all values are smaller than or equal to the target
      */
-    public static int findFirstGreaterThan(double[] array, double target) {
+    public static int indexOfFirstGreaterThan(double[] array, double target) {
         Objects.requireNonNull(array);
 
         int index = Arrays.binarySearch(array, target);
@@ -35,7 +36,7 @@ public class ArrayUtils extends UtilityClass {
      * @param target to search for
      * @return index of the value matching the criteria
      */
-    public static int findClosest(double[] array, double target) {
+    public static int indexOfClosest(double[] array, double target) {
         Objects.requireNonNull(array);
         if (array.length == 0) {
             throw new IllegalArgumentException("Array must not be empty.");
@@ -58,6 +59,48 @@ public class ArrayUtils extends UtilityClass {
                 return lowDiff > topDiff ? insertionPoint : insertionPoint - 1;
             }
         }
+    }
+
+    /**
+     * Find the index with the lowest value provided by a function.
+     * The value function will only be called once per index.
+     * @param size number of indices
+     * @param valueFunction a function that returns the value for a given index
+     * @return index of the smallest value
+     */
+    public static int indexOfMin(int size, IntToDoubleFunction valueFunction) {
+        return indexOfMin(size, valueFunction, i -> true);
+    }
+
+    /**
+     * Find the index with the lowest value provided by a function matching a filtering criteria.
+     * The value and filter functions will only be called once per index.
+     * @param size number of indices
+     * @param valueFunction a function that returns the value for a given index
+     * @param filter a function that returns whether the index should be used
+     * @return index of the smallest value, returns -1 if no index is accepted by the filter
+     */
+    public static int indexOfMin(int size, IntToDoubleFunction valueFunction, IntPredicate filter) {
+        Objects.requireNonNull(valueFunction);
+
+        if (size < 0) {
+            throw new IllegalArgumentException("Size cannot be negative.");
+        }
+
+        int minIndex = -1;
+        double minValue = Double.MAX_VALUE;
+
+        for (int i = 0; i < size; i++) {
+            if (filter.test(i)) {
+                double currentValue = valueFunction.applyAsDouble(i);
+                if (currentValue < minValue) {
+                    minIndex = i;
+                    minValue = currentValue;
+                }
+            }
+        }
+
+        return minIndex;
     }
 
     /**
@@ -152,7 +195,7 @@ public class ArrayUtils extends UtilityClass {
 
     /**
      * Transform array pixel values to they're physical values.
-     *
+     * <br>
      * As defined by the FITS Standard. This transformation shall be used,
      * when the array pixel values are not the true physical values, to
      * transform the primary data array values to the true values using the

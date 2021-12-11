@@ -1,10 +1,10 @@
 package cz.cuni.mff.respefo.function.common;
 
+import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.swtchart.Chart;
-import org.swtchart.Range;
 
 import java.util.function.Consumer;
 
@@ -37,9 +37,7 @@ public class HorizontalDragMouseListener extends MouseAdapter implements MouseMo
     @Override
     public void mouseMove(MouseEvent event) {
         if (drag) {
-            Range xRange = chart.getAxisSet().getXAxis(0).getRange();
-            double shift = ((event.x - prevX) * (xRange.upper - xRange.lower)) / chart.getPlotArea().getBounds().width;
-
+            double shift = ChartUtils.getRealHorizontalDifferenceFromCoordinates(chart, prevX, event.x);
             dragCallback.accept(shift);
 
             prevX = event.x;

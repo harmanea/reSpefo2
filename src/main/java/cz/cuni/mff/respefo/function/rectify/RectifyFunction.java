@@ -89,6 +89,7 @@ public class RectifyFunction implements SingleFileFunction {
         for (int i = 0; i <= series.length - 1; i++) {
             XYSeries xySeries = series[i];
             names[i] = new String[]{
+                    "",
                     Integer.toString(i + 1),
                     Double.toString(xySeries.getX(0)),
                     Double.toString(xySeries.getLastX())
@@ -105,14 +106,15 @@ public class RectifyFunction implements SingleFileFunction {
             return;
         }
 
-        List<Integer> selectedIndices = dialog.getSelectedIndices();
+        Set<Integer> indicesToKeep = dialog.getIndicesToKeep();
+        List<Integer> indicesToEdit = dialog.getIndicesToEdit();
 
         SortedMap<Integer, RectifyAsset> filteredAssets = currentAssets.entrySet()
                 .stream()
-                .filter(entry -> selectedIndices.contains(entry.getKey()))
+                .filter(entry -> indicesToKeep.contains(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, TreeMap::new));
 
-        ComponentManager.getDisplay().asyncExec(() -> rectifySingleEchelle(spectrum, selectedIndices.iterator(), series, filteredAssets));
+        ComponentManager.getDisplay().asyncExec(() -> rectifySingleEchelle(spectrum, indicesToEdit.iterator(), series, filteredAssets));
     }
 
     private static void rectifySingleEchelle(EchelleSpectrum spectrum, Iterator<Integer> indicesIterator,
@@ -200,7 +202,7 @@ public class RectifyFunction implements SingleFileFunction {
                             }
                         },
                         point -> {
-                            asset.moveActivePoint(point.getX(), point.getY());
+                            asset.moveActivePoint(point.x, point.y);
                             updateAllSeries(ch, asset, series);
                         },
                         point -> {

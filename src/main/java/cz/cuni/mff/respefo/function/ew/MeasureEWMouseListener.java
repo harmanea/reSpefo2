@@ -2,10 +2,10 @@ package cz.cuni.mff.respefo.function.ew;
 
 import cz.cuni.mff.respefo.function.common.HorizontalDragMouseListener;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Rectangle;
 import org.swtchart.Chart;
-import org.swtchart.Range;
+import org.swtchart.IAxis;
 
 import java.util.function.Consumer;
 
@@ -38,24 +38,16 @@ public class MeasureEWMouseListener extends HorizontalDragMouseListener {
         super.mouseMove(event);
 
         if (!drag) {
-            Range range = chart.getAxisSet().getXAxis(0).getRange();
-            Rectangle bounds = chart.getPlotArea().getBounds();
+            IAxis xAxis = chart.getAxisSet().getXAxis(0);
 
-            int minIndex = Integer.MIN_VALUE;
-            double minDistance = Integer.MAX_VALUE;
+            int index = ArrayUtils.indexOfMin(result.pointsCount() + 2,
+                    i -> {
+                        int currentIndex = i < 2 ? result.getBound(i) : result.getPoint(i - 2);
+                        double x = xAxis.getPixelCoordinate(series.getX(currentIndex));
+                        return Math.abs(x - event.x);
+                    });
 
-            for (int i = -2; i < result.pointsCount(); i++) {
-                int currentIndex = i < 0 ? result.getBound(i + 2) : result.getPoint(i);
-                double x = (series.getX(currentIndex) - range.lower) / (range.upper - range.lower) * bounds.width;
-                double distance = (int) Math.abs(x - event.x);
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    minIndex = i;
-                }
-            }
-
-            activeLineCallback.accept(minIndex);
+            activeLineCallback.accept(index - 2);
         }
     }
 }

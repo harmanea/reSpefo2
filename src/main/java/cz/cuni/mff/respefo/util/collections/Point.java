@@ -7,20 +7,16 @@ import java.util.Objects;
  * It's instances are first compared using the x coordinate and then using the y coordinate.
  */
 public class Point implements Comparable<Point> {
-    private final double x;
-    private final double y;
+    public final double x;
+    public final double y;
 
     public Point(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
+    public double distanceTo(Point o) {
+        return Math.hypot(x - o.x, y - o.y);
     }
 
     @Override

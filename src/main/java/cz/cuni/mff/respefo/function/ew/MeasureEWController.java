@@ -105,8 +105,8 @@ public class MeasureEWController {
                 measurement.getL0(),
                 measurement.getRadius(),
                 measurement.getName(),
-                ArrayUtils.findClosest(series.getXSeries(), measurement.getLowerBound()),
-                ArrayUtils.findClosest(series.getXSeries(), measurement.getUpperBound())
+                ArrayUtils.indexOfClosest(series.getXSeries(), measurement.getLowerBound()),
+                ArrayUtils.indexOfClosest(series.getXSeries(), measurement.getUpperBound())
         );
 
         final Chart chart = newChart()
@@ -168,7 +168,7 @@ public class MeasureEWController {
                         MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
                         if (dialog.openIsOk()) {
                             Range xRange = chart.getAxisSet().getXAxis(0).getRange();
-                            int newIndex = ArrayUtils.findClosest(series.getXSeries(), (xRange.upper + xRange.lower) / 2);
+                            int newIndex = ArrayUtils.indexOfClosest(series.getXSeries(), (xRange.upper + xRange.lower) / 2);
 
                             result.add(newIndex, dialog.getCategory());
 
@@ -221,10 +221,10 @@ public class MeasureEWController {
 
     private void snapToPoint(XYSeries series, MeasureEWResult result) {
         if (activeLine < 0) {
-            int newIndex = ArrayUtils.findClosest(series.getXSeries(), series.getX(result.getBound(activeLine + 2)) + shift);
+            int newIndex = ArrayUtils.indexOfClosest(series.getXSeries(), series.getX(result.getBound(activeLine + 2)) + shift);
             result.setBound(activeLine + 2, newIndex);
         } else {
-            int newIndex = ArrayUtils.findClosest(series.getXSeries(), series.getX(result.getPoint(activeLine)) + shift);
+            int newIndex = ArrayUtils.indexOfClosest(series.getXSeries(), series.getX(result.getPoint(activeLine)) + shift);
             result.setPoint(activeLine, newIndex);
         }
 

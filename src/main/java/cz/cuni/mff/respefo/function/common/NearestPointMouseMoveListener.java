@@ -1,11 +1,12 @@
 package cz.cuni.mff.respefo.function.common;
 
+import cz.cuni.mff.respefo.util.collections.Point;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
+import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.graphics.Rectangle;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
-import org.swtchart.Range;
 
 import java.util.function.IntConsumer;
 
@@ -27,29 +28,14 @@ public class NearestPointMouseMoveListener implements MouseMoveListener {
         double[] xSeries = series.getXSeries();
         double[] ySeries = series.getYSeries();
 
-        Rectangle bounds = chart.getPlotArea().getBounds();
+        Point mouse = new Point(event.x, event.y);
 
-        Range xRange = chart.getAxisSet().getXAxis(0).getRange();
-        Range yRange = chart.getAxisSet().getYAxis(0).getRange();
+        int index = ArrayUtils.indexOfMin(xSeries.length,
+                i -> mouse.distanceTo(ChartUtils.getCoordinatesFromRealValues(chart, xSeries[i], ySeries[i])),
+                i -> ChartUtils.isRealValueVisible(chart, xSeries[i], ySeries[i])
+        );
 
-        int index = -1;
-        int closest = Integer.MAX_VALUE;
-
-        for (int i = 0; i < xSeries.length; i++) {
-            if (xSeries[i] >= xRange.lower && xSeries[i] <= xRange.upper && ySeries[i] >= yRange.lower && ySeries[i] <= yRange.upper) {
-                double x = (xSeries[i] - xRange.lower) / (xRange.upper - xRange.lower) * bounds.width;
-                double y = (1 - (ySeries[i] - yRange.lower) / (yRange.upper - yRange.lower)) * bounds.height;
-
-                int distance = (int) Math.sqrt(Math.pow(x - event.x, 2) + Math.pow(y - event.y, 2));
-
-                if (distance < closest) {
-                    index = i;
-                    closest = distance;
-                }
-            }
-        }
-
-        if (index != -1) {
+        if (index >= 0) {
             callback.accept(index);
         }
     }

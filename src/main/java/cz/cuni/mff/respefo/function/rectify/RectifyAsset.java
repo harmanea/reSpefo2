@@ -48,11 +48,11 @@ public class RectifyAsset implements FunctionAsset {
     }
 
     public void addPoint(Point point) {
-        addPoint(point.getX(), point.getY());
+        addPoint(point.x, point.y);
     }
 
     public void addPoint(double x, double y) {
-        int index = ArrayUtils.findFirstGreaterThan(getXCoordinatesArray(), x);
+        int index = ArrayUtils.indexOfFirstGreaterThan(getXCoordinatesArray(), x);
 
         xCoordinates.add(x, index);
         yCoordinates.add(y, index);
@@ -110,7 +110,7 @@ public class RectifyAsset implements FunctionAsset {
 
         double[] newYSeries = Arrays.stream(newXSeries)
                 .map(x -> {
-                    int index = ArrayUtils.findClosest(data.getXSeries(), x);
+                    int index = ArrayUtils.indexOfClosest(data.getXSeries(), x);
                     return Arrays.stream(data.getYSeries(), Math.max(0, index - 2), Math.min(data.getLength() - 1, index + 2)).average().getAsDouble();
                 }).toArray();
 

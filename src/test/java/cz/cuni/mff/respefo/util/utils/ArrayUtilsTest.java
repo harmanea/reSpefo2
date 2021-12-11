@@ -12,28 +12,28 @@ public class ArrayUtilsTest {
 
     @Test
     public void testFindFirstGreaterThan() {
-        assertEquals(1, findFirstGreaterThan(arrayOf(1, 2, 3), 1));
-        assertEquals(0, findFirstGreaterThan(arrayOf(0.1, 0.5, 1), 0));
-        assertEquals(3, findFirstGreaterThan(arrayOf(1000.1111, 2000.2222, 3000.3333), 5000.5555));
-        assertEquals(2, findFirstGreaterThan(arrayOf(-100, -50, -10, -5, -1), -25));
-        assertEquals(0, findFirstGreaterThan(arrayOf(1), 0));
-        assertEquals(1, findFirstGreaterThan(arrayOf(1), 1));
-        assertEquals(0, findFirstGreaterThan(emptyArray(), 1));
-        assertEquals(8, findFirstGreaterThan(arrayOf(1, 1, 1, 1, 1, 1, 1, 1), 1));
-        assertEquals(0, findFirstGreaterThan(arrayOf(1, 1, 1, 1, 1, 1, 1, 1), 0));
-        assertEquals(6, findFirstGreaterThan(arrayOf(1, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 6), 3));
-        assertEquals(6, findFirstGreaterThan(arrayOf(1, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 6), 3.5));
-        assertEquals(8, findFirstGreaterThan(arrayOf(1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 6), 4));
-        assertEquals(4, findFirstGreaterThan(arrayOf(1, 1, 1, 1, 2, 2, 2, 2), 1));
+        assertEquals(1, indexOfFirstGreaterThan(arrayOf(1, 2, 3), 1));
+        assertEquals(0, indexOfFirstGreaterThan(arrayOf(0.1, 0.5, 1), 0));
+        assertEquals(3, indexOfFirstGreaterThan(arrayOf(1000.1111, 2000.2222, 3000.3333), 5000.5555));
+        assertEquals(2, indexOfFirstGreaterThan(arrayOf(-100, -50, -10, -5, -1), -25));
+        assertEquals(0, indexOfFirstGreaterThan(arrayOf(1), 0));
+        assertEquals(1, indexOfFirstGreaterThan(arrayOf(1), 1));
+        assertEquals(0, indexOfFirstGreaterThan(emptyArray(), 1));
+        assertEquals(8, indexOfFirstGreaterThan(arrayOf(1, 1, 1, 1, 1, 1, 1, 1), 1));
+        assertEquals(0, indexOfFirstGreaterThan(arrayOf(1, 1, 1, 1, 1, 1, 1, 1), 0));
+        assertEquals(6, indexOfFirstGreaterThan(arrayOf(1, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 6), 3));
+        assertEquals(6, indexOfFirstGreaterThan(arrayOf(1, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 6), 3.5));
+        assertEquals(8, indexOfFirstGreaterThan(arrayOf(1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 6), 4));
+        assertEquals(4, indexOfFirstGreaterThan(arrayOf(1, 1, 1, 1, 2, 2, 2, 2), 1));
     }
 
     @Test
     public void testFindClosest() {
-        assertEquals(1, findClosest(arrayOf(0, 1, 2, 3, 4, 5), 1));
-        assertEquals(0, findClosest(arrayOf(100, 200, 300), 0));
-        assertEquals(0, findClosest(arrayOf(100, 200, 300), 0));
-        assertEquals(0, findClosest(arrayOf(1), 1));
-        assertEquals(0, findClosest(emptyArray(), 1));
+        assertEquals(1, indexOfClosest(arrayOf(0, 1, 2, 3, 4, 5), 1));
+        assertEquals(0, indexOfClosest(arrayOf(100, 200, 300), 0));
+        assertEquals(0, indexOfClosest(arrayOf(100, 200, 300), 0));
+        assertEquals(0, indexOfClosest(arrayOf(1), 1));
+        assertEquals(0, indexOfClosest(emptyArray(), 1));
     }
 
     @Test

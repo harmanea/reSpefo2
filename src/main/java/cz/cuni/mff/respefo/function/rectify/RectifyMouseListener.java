@@ -6,7 +6,6 @@ import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.swtchart.Chart;
-import org.swtchart.Range;
 
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -62,11 +61,8 @@ public class RectifyMouseListener extends NearestPointMouseMoveListener implemen
     @Override
     public void mouseMove(MouseEvent event) {
         if (drag) {
-            Range chartXRange = chart.getAxisSet().getXAxis(0).getRange();
-            double xShift = ((event.x - prevX) * (chartXRange.upper - chartXRange.lower)) / chart.getPlotArea().getBounds().width;
-
-            Range chartYRange = chart.getAxisSet().getYAxis(0).getRange();
-            double yShift = ((prevY - event.y) * (chartYRange.upper - chartYRange.lower)) / chart.getPlotArea().getBounds().height;
+            double xShift = ChartUtils.getRealHorizontalDifferenceFromCoordinates(chart, prevX, event.x);
+            double yShift = ChartUtils.getRealVerticalDifferenceFromCoordinates(chart, prevY, event.y);
 
             dragCallback.accept(new Point(xShift, yShift));
 

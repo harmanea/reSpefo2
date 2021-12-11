@@ -51,7 +51,7 @@ public class MathUtils extends UtilityClass {
         for (int i = iLow; i <= iHigh; i++) {
             double xp = xinter[i];
 
-            int j = ArrayUtils.findFirstGreaterThan(x, xp) - 1;
+            int j = ArrayUtils.indexOfFirstGreaterThan(x, xp) - 1;
             if (x[j] == xp) {
                 result[i] = y[j];  // short-circuit speedup
                 continue;
