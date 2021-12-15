@@ -11,7 +11,6 @@ import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.function.rectify.EchelleSelectionDialog;
-import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
@@ -242,12 +241,6 @@ public class BlazeFunction implements SingleFileFunction {
             event.gc.setForeground(getColor(horizontal ? CYAN : BLUE));
             event.gc.drawLine((int) coordinates.x, 0, (int) coordinates.x, event.height);
         });
-
-        Log.info("Calculated blaze function for index #" + (currentIndex + 1) + " = order " + (125 - currentIndex)
-                + "\nCentral wavelength: " + parameters[0]
-                + "\nAlpha: " + parameters[1] + " - " + parameters[2]
-                + "\nScale: " + parameters[3]
-        );
 
         textsUpdater.accept(parameters);
     }

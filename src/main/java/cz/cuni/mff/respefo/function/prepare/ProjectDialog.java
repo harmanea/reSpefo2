@@ -19,7 +19,7 @@ import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
 
-public class PrepareProjectDialog extends TitleAreaDialog {
+public class ProjectDialog extends TitleAreaDialog {
 
     public static final int HEC2 = -1;
     public static final int NEW_LST = -2;
@@ -30,7 +30,17 @@ public class PrepareProjectDialog extends TitleAreaDialog {
     private String prefix;
     private String lstFileName;
 
-    protected PrepareProjectDialog(String suggestedPrefix, boolean useLst, String lstFileName) {
+    private boolean prepare;
+
+    public static ProjectDialog prepare(String suggestedPrefix, boolean useLst, String lstFileName) {
+        return new ProjectDialog(true, suggestedPrefix, useLst, lstFileName);
+    }
+
+    public static ProjectDialog add(String suggestedPrefix, boolean useLst, String lstFileName) {
+        return new ProjectDialog(false, suggestedPrefix, useLst, lstFileName);
+    }
+
+    private ProjectDialog(boolean prepare, String suggestedPrefix, boolean useLst, String lstFileName) {
         super("Prepare project");
 
         this.prefix = suggestedPrefix;
@@ -90,11 +100,13 @@ public class PrepareProjectDialog extends TitleAreaDialog {
                 .onSelection(event -> status = HEC2)
                 .build(group);
 
-        newButton(SWT.RADIO)
-                .text("Generate .lst file")
-                .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .onSelection(event -> status = NEW_LST)
-                .build(group);
+        if (prepare) {
+            newButton(SWT.RADIO)
+                    .text("Generate .lst file")
+                    .gridLayoutData(GridData.FILL_HORIZONTAL)
+                    .onSelection(event -> status = NEW_LST)
+                    .build(group);
+        }
 
         final Button thirdButton = newButton(SWT.RADIO)
                 .gridLayoutData(GridData.FILL_HORIZONTAL)

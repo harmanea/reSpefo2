@@ -10,6 +10,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,7 @@ public class FileUtils extends UtilityClass {
      */
     public static String getFileExtension(File file) {
         Objects.requireNonNull(file);
-        return getFileExtension(file.getPath());
+        return getFileExtension(file.getName());
     }
 
     /**
@@ -129,6 +130,7 @@ public class FileUtils extends UtilityClass {
      * @throws IOException if an I/O error occurs
      */
     public static void deleteFile(File file) throws IOException {
+        Objects.requireNonNull(file);
         if (file.isDirectory()) {
             Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
                 @Override
@@ -156,6 +158,7 @@ public class FileUtils extends UtilityClass {
      * @return formatted string
      */
     public static String filenamesListToString(List<String> fileNames) {
+        Objects.requireNonNull(fileNames);
         return filesListToString(fileNames.stream().map(File::new).collect(toList()));
     }
 
@@ -166,6 +169,7 @@ public class FileUtils extends UtilityClass {
      * @return formatted string
      */
     public static String filesListToString(List<File> files) {
+        Objects.requireNonNull(files);
         return (files.size() > 5 ? files.subList(0, 5)  : files)
                 .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining("\n"))
                 + (files.size() > 5 ? "\n\nand " + (files.size() - 5) + " more"  : "");
@@ -179,6 +183,31 @@ public class FileUtils extends UtilityClass {
      */
     public static Predicate<File> hasExtension(String extension) {
         return file -> getFileExtension(file).equals(extension);
+    }
+
+    /**
+     * Parse the file name to obtain the file index as specified by the naming convention.
+     * Returns <dd>Optional.empty()</dd> if the file name does not conform to the naming convention.
+     * <p>
+     * The file naming convention dictates that the name should start with a (preferably 3-letter) prefix followed
+     * by a 5 digit index with leading zeros if necessary. Finally, it should end with the corresponding file extension.
+     * <p>
+     * Examples: <dd>abc00001.spf</dd>, <dd>v2a13245.fit</dd>, <dd>foobar00007.txt</dd>
+     * @param fileName to parse
+     * @return <dd>Optional</dd> instance containing the extracted index or <dd>Optional.empty()</dd> if it couldn't
+     * be extracted
+     */
+    public static Optional<Integer> getFileIndex(String fileName) {
+        Objects.requireNonNull(fileName);
+        try {
+            String strippedFileName = stripFileExtension(fileName);
+            int index = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 5));
+            return Optional.of(index);
+
+        } catch (NumberFormatException | IndexOutOfBoundsException exception) {
+            // File name does not conform to the naming convention
+            return Optional.empty();
+        }
     }
 
     protected FileUtils() throws IllegalAccessException {

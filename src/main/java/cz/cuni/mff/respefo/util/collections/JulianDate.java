@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * A collection for storing and working with Julian dates.
  * Has methods for converting to and from <code>LocalDate</code> and <code>LocalDateTime</code>.
- * <br>
+ * <p>
  * Algorithms taken from <a href='https://en.wikipedia.org/wiki/Julian_day'>Wikipedia</a>
  */
 public class JulianDate implements Comparable<JulianDate> {

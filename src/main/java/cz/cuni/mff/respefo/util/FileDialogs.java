@@ -37,7 +37,7 @@ public class FileDialogs extends UtilityClass {
 
     /**
      * Open a standard file selection dialog for the selected file type.
-     * <br>
+     * <p>
      * This automatically sets the filter path to the parent of the selected file.
      *
      * @param fileType type of files that the selection dialog will filter
@@ -62,7 +62,7 @@ public class FileDialogs extends UtilityClass {
 
     /**
      * Open a standard file save dialog for the selected file type.
-     * <br>
+     * <p>
      * This automatically sets the filter path to the parent of the selected file.
      *
      * @param fileType type of files that the selection dialog will filter
@@ -114,7 +114,7 @@ public class FileDialogs extends UtilityClass {
 
     /**
      * Open a standard directory selection dialog.
-     * <br>
+     * <p>
      * This automatically sets the filter path to the parent of the selected file.
      *
      * @return path to the selected directory or null if the dialog was cancelled
@@ -148,7 +148,7 @@ public class FileDialogs extends UtilityClass {
 
     /**
      * Open a standard files selection dialog for the selected file type.
-     * <br>
+     * <p>
      * This automatically sets the filter path to the parent of the selected file.
      *
      * @param fileType type of files that the selection dialog will filter

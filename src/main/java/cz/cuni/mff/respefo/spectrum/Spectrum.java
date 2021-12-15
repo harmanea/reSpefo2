@@ -85,6 +85,10 @@ public abstract class Spectrum {
     }
 
     public void save() throws SpefoException {
+        if (file == null) {
+            throw new IllegalStateException("No file selected");
+        }
+
         saveAs(file);
     }
 

@@ -195,7 +195,7 @@ public class ArrayUtils extends UtilityClass {
 
     /**
      * Transform array pixel values to they're physical values.
-     * <br>
+     * <p>
      * As defined by the FITS Standard. This transformation shall be used,
      * when the array pixel values are not the true physical values, to
      * transform the primary data array values to the true values using the

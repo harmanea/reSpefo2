@@ -5,10 +5,7 @@ import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.util.collections.JulianDate;
 import cz.cuni.mff.respefo.util.utils.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,9 +14,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
+import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
+// TODO: find a different name then record
 public class LstFile implements Iterable<LstFile.Record> {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy MM dd HH mm ss");
     public static final String TABLE_HEADER =
@@ -32,7 +32,18 @@ public class LstFile implements Iterable<LstFile.Record> {
     private final Map<Integer, Record> recordsByIndex;
     private final Map<String, Record> recordsByFileName;
 
-    public LstFile(File file) throws SpefoException {
+    private File file;
+
+    public LstFile(String header) {
+        recordsByIndex = new LinkedHashMap<>();
+        recordsByFileName = new LinkedHashMap<>();
+
+        this.header = header;  // TODO: ensure the header has 4 lines
+    }
+
+    public LstFile(File file) throws SpefoException {  // TODO: move this to a static LstFile.open() method
+        this.file = file;
+
         recordsByIndex = new LinkedHashMap<>();
         recordsByFileName = new LinkedHashMap<>();
 
@@ -70,6 +81,42 @@ public class LstFile implements Iterable<LstFile.Record> {
             throw new InvalidFileFormatException("The .lst file is invalid", exception);
         } catch (IOException exception) {
             throw new SpefoException("An error occurred while reading file", exception);
+        }
+    }
+
+    public void save() throws SpefoException {
+        if (file == null) {
+            throw new IllegalStateException("No file selected");
+        }
+
+        saveAs(file);
+    }
+
+    public void saveAs(File file) throws SpefoException {
+        this.file = file;
+
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.print(header);
+            writer.print(TABLE_HEADER);
+
+            for (Record record : recordsByIndex.values()) {
+                writer.println(String.join(" ",
+                        formatInteger(record.index, 5),
+                        record.dateTimeStart.format(DATE_TIME_FORMATTER),
+                        formatDouble(record.expTime, 5, 3, false),
+                        record.fileName != null ? record.fileName : "",
+                        formatDouble(record.hjd.getRJD(), 5, 4),
+                        formatDouble(record.rvCorr, 3, 2)));
+            }
+        } catch (IOException exception) {
+            throw new SpefoException("An error occurred while writing to file", exception);
+        }
+    }
+
+    public void addRecord(Record record) {
+        recordsByIndex.put(record.getIndex(), record);
+        if (record.getFileName() != null) {
+            recordsByFileName.put(record.getFileName(), record);
         }
     }
 

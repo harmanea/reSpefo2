@@ -264,9 +264,10 @@ public class MathUtils extends UtilityClass {
 
     /**
      * Compute the robust mean of the given sorted values.
+     * <p>
+     * <p>
+     * Andrews, D. F. (1972): Robust Estimates of Location, Princeton Univ. Press, Princeton
      * <br>
-     * <br>
-     * Andrews, D. F. (1972): Robust Estimates of Location, Princeton Univ. Press, Princeton <br>
      * This implementation is based on the FORTRAN code stated therein.
      *
      * @param values sorted ascending numbers

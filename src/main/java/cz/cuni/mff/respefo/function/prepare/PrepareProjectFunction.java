@@ -6,6 +6,7 @@ import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.ProjectFunction;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
+import cz.cuni.mff.respefo.function.lst.LstFile;
 import cz.cuni.mff.respefo.function.port.FileFormatSelectionDialog;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.port.FormatManager;
@@ -28,10 +29,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static cz.cuni.mff.respefo.function.lst.LstFile.DATE_TIME_FORMATTER;
-import static cz.cuni.mff.respefo.function.lst.LstFile.TABLE_HEADER;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.hasExtension;
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
-import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static java.util.stream.Collectors.toList;
 
 @Fun(name = "Prepare")
@@ -41,7 +39,7 @@ public class PrepareProjectFunction implements ProjectFunction {
     public void execute(List<File> files) {
         List<File> lstFiles = files.stream().filter(hasExtension("lst")).sorted().collect(toList());
 
-        PrepareProjectDialog dialog = prepareProjectDialog(lstFiles);
+        ProjectDialog dialog = projectDialog(lstFiles, true);
         int status = dialog.open();
         if (status == SWT.CANCEL) {
             return;
@@ -61,7 +59,7 @@ public class PrepareProjectFunction implements ProjectFunction {
                 .collect(toList());
 
         switch (status) {
-            case PrepareProjectDialog.USE_LST: {
+            case ProjectDialog.USE_LST: {
                 /* Use existing lst file */
                 try {
                     Path lstFile = Paths.get(Project.getRootDirectory().getPath(), dialog.getLstFileName());
@@ -71,7 +69,7 @@ public class PrepareProjectFunction implements ProjectFunction {
                 }
             }
             break;
-            case PrepareProjectDialog.HEC2: {
+            case ProjectDialog.HEC2: {
                 /* Generate input file for hec2 */
                 File hec2File = Project.getRootDirectory().toPath().resolve("hec2." + prefix).toFile();
                 try (PrintWriter writer = new PrintWriter(hec2File)) {
@@ -89,27 +87,22 @@ public class PrepareProjectFunction implements ProjectFunction {
                 }
             }
             break;
-            case PrepareProjectDialog.NEW_LST: {
+            case ProjectDialog.NEW_LST: {
                 /* Generate new lst file */
-                // TODO: Try to refactor this duplicate code
                 String fileName = prefix + ".lst";
-                try (PrintWriter writer = new PrintWriter(fileName)) {
-                    writer.print("\n\n\n\n"); // TODO: generate some relevant header
-                    writer.print(TABLE_HEADER);
-
-                    for (int i = 0; i < fitsFiles.size(); i++) {
-                        FitsFile fits = fitsFiles.get(i);
-
-                        writer.println(String.join(" ",
-                                formatInteger(i + 1, 5),
-                                format.getDateOfObservation(fits.getHeader()).format(DATE_TIME_FORMATTER),
-                                formatDouble(format.getExpTime(fits.getHeader()), 5, 3, false),
-                                fits.getFile().getName(),
-                                formatDouble(format.getHJD(fits.getHeader()).getRJD(), 5, 4),
-                                formatDouble(format.getRVCorrection(fits.getHeader()), 3, 2)));
-                    }
-
-                } catch (IOException exception) {
+                LstFile lstFile = new LstFile(""); // TODO: generate some relevant header
+                for (int i = 0; i < fitsFiles.size(); i++) {
+                    FitsFile fits = fitsFiles.get(i);
+                    lstFile.addRecord(new LstFile.Record(i + 1,
+                            format.getDateOfObservation(fits.getHeader()),
+                            format.getExpTime(fits.getHeader()),
+                            fits.getFile().getName(),
+                            format.getHJD(fits.getHeader()),
+                            format.getRVCorrection(fits.getHeader())));
+                }
+                try {
+                    lstFile.saveAs(new File(fileName));
+                } catch (SpefoException exception) {
                     Message.error("Couldn't generate .lst file", exception);
                 }
             }
@@ -132,7 +125,7 @@ public class PrepareProjectFunction implements ProjectFunction {
         Message.info("Project prepared successfully");
     }
 
-    private static FitsFile openFile(File file) {
+    protected static FitsFile openFile(File file) {
         try {
             return new FitsFile(file, true, false);
 
@@ -142,15 +135,19 @@ public class PrepareProjectFunction implements ProjectFunction {
         }
     }
 
-    private static PrepareProjectDialog prepareProjectDialog(List<File> lstFiles) {
+    public static ProjectDialog projectDialog(List<File> lstFiles, boolean prepare) {
         String suggestedPrefix = Project.getRootDirectory().getName();
         boolean suggestedUseLst = !lstFiles.isEmpty();
-        String lstFileName = lstFiles.isEmpty() ? "" : lstFiles.get(0).getName();
+        String lstFileName = suggestedUseLst ? lstFiles.get(0).getName() : "";
 
-        return new PrepareProjectDialog(suggestedPrefix, suggestedUseLst, lstFileName);
+        if (prepare) {
+            return ProjectDialog.prepare(suggestedPrefix, suggestedUseLst, lstFileName);
+        } else {
+            return ProjectDialog.add(suggestedPrefix, suggestedUseLst, lstFileName);
+        }
     }
 
-    private static ImportFitsFormat importFormat() {
+    protected static ImportFitsFormat importFormat() {
         try {
             List<ImportFileFormat> fileFormats = FormatManager.getImportFileFormats("abc.fits");
             FileFormatSelectionDialog<ImportFileFormat> formatDialog = new FileFormatSelectionDialog<>(fileFormats, "Import");
