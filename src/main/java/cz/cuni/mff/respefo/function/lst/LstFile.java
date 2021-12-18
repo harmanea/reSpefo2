@@ -18,9 +18,9 @@ import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
+import static java.util.Collections.nCopies;
 
-// TODO: find a different name then record
-public class LstFile implements Iterable<LstFile.Record> {
+public class LstFile implements Iterable<LstFile.Row> {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy MM dd HH mm ss");
     public static final String TABLE_HEADER =
             "==============================================================================\n" +
@@ -29,24 +29,38 @@ public class LstFile implements Iterable<LstFile.Record> {
 
     private final String header;
 
-    private final Map<Integer, Record> recordsByIndex;
-    private final Map<String, Record> recordsByFileName;
+    private final Map<Integer, Row> rowsByIndex;
+    private final Map<String, Row> rowsByFileName;
 
     private File file;
 
     public LstFile(String header) {
-        recordsByIndex = new LinkedHashMap<>();
-        recordsByFileName = new LinkedHashMap<>();
+        rowsByIndex = new LinkedHashMap<>();
+        rowsByFileName = new LinkedHashMap<>();
 
-        this.header = header;  // TODO: ensure the header has 4 lines
+        this.header = ensureProperHeaderLength(header);
     }
 
-    public LstFile(File file) throws SpefoException {  // TODO: move this to a static LstFile.open() method
-        this.file = file;
+    // Make sure the header has exactly 4 lines => it has 3 LF
+    private String ensureProperHeaderLength(String header) {
+        int numberOfLineFeeds = (int) header.chars().filter(ch -> ch == '\n').count();
 
-        recordsByIndex = new LinkedHashMap<>();
-        recordsByFileName = new LinkedHashMap<>();
+        if (numberOfLineFeeds < 3) {
+            header = header + String.join("", nCopies(3 - numberOfLineFeeds, "\n"));
 
+        } else {
+            while (numberOfLineFeeds > 3) {
+                int lastIndex = header.lastIndexOf('\n');
+                header = header.substring(0, lastIndex)
+                        + (lastIndex >= header.length() ? "" : header.substring(lastIndex + 1));
+                numberOfLineFeeds--;
+            }
+        }
+
+        return header;
+    }
+
+    public static LstFile open(File file) throws SpefoException {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             StringBuilder headerBuilder = new StringBuilder();
             for (int i = 0; i < 4; i++) {
@@ -55,7 +69,10 @@ public class LstFile implements Iterable<LstFile.Record> {
                     headerBuilder.append("\n");
                 }
             }
-            header = headerBuilder.toString();
+            String header = headerBuilder.toString();
+
+            LstFile lstFile = new LstFile(header);
+            lstFile.file = file;
 
             // Skip table header
             for (int i = 0; i < 4; i++) {
@@ -69,13 +86,11 @@ public class LstFile implements Iterable<LstFile.Record> {
                     continue;
                 }
 
-                Record record = parseLine(line);
-
-                recordsByIndex.put(record.getIndex(), record);
-                if (record.getFileName() != null) {
-                    recordsByFileName.put(record.getFileName(), record);
-                }
+                Row row = parseLine(line);
+                lstFile.addRow(row);
             }
+
+            return lstFile;
 
         } catch (IndexOutOfBoundsException | NumberFormatException | DateTimeException exception) {
             throw new InvalidFileFormatException("The .lst file is invalid", exception);
@@ -96,27 +111,27 @@ public class LstFile implements Iterable<LstFile.Record> {
         this.file = file;
 
         try (PrintWriter writer = new PrintWriter(file)) {
-            writer.print(header);
-            writer.print(TABLE_HEADER);
+            writer.println(header);
+            writer.println(TABLE_HEADER);
 
-            for (Record record : recordsByIndex.values()) {
+            for (Row row : rowsByIndex.values()) {
                 writer.println(String.join(" ",
-                        formatInteger(record.index, 5),
-                        record.dateTimeStart.format(DATE_TIME_FORMATTER),
-                        formatDouble(record.expTime, 5, 3, false),
-                        record.fileName != null ? record.fileName : "",
-                        formatDouble(record.hjd.getRJD(), 5, 4),
-                        formatDouble(record.rvCorr, 3, 2)));
+                        formatInteger(row.index, 5),
+                        row.dateTimeStart.format(DATE_TIME_FORMATTER),
+                        formatDouble(row.expTime, 5, 3, false),
+                        row.fileName != null ? row.fileName : "",
+                        formatDouble(row.hjd.getRJD(), 5, 4),
+                        formatDouble(row.rvCorr, 3, 2)));
             }
         } catch (IOException exception) {
             throw new SpefoException("An error occurred while writing to file", exception);
         }
     }
 
-    public void addRecord(Record record) {
-        recordsByIndex.put(record.getIndex(), record);
-        if (record.getFileName() != null) {
-            recordsByFileName.put(record.getFileName(), record);
+    public void addRow(Row row) {
+        rowsByIndex.put(row.getIndex(), row);
+        if (row.getFileName() != null) {
+            rowsByFileName.put(row.getFileName(), row);
         }
     }
 
@@ -124,15 +139,15 @@ public class LstFile implements Iterable<LstFile.Record> {
         return header;
     }
 
-    public Optional<Record> getRecordByIndex(int index) {
-        return Optional.ofNullable(recordsByIndex.get(index));
+    public Optional<Row> getRowByIndex(int index) {
+        return Optional.ofNullable(rowsByIndex.get(index));
     }
 
-    public Optional<Record> getRecordByFileName(String fileName) {
-        return Optional.ofNullable(recordsByFileName.get(fileName));
+    public Optional<Row> getRowByFileName(String fileName) {
+        return Optional.ofNullable(rowsByFileName.get(fileName));
     }
 
-    private String readNonNullLine(BufferedReader br) throws IOException, InvalidFileFormatException {
+    private static String readNonNullLine(BufferedReader br) throws IOException, InvalidFileFormatException {
         String line = br.readLine();
         if (line == null) {
             throw new InvalidFileFormatException("Unexpected end of file reached");
@@ -140,7 +155,7 @@ public class LstFile implements Iterable<LstFile.Record> {
         return line;
     }
 
-    private Record parseLine(String line) {
+    private static Row parseLine(String line) {
         String[] tokens = line.trim().replaceAll(" +", " ").split("\\s+");
 
         int index = parseInt(tokens[0]);
@@ -161,15 +176,15 @@ public class LstFile implements Iterable<LstFile.Record> {
 
         double rvCorr = parseDouble(tokens[9 + offset]);
 
-        return new Record(index, dateTimeStart, expTime, fileName, hjd, rvCorr);
+        return new Row(index, dateTimeStart, expTime, fileName, hjd, rvCorr);
     }
 
     @Override
-    public Iterator<Record> iterator() {
-        return recordsByIndex.values().iterator();
+    public Iterator<Row> iterator() {
+        return rowsByIndex.values().iterator();
     }
 
-    public static class Record {
+    public static class Row {
         private final int index;
         private final LocalDateTime dateTimeStart;
         private final double expTime;
@@ -177,7 +192,7 @@ public class LstFile implements Iterable<LstFile.Record> {
         private final JulianDate hjd;
         private final double rvCorr;
 
-        public Record(int index, LocalDateTime dateTimeStart, double expTime, String fileName, JulianDate hjd, double rvCorr) {
+        public Row(int index, LocalDateTime dateTimeStart, double expTime, String fileName, JulianDate hjd, double rvCorr) {
             this.index = index;
             this.dateTimeStart = dateTimeStart;
             this.expTime = expTime;

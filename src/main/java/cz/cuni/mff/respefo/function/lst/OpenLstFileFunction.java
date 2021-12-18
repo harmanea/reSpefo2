@@ -28,7 +28,7 @@ public class OpenLstFileFunction implements SingleFileFunction {
     @Override
     public void execute(File file) {
         try {
-            LstFile lstFile = new LstFile(file);
+            LstFile lstFile = LstFile.open(file);
 
             final Composite topComposite = newComposite()
                     .gridLayoutData(GridData.FILL_BOTH)

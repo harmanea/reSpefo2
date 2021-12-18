@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.function.lst;
 
+import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 public class LstFromFITSFunction extends AbstractLstFunction<FitsFile> {
 
     @Override
-    protected FitsFile openFile(File file) throws Exception {
+    protected FitsFile openFile(File file) throws SpefoException {
         return new FitsFile(file, true, false);
     }
 

@@ -37,7 +37,7 @@ public abstract class AbstractLstFunction<T> implements MultiFileFunction {
             LstFile lstFile = new LstFile(""); // TODO: generate some relevant header
             for (int i = 0; i < meta.size(); i++) {
                 T t = meta.get(i);
-                lstFile.addRecord(new LstFile.Record(i + 1,
+                lstFile.addRow(new LstFile.Row(i + 1,
                         getDateOfObservation(t),
                         getExpTime(t),
                         getFile(t).getName(),

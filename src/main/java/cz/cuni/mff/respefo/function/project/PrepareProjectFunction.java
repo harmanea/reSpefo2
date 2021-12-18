@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function.prepare;
+package cz.cuni.mff.respefo.function.project;
 
 import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.Project;
@@ -89,11 +89,10 @@ public class PrepareProjectFunction implements ProjectFunction {
             break;
             case ProjectDialog.NEW_LST: {
                 /* Generate new lst file */
-                String fileName = prefix + ".lst";
                 LstFile lstFile = new LstFile(""); // TODO: generate some relevant header
                 for (int i = 0; i < fitsFiles.size(); i++) {
                     FitsFile fits = fitsFiles.get(i);
-                    lstFile.addRecord(new LstFile.Record(i + 1,
+                    lstFile.addRow(new LstFile.Row(i + 1,
                             format.getDateOfObservation(fits.getHeader()),
                             format.getExpTime(fits.getHeader()),
                             fits.getFile().getName(),
@@ -101,7 +100,7 @@ public class PrepareProjectFunction implements ProjectFunction {
                             format.getRVCorrection(fits.getHeader())));
                 }
                 try {
-                    lstFile.saveAs(new File(fileName));
+                    lstFile.saveAs(Project.getRootDirectory().toPath().resolve(prefix + ".lst").toFile());
                 } catch (SpefoException exception) {
                     Message.error("Couldn't generate .lst file", exception);
                 }
@@ -138,7 +137,7 @@ public class PrepareProjectFunction implements ProjectFunction {
     public static ProjectDialog projectDialog(List<File> lstFiles, boolean prepare) {
         String suggestedPrefix = Project.getRootDirectory().getName();
         boolean suggestedUseLst = !lstFiles.isEmpty();
-        String lstFileName = suggestedUseLst ? lstFiles.get(0).getName() : "";
+        String lstFileName = suggestedUseLst ? lstFiles.get(0).getPath() : "";
 
         if (prepare) {
             return ProjectDialog.prepare(suggestedPrefix, suggestedUseLst, lstFileName);

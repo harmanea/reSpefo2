@@ -62,7 +62,7 @@ public class ReimportFromLstFunction implements SingleFileFunction, MultiFileFun
         }
 
         try {
-            LstFile lst = new LstFile(lstFiles[0]);
+            LstFile lst = LstFile.open(lstFiles[0]);
             updater.accept(lst);
 
         } catch (SpefoException exception) {

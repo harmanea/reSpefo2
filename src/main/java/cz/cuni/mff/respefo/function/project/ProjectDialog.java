@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function.prepare;
+package cz.cuni.mff.respefo.function.project;
 
 import cz.cuni.mff.respefo.dialog.TitleAreaDialog;
 import cz.cuni.mff.respefo.resources.ImageResource;
@@ -30,7 +30,7 @@ public class ProjectDialog extends TitleAreaDialog {
     private String prefix;
     private String lstFileName;
 
-    private boolean prepare;
+    private final boolean prepare;
 
     public static ProjectDialog prepare(String suggestedPrefix, boolean useLst, String lstFileName) {
         return new ProjectDialog(true, suggestedPrefix, useLst, lstFileName);
@@ -43,6 +43,7 @@ public class ProjectDialog extends TitleAreaDialog {
     private ProjectDialog(boolean prepare, String suggestedPrefix, boolean useLst, String lstFileName) {
         super("Prepare project");
 
+        this.prepare = prepare;
         this.prefix = suggestedPrefix;
         this.lstFileName = lstFileName;
 

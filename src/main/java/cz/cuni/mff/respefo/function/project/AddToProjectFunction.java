@@ -1,12 +1,12 @@
-package cz.cuni.mff.respefo.function.prepare;
+package cz.cuni.mff.respefo.function.project;
 
 import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
-import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
 import cz.cuni.mff.respefo.function.lst.LstFile;
 import cz.cuni.mff.respefo.logging.Log;
+import cz.cuni.mff.respefo.spectrum.port.fits.FitsFormat;
 import cz.cuni.mff.respefo.spectrum.port.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
@@ -22,6 +22,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import static cz.cuni.mff.respefo.function.lst.LstFile.DATE_TIME_FORMATTER;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.hasExtension;
@@ -49,8 +51,7 @@ public class AddToProjectFunction extends PrepareProjectFunction {
         // Files to be added
         // TODO: Make this editable
         List<FitsFile> fitsFiles = files.stream()
-                .filter(new FitsFileFilter()::accept)
-                .filter(AddToProjectFunction::nonStandardName)
+                .filter(AddToProjectFunction.fileToAdd(prefix))
                 .map(AddToProjectFunction::openFile)
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(f -> format.getDateOfObservation(f.getHeader())))
@@ -71,10 +72,10 @@ public class AddToProjectFunction extends PrepareProjectFunction {
             case ProjectDialog.USE_LST: {
                 /* Use existing lst file */
                 try {
-                    LstFile lstFile = new LstFile(new File(dialog.getLstFileName()));
+                    LstFile lstFile = LstFile.open(new File(dialog.getLstFileName()));
                     for (int i = 0; i < fitsFiles.size(); i++) {
                         FitsFile fits = fitsFiles.get(i);
-                        lstFile.addRecord(new LstFile.Record(lastFileIndex + i + 1,
+                        lstFile.addRow(new LstFile.Row(lastFileIndex + i + 1,
                                 format.getDateOfObservation(fits.getHeader()),
                                 format.getExpTime(fits.getHeader()),
                                 fits.getFile().getName(),
@@ -122,7 +123,8 @@ public class AddToProjectFunction extends PrepareProjectFunction {
         Message.info("Files added to project successfully");
     }
 
-    private static boolean nonStandardName(File file) {
-        return !FileUtils.getFileIndex(file.getName()).isPresent();
+    private static Predicate<File> fileToAdd(String prefix) {
+        final Pattern pattern = Pattern.compile(prefix + "\\d{5}.(?:" + String.join("|", FitsFormat.FILE_EXTENSIONS) + ")");
+        return file -> !file.isDirectory() && !pattern.matcher(file.getName()).matches();
     }
 }

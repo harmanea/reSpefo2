@@ -244,7 +244,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                 }
 
                 try {
-                    LstFile lstFile = new LstFile(file);
+                    LstFile lstFile = LstFile.open(file);
                     updateSpectrumUsingLstFile(spectrum, lstFile, originalFile.getName());
 
                 } catch (SpefoException exception) {
@@ -274,18 +274,18 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
     public static void updateSpectrumUsingLstFile(Spectrum spectrum, LstFile lstFile, String originalFileName) {
         // Try matching filename in the lst file
-        Optional<LstFile.Record> optionalRecord = lstFile.getRecordByFileName(originalFileName);
+        Optional<LstFile.Row> optionalRow = lstFile.getRowByFileName(originalFileName);
 
-        if (optionalRecord.isPresent()) {
-            updateSpectrumUsingLstFileRecord(spectrum, optionalRecord.get());
+        if (optionalRow.isPresent()) {
+            updateSpectrumUsingLstFileRow(spectrum, optionalRow.get());
 
         } else {
             // Try using a number in the filename
             String strippedFileName = stripFileExtension(originalFileName);
             try {
                 int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 5));
-                LstFile.Record record = lstFile.getRecordByIndex(fileIndex).get();
-                updateSpectrumUsingLstFileRecord(spectrum, record);
+                LstFile.Row row = lstFile.getRowByIndex(fileIndex).get();
+                updateSpectrumUsingLstFileRow(spectrum, row);
 
             } catch (NumberFormatException | IndexOutOfBoundsException | NoSuchElementException e) {
                 // Filename does not conform to the naming convention
@@ -293,8 +293,8 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         }
     }
 
-    private static void updateSpectrumUsingLstFileRecord(Spectrum spectrum, LstFile.Record record) {
-        JulianDate hjd = record.getHjd();
+    private static void updateSpectrumUsingLstFileRow(Spectrum spectrum, LstFile.Row row) {
+        JulianDate hjd = row.getHjd();
         if (isNaN(spectrum.getHjd().getJD()) && isNotNaN(hjd.getJD())) {
             if (hjd.getJD() < 100_000) {
                 // Convert reduced julian date to full date
@@ -303,17 +303,17 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             spectrum.setHjd(hjd);
         }
 
-        if (spectrum.getDateOfObservation().equals(LocalDateTime.MIN) && record.getDateTimeStart().getYear() > 0) {
-            spectrum.setDateOfObservation(record.getDateTimeStart());
+        if (spectrum.getDateOfObservation().equals(LocalDateTime.MIN) && row.getDateTimeStart().getYear() > 0) {
+            spectrum.setDateOfObservation(row.getDateTimeStart());
         }
 
-        double rvCorr = record.getRvCorr();
+        double rvCorr = row.getRvCorr();
         if (isNotNaN(rvCorr) && rvCorr != 0) {
             spectrum.updateRvCorrection(rvCorr);
         }
 
-        if (isNaN(spectrum.getExpTime()) && isNotNaN(record.getExpTime())) {
-            spectrum.setExpTime(record.getExpTime());
+        if (isNaN(spectrum.getExpTime()) && isNotNaN(row.getExpTime())) {
+            spectrum.setExpTime(row.getExpTime());
         }
     }
 }
