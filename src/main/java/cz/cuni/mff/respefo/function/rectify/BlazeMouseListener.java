@@ -1,4 +1,4 @@
-package cz.cuni.mff.respefo.function.debug;
+package cz.cuni.mff.respefo.function.rectify;
 
 import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.util.collections.Point;
@@ -26,7 +26,7 @@ public class BlazeMouseListener extends DragMouseListener {
             if (horizontal) {
                 parameters[0] += ChartUtils.getRealHorizontalDifferenceFromCoordinates(chart, prevX, event.x);
             } else {
-                parameters[3] += ChartUtils.getRealVerticalDifferenceFromCoordinates(chart, prevY, event.y);
+                parameters[1] += ChartUtils.getRealVerticalDifferenceFromCoordinates(chart, prevY, event.y);
             }
 
             prevX = event.x;
@@ -37,7 +37,7 @@ public class BlazeMouseListener extends DragMouseListener {
         } else {
             // Select the active line
 
-            Point coordinates = ChartUtils.getCoordinatesFromRealValues(chart, parameters[0], parameters[3]);
+            Point coordinates = ChartUtils.getCoordinatesFromRealValues(chart, parameters[0], parameters[1]);
 
             double horizontalDistance = Math.abs(coordinates.x - event.x);
             double verticalDistance = Math.abs(coordinates.y - event.y);

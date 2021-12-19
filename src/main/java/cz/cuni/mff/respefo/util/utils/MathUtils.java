@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 // TODO: add tests for intep
 public class MathUtils extends UtilityClass {
-    public static final double DOUBLE_PRECISION = 0.0000001;
+    public static final double DOUBLE_PRECISION = 1E-8;
 
     /**
      * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine").
@@ -80,6 +80,10 @@ public class MathUtils extends UtilityClass {
         }
 
         return result;
+    }
+
+    public static double intep(double[] x, double[] y, double xinter) {
+        return intep(x, y, new double[] {xinter})[0];  // TODO: See if this can be done more efficiently
     }
 
     /**

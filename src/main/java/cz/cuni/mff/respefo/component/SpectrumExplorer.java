@@ -88,7 +88,7 @@ public class SpectrumExplorer {
                 item.setImage(0, ImageManager.getImage(ImageResource.SPECTRUM_FILE));
 
                 if (spectrum.containsFunctionAsset("rectify")
-                        || (spectrum.getFormat() == EchelleSpectrum.FORMAT && !((EchelleSpectrum) spectrum).getRectifyAssets().isEmpty())) {
+                        || (spectrum.getFormat() == EchelleSpectrum.FORMAT && ((EchelleSpectrum) spectrum).isRectified())) {
                     item.setImage(1, ImageManager.getImage(ImageResource.RECTIFY));
                 }
 
