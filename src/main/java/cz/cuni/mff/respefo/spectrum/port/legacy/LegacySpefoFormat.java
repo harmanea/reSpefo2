@@ -92,7 +92,7 @@ public class LegacySpefoFormat implements ImportFileFormat {
                             .collect(DoubleArrayList::new, DoubleArrayList::add, DoubleArrayList::addAll),
                     spefoFile.getRectY()
             );
-            spectrum.putFunctionAsset(RectifyFunction.SERIALIZE_KEY, rectifyAsset);
+            spectrum.putFunctionAsset(RectifyFunction.RECTIFY_SERIALIZE_KEY, rectifyAsset);
         }
 
         return spectrum;

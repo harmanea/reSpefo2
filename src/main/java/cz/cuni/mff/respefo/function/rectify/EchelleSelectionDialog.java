@@ -45,7 +45,7 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                 .headerVisible(true)
                 .linesVisible(true)
                 .columns("No.", "From", "To")
-                .columnWidths(100, 150, 150)
+                .columnWidths(50, 150, 150)
                 .items(Arrays.asList(names))
                 .onSelection(event -> {
                     if (event.detail == SWT.CHECK) {

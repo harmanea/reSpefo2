@@ -16,20 +16,15 @@ import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
 import cz.cuni.mff.respefo.spectrum.format.SimpleSpectrum;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
-import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
-import cz.cuni.mff.respefo.util.utils.MathUtils;
 import cz.cuni.mff.respefo.util.widget.ChartBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Display;
-import org.orangepalantir.leastsquares.Fitter;
-import org.orangepalantir.leastsquares.Function;
-import org.orangepalantir.leastsquares.fitters.MarquardtFitter;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 import org.swtchart.ISeries;
@@ -37,34 +32,29 @@ import org.swtchart.ISeries;
 import java.io.File;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.IntToDoubleFunction;
 import java.util.function.UnaryOperator;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.utils.MathUtils.linearInterpolation;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.RELATIVE_FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
-import static java.lang.Math.PI;
-import static java.lang.Math.abs;
-import static java.util.Arrays.stream;
+import static java.lang.Math.*;
+import static java.util.function.UnaryOperator.identity;
 
 @Fun(name = "Rectify", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
-@Serialize(key = RectifyFunction.SERIALIZE_KEY, assetClass = RectifyAsset.class)
+@Serialize(key = RectifyFunction.RECTIFY_SERIALIZE_KEY, assetClass = RectifyAsset.class)
+@Serialize(key = RectifyFunction.BLAZE_SERIALIZE_KEY, assetClass = BlazeAsset.class)
 public class RectifyFunction implements SingleFileFunction {
 
-    public static final String SERIALIZE_KEY = "rectify";
+    public static final String RECTIFY_SERIALIZE_KEY = "rectify";
+    public static final String BLAZE_SERIALIZE_KEY = "blaze";
+
     public static final String POINTS_SERIES_NAME = "points";
     public static final String SELECTED_SERIES_NAME = "selected";
     public static final String CONTINUUM_SERIES_NAME = "continuum";
-
-    private static final double K = 565754; // More like 565660.2133333334 by my calculations
-    private static final double[] COEFFICIENTS = new double[]{-3.0817976563120606, 0.21780270894619688,
-            -0.004371189338350063, 4.139193926208102e-05, -1.8545313075173e-07, 3.12485701485604e-10};
-    private static final IntToDoubleFunction ALPHA_FOR_ORDER = order -> MathUtils.polynomial(order, COEFFICIENTS);
 
     private static RectifyAsset previousAsset;
 // TODO: see if there is a way to remember previous assets for echelle spectra
@@ -92,14 +82,14 @@ public class RectifyFunction implements SingleFileFunction {
     }
 
     private static void rectifySimpleSpectrum(SimpleSpectrum spectrum) {
-        RectifyAsset asset = spectrum.getFunctionAsset(SERIALIZE_KEY, RectifyAsset.class)
+        RectifyAsset asset = spectrum.getFunctionAsset(RECTIFY_SERIALIZE_KEY, RectifyAsset.class)
                 .orElse(previousAsset != null
                         ? previousAsset.adjustToNewData(spectrum.getProcessedSeries())
                         : RectifyAsset.withDefaultPoints(spectrum.getProcessedSeries()));
 
         XYSeries series = spectrum.getProcessedSeriesWithout(asset);
 
-        rectify(spectrum.getFile().getName(), series, asset, UnaryOperator.identity(), a -> finishSimpleSpectrum(spectrum, a));
+        rectify(spectrum.getFile().getName(), series, asset, identity(), a -> finishSimpleSpectrum(spectrum, a));
     }
 
     private static void rectifyEchelleSpectrum(EchelleSpectrum spectrum) {
@@ -123,148 +113,92 @@ public class RectifyFunction implements SingleFileFunction {
         Progress.withProgressTracking(p -> {
             p.refresh("Estimating blaze parameters", series.length);
 
-            double[][] blazeParameters = new double[series.length][2];
-
+            Blaze[] blazes = new Blaze[series.length];
             for (int i = 0; i < series.length; i++) {
-                XYSeries xySeries = series[i];
-                int order = 125 - i;
-                blazeParameters[i] = calculateBlazeParameters(xySeries, order);
+                blazes[i] = new Blaze(series[i], 125 - i);
                 p.step();
             }
 
-            return blazeParameters;
-        }, blazeParameters -> rectifySingleEchelle(spectrum, dialog.getSelectedIndices(), blazeParameters, new RectifyAsset[series.length], 0));
-    }
-
-    private static double[] calculateBlazeParameters(XYSeries series, int order) {
-        double centralWavelength = K / order;
-        double scale = MathUtils.intep(series.getXSeries(), series.getYSeries(), centralWavelength);
-
-        Function fun = new Function() {
-            private final double alpha = ALPHA_FOR_ORDER.applyAsDouble(order);
-
-            @Override
-            public double evaluate(double[] values, double[] parameters) {
-                return parameters[1] * r(values[0], order, parameters[0], alpha);
-            }
-
-            @Override
-            public int getNParameters() {
-                return 2; // central wavelength, scale
-            }
-
-            @Override
-            public int getNInputs() {
-                return 1; // wavelength
-            }
-        };
-
-        Fitter fit = new MarquardtFitter(fun);
-        fit.setData(
-                stream(series.getXSeries()).mapToObj(x -> new double[]{x}).toArray(double[][]::new),
-                series.getYSeries()
-        );
-        fit.setParameters(new double[] {centralWavelength, scale});
-        fit.fitData();
-
-        return fit.getParameters();
-    }
-
-    private static double[] blaze(double[] xSeries, double[] parameters, int order) {
-        double alpha = ALPHA_FOR_ORDER.applyAsDouble(order);
-        return stream(xSeries)
-                .map(x -> parameters[1] * r(x, order, parameters[0], alpha))
-                .toArray();
-    }
-
-    private static double r(double lambda, int order, double centralWavelength, double alpha) {
-        double x = order * (1 - centralWavelength / lambda);
-        double argument = PI * alpha * x;
-        return Math.pow(Math.sin(argument) / argument, 2);
+            return blazes;
+        }, blazes -> rectifySingleEchelle(spectrum, dialog.getSelectedIndices(), blazes, new RectifyAsset[series.length], 0));
     }
 
     private static void rectifySingleEchelle(EchelleSpectrum spectrum, Set<Integer> selectedIndices,
-                                             double[][] blazeParameters, RectifyAsset[] rectifyAssets, int index) {
+                                             Blaze[] blazes, RectifyAsset[] rectifyAssets, int index) {
         if (index >= rectifyAssets.length) {
             finishEchelleSpectrum(spectrum, rectifyAssets);
 
         } else if (selectedIndices.contains(index)) {
             // interactive
-
-            Display.getCurrent().asyncExec(() -> finetuneBlazeParameters(spectrum, selectedIndices, blazeParameters, rectifyAssets, index));
+            Display.getCurrent().asyncExec(() -> finetuneBlazeParameters(spectrum, selectedIndices, blazes, rectifyAssets, index));
         } else {
             // automatic
-
-            XYSeries currentSeries = spectrum.getOriginalSeries()[index];
-            int order = 125 - index;
-            double[] parameters = blazeParameters[index];
-            RectifyAsset asset = blazeToRectify(currentSeries, order, parameters);
-            rectifyAssets[index] = asset;
-            Display.getCurrent().asyncExec(() -> rectifySingleEchelle(spectrum, selectedIndices, blazeParameters, rectifyAssets, index + 1));
+            rectifyAssets[index] = blazes[index].toRectifyAsset();
+            Display.getCurrent().asyncExec(() -> rectifySingleEchelle(spectrum, selectedIndices, blazes, rectifyAssets, index + 1));
         }
     }
 
     private static void finetuneBlazeParameters(EchelleSpectrum spectrum, Set<Integer> selectedIndices,
-                                                double[][] blazeParameters, RectifyAsset[] rectifyAssets, int index) {
+                                                Blaze[] blazes, RectifyAsset[] rectifyAssets, int index) {
         XYSeries currentSeries = spectrum.getOriginalSeries()[index];
-        XYSeries blaze = new XYSeries(currentSeries.getXSeries(), blaze(currentSeries.getXSeries(), blazeParameters[index], 125 - index));
+        XYSeries blazeSeries = blazes[index].series();
         XYSeries residuals = new XYSeries(currentSeries.getXSeries(),
-                ArrayUtils.createArray(currentSeries.getLength(), i -> abs(currentSeries.getY(i) - blaze.getY(i))));
-        Chart chart = newChart()
+                ArrayUtils.createArray(currentSeries.getLength(), i -> abs(currentSeries.getY(i) - blazeSeries.getY(i))));
+
+        newChart()
                 .title("#" + (index + 1))
                 .xAxisLabel("X axis")
                 .yAxisLabel("Y axis")
-                .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
-                .keyListener(ch -> new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        if (e.keyCode == SWT.CR) {
-                            blazeParameters[index] = (double[]) ch.getData("parameters");
-                            ComponentManager.getDisplay().asyncExec(()
-                                    -> finetuneRectificationPoints(spectrum, selectedIndices, blazeParameters, rectifyAssets, index));
-                        }
-                    }
-                })
-                .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> updateChart(ch)))
-                .mouseWheelListener(ZoomMouseWheelListener::new)
                 .series(lineSeries()
                         .name("series")
                         .series(currentSeries))
                 .series(lineSeries()
                         .name("blaze")
                         .color(GRAY)
-                        .series(blaze))
+                        .series(blazeSeries))
                 .series(lineSeries()
                         .name("residuals")
                         .color(ORANGE)
                         .series(residuals))
+                .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
+                .keyListener(ch -> new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        if (e.keyCode == SWT.CR) {
+                            ComponentManager.getDisplay().asyncExec(()
+                                    -> fineTuneRectificationPoints(spectrum, selectedIndices, blazes, rectifyAssets, index));
+                        }
+                    }
+                })
+                .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> updateChart(ch)))
+                .mouseWheelListener(ZoomMouseWheelListener::new)
+                .plotAreaPaintListener(ch -> event -> {
+                    Blaze blaze = (Blaze) ch.getData("blaze");
+                    boolean horizontal = (boolean) ch.getData("horizontal");
+
+                    Point coordinates = ChartUtils.getCoordinatesFromRealValues(ch, blaze.getCentralWavelength(), blaze.getScale());
+
+                    event.gc.setForeground(getColor(horizontal ? BLUE : CYAN));
+                    event.gc.drawLine(0, (int) coordinates.y, event.width, (int) coordinates.y);
+
+                    event.gc.setForeground(getColor(horizontal ? CYAN : BLUE));
+                    event.gc.drawLine((int) coordinates.x, 0, (int) coordinates.x, event.height);
+                })
                 .makeAllSeriesEqualRange()
-                .data("parameters", blazeParameters[index])
-                .data("order", 125 - index)
+                .data("blaze", blazes[index])
                 .data("horizontal", false)
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
-
-        chart.getPlotArea().addPaintListener(event -> {
-            double[] params = (double[]) chart.getData("parameters");
-            boolean horizontal = (boolean) chart.getData("horizontal");
-
-            Point coordinates = ChartUtils.getCoordinatesFromRealValues(chart, params[0], params[1]);
-
-            event.gc.setForeground(getColor(horizontal ? BLUE : CYAN));
-            event.gc.drawLine(0, (int) coordinates.y, event.width, (int) coordinates.y);
-
-            event.gc.setForeground(getColor(horizontal ? CYAN : BLUE));
-            event.gc.drawLine((int) coordinates.x, 0, (int) coordinates.x, event.height);
-        });
     }
 
-    private static void finetuneRectificationPoints(EchelleSpectrum spectrum, Set<Integer> selectedIndices,
-                                                    double[][] blazeParameters, RectifyAsset[] rectifyAssets, int index) {
+    private static void fineTuneRectificationPoints(EchelleSpectrum spectrum, Set<Integer> selectedIndices,
+                                                    Blaze[] blazes, RectifyAsset[] rectifyAssets, int index) {
         XYSeries currentSeries = spectrum.getOriginalSeries()[index];
-        rectify("#" + (index + 1), currentSeries, blazeToRectify(currentSeries, 125 - index, blazeParameters[index]),
+        rectify("#" + (index + 1),
+                currentSeries,
+                blazes[index].toRectifyAsset(),
                 builder -> {
-                    for (int i = Math.max(index - 2, 0); i <= Math.min(index + 2, rectifyAssets.length - 1); i++) {
+                    for (int i = max(index - 2, 0); i <= min(index + 2, rectifyAssets.length - 1); i++) {
                         if (i == index) {
                             continue;
                         }
@@ -278,7 +212,7 @@ public class RectifyFunction implements SingleFileFunction {
                 asset -> {
                     rectifyAssets[index] = asset;
                     Display.getCurrent().asyncExec(()
-                            -> rectifySingleEchelle(spectrum, selectedIndices, blazeParameters, rectifyAssets, index + 1));
+                            -> rectifySingleEchelle(spectrum, selectedIndices, blazes, rectifyAssets, index + 1));
                 });
     }
 
@@ -286,44 +220,18 @@ public class RectifyFunction implements SingleFileFunction {
         ISeries iSeries = chart.getSeriesSet().getSeries("series");
         XYSeries series = new XYSeries(iSeries.getXSeries(), iSeries.getYSeries());
 
-        double[] parameters = (double[]) chart.getData("parameters");
-        int order = (int) chart.getData("order");
+        Blaze blaze = (Blaze) chart.getData("blaze");
 
-        double[] blaze = blaze(series.getXSeries(), parameters, order);
-        double[] residuals = ArrayUtils.createArray(series.getLength(), i -> abs(series.getY(i) - blaze[i]));
+        double[] blazeYSeries = blaze.series().getYSeries();
+        double[] residuals = ArrayUtils.createArray(series.getLength(), i -> abs(series.getY(i) - blazeYSeries[i]));
 
-        chart.getSeriesSet().getSeries("blaze").setYSeries(blaze);
+        chart.getSeriesSet().getSeries("blaze").setYSeries(blazeYSeries);
         chart.getSeriesSet().getSeries("residuals").setYSeries(residuals);
         chart.redraw();
     }
 
-    private static RectifyAsset blazeToRectify(XYSeries series, int order, double[] parameters) {
-        double centralWavelength = parameters[0];
-        double scale = parameters[1];
-        double alpha = ALPHA_FOR_ORDER.applyAsDouble(order);
-
-        // TODO: Is sampling 20 points enough?
-
-        DoubleArrayList xCoordinates = new DoubleArrayList(20);
-        DoubleArrayList yCoordinates = new DoubleArrayList(20);
-
-        double low = series.getX(0);
-        double high = series.getLastX();
-
-        for (int i = 0; i < 20; i++) {
-            double x = linearInterpolation(0, low, 19, high, i);
-            double y = scale * r(x, order, centralWavelength, alpha);
-
-            xCoordinates.add(x);
-            yCoordinates.add(y);
-        }
-
-        return new RectifyAsset(xCoordinates, yCoordinates);
-    }
-
     private static void rectify(String title, XYSeries series, RectifyAsset asset,
-                                                     UnaryOperator<ChartBuilder> operator,
-                                                     Consumer<RectifyAsset> finish) {
+                                UnaryOperator<ChartBuilder> operator, Consumer<RectifyAsset> finish) {
         newChart()
                 .title(title)
                 .xAxisLabel(WAVELENGTH)
@@ -407,9 +315,9 @@ public class RectifyFunction implements SingleFileFunction {
 
     private static void finishSimpleSpectrum(SimpleSpectrum spectrum, RectifyAsset asset) {
         if (asset.isEmpty()) { // This can never occur
-            spectrum.removeFunctionAsset(SERIALIZE_KEY);
+            spectrum.removeFunctionAsset(RECTIFY_SERIALIZE_KEY);
         } else {
-            spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
+            spectrum.putFunctionAsset(RECTIFY_SERIALIZE_KEY, asset);
             previousAsset = asset;
         }
 

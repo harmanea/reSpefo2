@@ -46,8 +46,7 @@ public class FunctionManager extends UtilityClass {
                     projectFunctions.add(new FunctionInfo<>((ProjectFunction) instance, name, fileFilter, group));
                 }
 
-                Serialize serializeAnnotation = functionClass.getAnnotation(Serialize.class);
-                if (serializeAnnotation != null) {
+                for (Serialize serializeAnnotation : functionClass.getAnnotationsByType(Serialize.class)) {
                     assetClasses.put(serializeAnnotation.key(), serializeAnnotation.assetClass());
                 }
 

@@ -18,15 +18,17 @@ public class BlazeMouseListener extends DragMouseListener {
 
     @Override
     public void mouseMove(MouseEvent event) {
-        double[] parameters = (double[]) chart.getData("parameters");
+        Blaze blaze = (Blaze) chart.getData("blaze");
 
         if (drag) {
             // Move the active line
 
             if (horizontal) {
-                parameters[0] += ChartUtils.getRealHorizontalDifferenceFromCoordinates(chart, prevX, event.x);
+                double diff = ChartUtils.getRealHorizontalDifferenceFromCoordinates(chart, prevX, event.x);
+                blaze.updateCentralWavelength(diff);
             } else {
-                parameters[1] += ChartUtils.getRealVerticalDifferenceFromCoordinates(chart, prevY, event.y);
+                double diff = ChartUtils.getRealVerticalDifferenceFromCoordinates(chart, prevY, event.y);
+                blaze.updateScale(diff);
             }
 
             prevX = event.x;
@@ -37,7 +39,7 @@ public class BlazeMouseListener extends DragMouseListener {
         } else {
             // Select the active line
 
-            Point coordinates = ChartUtils.getCoordinatesFromRealValues(chart, parameters[0], parameters[1]);
+            Point coordinates = ChartUtils.getCoordinatesFromRealValues(chart, blaze.getCentralWavelength(), blaze.getScale());
 
             double horizontalDistance = Math.abs(coordinates.x - event.x);
             double verticalDistance = Math.abs(coordinates.y - event.y);
