@@ -213,13 +213,13 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction,
                     XYSeries series = spectrum.getProcessedSeries();
 
                     final TableItem tableItem = new TableItem(table, SWT.NONE);
-                    tableItem.setText(0, String.format(Locale.US, "%8.4f", spectrum.getHjd().getJD()));
-                    tableItem.setText(1, String.format(Locale.US, "%4.4f", result.getEW(series)));
+                    tableItem.setText(0, formatLong(spectrum.getHjd().getJD()));
+                    tableItem.setText(1, format(result.getEW(series)));
 
                     if (result.containsCategory(MeasureEWResultPointCategory.Ic)) {
                         double fwhm = result.getFWHM(series);
                         if (isNotNaN(fwhm)) {
-                            tableItem.setText(2, String.format(Locale.US, "%4.4f", fwhm));
+                            tableItem.setText(2, format(fwhm));
                         }
                     }
 
@@ -227,14 +227,14 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction,
                     MeasureEWResultPointCategory[] categories = {MeasureEWResultPointCategory.V, MeasureEWResultPointCategory.R, MeasureEWResultPointCategory.Ic};
                     for (MeasureEWResultPointCategory category : categories) {
                         if (result.containsCategory(category)) {
-                            tableItem.setText(i, String.format(Locale.US, "%4.4f", series.getY(result.getPointForCategory(category))));
+                            tableItem.setText(i, format(series.getY(result.getPointForCategory(category))));
                         }
                         i++;
                     }
 
                     if (result.containsCategory(MeasureEWResultPointCategory.V) && result.containsCategory(MeasureEWResultPointCategory.R)) {
-                        tableItem.setText(6, String.format(Locale.US, "%4.4f", result.getVToR(series)));
-                        tableItem.setText(7, String.format(Locale.US, "%4.4f", result.getVRAvg(series)));
+                        tableItem.setText(6, format(result.getVToR(series)));
+                        tableItem.setText(7, format(result.getVRAvg(series)));
                     }
                 }
             }
@@ -262,6 +262,14 @@ public class EWResultsFunction implements SingleFileFunction, MultiFileFunction,
 
         ComponentManager.getScene().layout();
         scrolledComposite.redraw();
+    }
+
+    private static String format(double value) {
+        return String.format(Locale.US, "%4.4f", value);
+    }
+
+    private static String formatLong(double value) {
+        return String.format(Locale.US, "%8.4f", value);
     }
 
     private static void printToFile(List<Spectrum> spectra) {

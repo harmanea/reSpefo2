@@ -264,12 +264,12 @@ public class DispersionController {
                 .columns("N.", "x up", "x down", "x mean", "lab.", "comp.", "error")
                 .items(results, result -> new String[]{
                         Integer.toString(result.getIndex() + 1),
-                        String.format(Locale.US, "%5.3f", result.getXUp()),
-                        String.format(Locale.US, "%5.3f", result.getXDown()),
-                        String.format(Locale.US, "%5.3f", result.getX()),
-                        String.format(Locale.US, "%5.3f", result.getLaboratoryValue()),
-                        String.format(Locale.US, "%5.3f", result.getActualY()),
-                        String.format(Locale.US, "%5.3f", result.getResidual())
+                        format(result.getXUp()),
+                        format(result.getXDown()),
+                        format(result.getX()),
+                        format(result.getLaboratoryValue()),
+                        format(result.getActualY()),
+                        format(result.getResidual())
                 }, (result, item) -> {
                     if (!result.isUsed()) {
                         item.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
@@ -277,7 +277,7 @@ public class DispersionController {
                 })
                 .item(t -> {
                     final TableItem tableItem = new TableItem(t, SWT.NONE);
-                    tableItem.setText(6, String.format(Locale.US, "%5.3f", MathUtils.rmse(actualY, laboratoryValues)));
+                    tableItem.setText(6, format(MathUtils.rmse(actualY, laboratoryValues)));
                 })
                 .packColumns()
                 .listener(SWT.KeyDown, event -> {
@@ -327,5 +327,9 @@ public class DispersionController {
                 .build(buttonsComposite);
 
         ComponentManager.getScene().layout();
+    }
+
+    private static String format(double value) {
+        return String.format(Locale.US, "%5.3f", value);
     }
 }

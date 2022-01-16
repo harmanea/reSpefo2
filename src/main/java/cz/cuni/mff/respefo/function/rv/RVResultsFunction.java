@@ -110,9 +110,9 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
             DoubleArrayList values = new DoubleArrayList();
             for (MeasureRVResult result : results.getResultsOfCategory(category)) {
                 final TableItem tableItem = new TableItem(table, SWT.NONE);
-                tableItem.setText(0, String.format(Locale.US, "%4.4f", result.getRv()));
+                tableItem.setText(0, format(result.getRv(), 4, 4));
                 tableItem.setText(1, Double.toString(result.getRadius()));
-                tableItem.setText(2, String.format(Locale.US, "%8.4f", result.getL0()));
+                tableItem.setText(2, format(result.getL0(), 8, 4));
                 tableItem.setText(3, result.getName());
                 tableItem.setText(4, result.getComment());
 
@@ -146,8 +146,8 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
                         double mean = results.getRvOfCategory(category);
                         double[] rvs = Arrays.stream(results.getResultsOfCategory(category)).mapToDouble(MeasureRVResult::getRv).toArray();
 
-                        meanText.setText("mean RV: " + String.format(Locale.US, "%4.4f", mean)
-                                + "\nstd. error: " + String.format(Locale.US, "%4.4f", MathUtils.sem(rvs, mean)));
+                        meanText.setText("mean RV: " + format(mean, 4, 4)
+                                + "\nstd. error: " + format(MathUtils.sem(rvs, mean), 4, 4));
                         group.requestLayout();
                     }
 
@@ -170,8 +170,8 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
                 double mean = results.getRvOfCategory(category);
 
                 meanText.setVisible(true);
-                meanText.setText("mean RV: " + String.format(Locale.US, "%4.4f", mean)
-                        + "\nstd. error: " + String.format(Locale.US, "%4.4f", MathUtils.sem(values.toArray(), mean)));
+                meanText.setText("mean RV: " + format(mean, 4, 4)
+                        + "\nstd. error: " + format(MathUtils.sem(values.toArray(), mean), 4, 4));
             }
 
             for (TableColumn column : table.getColumns()) {
@@ -260,18 +260,18 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
 
         for (Spectrum spectrum : spectra) {
             final TableItem tableItem = new TableItem(table, SWT.NONE);
-            tableItem.setText(0, String.format(Locale.US, "%8.4f", spectrum.getHjd().getJD()));
-            tableItem.setText(1, String.format(Locale.US, "%4.2f", spectrum.getRvCorrection()));
+            tableItem.setText(0, format(spectrum.getHjd().getJD(), 8, 4));
+            tableItem.setText(1, format(spectrum.getRvCorrection(), 4, 2));
 
             MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
             for (int i = 0; i < categories.length; i++) {
                 double result = results.getRvOfCategory(categories[i]);
                 if (isNotNaN(result)) {
-                    tableItem.setText(2 * i + 2, String.format(Locale.US, "%4.2f", result));
+                    tableItem.setText(2 * i + 2, format(result, 4, 2));
 
                     if (results.getResultsOfCategory(categories[i]).length > 1) {
                         double sem = results.getSemOfCategory(categories[i]);
-                        tableItem.setText(2 * i + 3, String.format(Locale.US, "%5.2f", sem));
+                        tableItem.setText(2 * i + 3, format(sem, 5, 2));
                     }
                 }
             }
@@ -421,5 +421,9 @@ public class RVResultsFunction implements SingleFileFunction, MultiFileFunction,
         } catch (FileNotFoundException exception) {
             Message.error("Couldn't print to " + suffix + " file", exception);
         }
+    }
+
+    private static String format(double value, int before, int after) {
+        return String.format(Locale.US, String.format("%%%d.%df", before, after), value);
     }
 }

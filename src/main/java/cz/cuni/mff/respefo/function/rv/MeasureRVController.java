@@ -274,7 +274,7 @@ public class MeasureRVController {
                             case SWT.ESC:
                                 if (index + 1 < measurements.size()) {
                                     index += 1;
-                                    ComponentManager.getDisplay().asyncExec(() -> measureSingle());
+                                    ComponentManager.getDisplay().asyncExec(MeasureRVController.this::measureSingle);
                                 } else {
                                     finish();
                                 }

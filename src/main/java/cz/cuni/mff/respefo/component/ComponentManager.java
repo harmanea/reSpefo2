@@ -389,6 +389,7 @@ public class ComponentManager extends UtilityClass {
                             p.step();
                         } catch (InterruptedException e) {
                             Log.debug("Thread interrupted");
+                            Thread.currentThread().interrupt();
                         }
                     }
 

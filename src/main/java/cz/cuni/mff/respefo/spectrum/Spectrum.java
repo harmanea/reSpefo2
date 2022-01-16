@@ -44,6 +44,7 @@ public abstract class Spectrum {
 
     private static final Map<Integer, Class<? extends Spectrum>> FORMATS = new HashMap<>();
     static {
+        // TODO: Can we do this in a different way?
         FORMATS.put(SimpleSpectrum.FORMAT, SimpleSpectrum.class);
         FORMATS.put(EchelleSpectrum.FORMAT, EchelleSpectrum.class);
     }
