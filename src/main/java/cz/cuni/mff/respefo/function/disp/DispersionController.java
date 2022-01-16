@@ -72,7 +72,7 @@ public class DispersionController {
     }
 
     private void firstStage() {
-        Chart chart = newChart()
+        newChart()
                 .title("Derive dispersion")
                 .xAxisLabel(PIXELS)
                 .hideYAxis()
@@ -85,95 +85,89 @@ public class DispersionController {
                         .color(GREEN)
                         .series(seriesB))
                 .keyListener(ch -> ChartKeyListener.customAction(ch, this::stackAbove))
+                .keyListener(ch -> new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        switch (e.keyCode) {
+                            case SWT.INSERT:
+                                if (Double.isNaN(newPoint)) {
+                                    Range range = ch.getAxisSet().getXAxis(0).getRange();
+                                    newPoint = (range.lower + range.upper) / 2;
+                                    ch.redraw();
+                                }
+                                break;
+                            case SWT.ESC:
+                                if (!Double.isNaN(newPoint)) {
+                                    newPoint = Double.NaN;
+                                    ch.redraw();
+                                }
+                                break;
+                            case SWT.CR:
+                                if (Double.isNaN(newPoint)) {
+                                    if (measurements.numberOfMeasured() < 2) {
+                                        Message.warning("You must first manually select at least two lines.");
+                                    } else {
+                                        secondStage(measurements.unmeasuredIndicesIterator());
+                                    }
+
+                                } else {
+                                    NumberDialog dialog = new NumberDialog(measurements.size(), "Select line number", "Line number:");
+                                    if (dialog.openIsOk()) {
+                                        ComparisonLineMeasurement measurement = measurements.getMeasurement(dialog.getNumber() - 1);
+
+                                        measurementController.measure(measurement, newPoint, () -> {
+                                            newPoint = Double.NaN;
+                                            firstStage();
+                                        });
+                                    }
+                                }
+                                break;
+                            case 'j':
+                                if (isNotNaN(newPoint)) {
+                                    newPoint -= getRelativeHorizontalStep(ch);
+                                    ch.redraw();
+                                }
+                                break;
+                            case 'l':
+                                if (isNotNaN(newPoint)) {
+                                    newPoint += getRelativeHorizontalStep(ch);
+                                    ch.redraw();
+                                }
+                                break;
+                        }
+                    }
+                })
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, shift -> {
                     if (isNotNaN(newPoint)) {
                         newPoint += shift;
                         ch.redraw();
                     }
                 }))
+                .plotAreaPaintListener(ch -> event -> {
+                    Range range = ch.getAxisSet().getXAxis(0).getRange();
+                    double diff = range.upper - range.lower;
+
+                    for (int i = 0; i < measurements.size(); i++){
+                        ComparisonLineMeasurement measurement = measurements.getMeasurement(i);
+                        if (measurement.isMeasured()) {
+                            int x = (int) (event.width * (measurement.getX() - range.lower) / diff);
+
+                            event.gc.setForeground(ColorManager.getColor(GRAY));
+                            event.gc.drawLine(x, 0, x, event.height);
+                        }
+                    }
+
+                    if (isNotNaN(newPoint)) {
+                        int x = (int) (event.width * (newPoint - range.lower) / diff);
+
+                        event.gc.setForeground(ColorManager.getColor(ORANGE));
+                        event.gc.drawLine(x, 0, x, event.height);
+                    }
+                })
+                .adjustRange()
+                .accept(this::stackAbove)
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
-
-        chart.getAxisSet().adjustRange();
-        stackAbove(chart);
-
-        chart.getPlotArea().addPaintListener(event -> {
-            Range range = chart.getAxisSet().getXAxis(0).getRange();
-            double diff = range.upper - range.lower;
-
-            for (int i = 0; i < measurements.size(); i++){
-                ComparisonLineMeasurement measurement = measurements.getMeasurement(i);
-                if (measurement.isMeasured()) {
-                    int x = (int) (event.width * (measurement.getX() - range.lower) / diff);
-
-                    event.gc.setForeground(ColorManager.getColor(GRAY));
-                    event.gc.drawLine(x, 0, x, event.height);
-                }
-            }
-
-            if (isNotNaN(newPoint)) {
-                int x = (int) (event.width * (newPoint - range.lower) / diff);
-
-                event.gc.setForeground(ColorManager.getColor(ORANGE));
-                event.gc.drawLine(x, 0, x, event.height);
-            }
-        });
-
-        chart.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.keyCode) {
-                    case SWT.INSERT:
-                        if (Double.isNaN(newPoint)) {
-                            Range range = chart.getAxisSet().getXAxis(0).getRange();
-                            newPoint = (range.lower + range.upper) / 2;
-                            chart.redraw();
-                        }
-                        break;
-                    case SWT.ESC:
-                        if (!Double.isNaN(newPoint)) {
-                            newPoint = Double.NaN;
-                            chart.redraw();
-                        }
-                        break;
-                    case SWT.CR:
-                        if (Double.isNaN(newPoint)) {
-                            if (measurements.numberOfMeasured() < 2) {
-                                Message.warning("You must first manually select at least two lines.");
-                            } else {
-                                secondStage(measurements.unmeasuredIndicesIterator());
-                            }
-
-                        } else {
-                            NumberDialog dialog = new NumberDialog(measurements.size(), "Select line number", "Line number:");
-                            if (dialog.openIsOk()) {
-                                ComparisonLineMeasurement measurement = measurements.getMeasurement(dialog.getNumber() - 1);
-
-                                measurementController.measure(measurement, newPoint, () -> {
-                                    newPoint = Double.NaN;
-                                    firstStage();
-                                });
-                            }
-                        }
-                        break;
-                    case 'j':
-                        if (isNotNaN(newPoint)) {
-                            newPoint -= getRelativeHorizontalStep(chart);
-                            chart.redraw();
-                        }
-                        break;
-                    case 'l':
-                        if (isNotNaN(newPoint)) {
-                            newPoint += getRelativeHorizontalStep(chart);
-                            chart.redraw();
-                        }
-                        break;
-                }
-            }
-        });
-
-        chart.redraw();
-        chart.forceFocus();
     }
 
     private void stackAbove(Chart chart) {

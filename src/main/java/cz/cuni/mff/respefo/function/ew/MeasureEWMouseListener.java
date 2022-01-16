@@ -16,7 +16,8 @@ public class MeasureEWMouseListener extends HorizontalDragMouseListener {
     private final MeasureEWResult result;
     private final Consumer<Integer> activeLineCallback;
 
-    public MeasureEWMouseListener(Chart chart, XYSeries series, Consumer<Double> dragCallback, Runnable mouseUpCallback, MeasureEWResult result, Consumer<Integer> activeLineCallback) {
+    public MeasureEWMouseListener(Chart chart, XYSeries series, Consumer<Double> dragCallback, Runnable mouseUpCallback,
+                                  MeasureEWResult result, Consumer<Integer> activeLineCallback) {
         super(chart, dragCallback);
 
         this.series = series;

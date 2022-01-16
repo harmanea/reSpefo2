@@ -109,7 +109,7 @@ public class MeasureEWController {
                 ArrayUtils.indexOfClosest(series.getXSeries(), measurement.getUpperBound())
         );
 
-        final Chart chart = newChart()
+        newChart()
                 .title(measurement.getName() + " " + measurement.getL0())
                 .xAxisLabel(WAVELENGTH)
                 .yAxisLabel(RELATIVE_FLUX)
@@ -117,8 +117,67 @@ public class MeasureEWController {
                         .series(series)
                         .color(GREEN))
                 .keyListener(ch -> ChartKeyListener.customAction(ch, ch2 -> adjustView(ch, result)))
+                .keyListener(ch -> new KeyAdapter() {
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        switch (e.keyCode) {
+                            case SWT.END:
+                            case SWT.ESC:
+                                results.add(result);
+                                if (index + 1 < measurements.size()) {
+                                    index += 1;
+                                    ComponentManager.getDisplay().asyncExec(MeasureEWController.this::measureSingle);
+                                } else {
+                                    finish();
+                                }
+                                break;
+
+                            case SWT.CR:
+                            case SWT.INSERT:
+                                MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
+                                if (dialog.openIsOk()) {
+                                    Range xRange = ch.getAxisSet().getXAxis(0).getRange();
+                                    int newIndex = ArrayUtils.indexOfClosest(series.getXSeries(), (xRange.upper + xRange.lower) / 2);
+
+                                    result.add(newIndex, dialog.getCategory());
+
+                                    activeLine = result.pointsCount() - 1;
+                                    ch.redraw();
+                                }
+                                break;
+
+                            case SWT.DEL:
+                                if (activeLine >= 0) {
+                                    result.remove(activeLine--);
+                                    ch.redraw();
+                                }
+                                break;
+
+                            case 'j':
+                                if (activeLine < 0) {
+                                    int newIndex = Math.max(result.getBound(activeLine + 2) - 1, 0);
+                                    result.setBound(activeLine + 2, newIndex);
+                                } else {
+                                    int newIndex = Math.max(result.getPoint(activeLine) - 1, 0);
+                                    result.setPoint(activeLine, newIndex);
+                                }
+                                ch.redraw();
+                                break;
+
+                            case 'l':
+                                if (activeLine < 0) {
+                                    int newIndex = Math.min(result.getBound(activeLine + 2) + 1, series.getLength() - 1);
+                                    result.setBound(activeLine + 2, newIndex);
+                                } else {
+                                    int newIndex = Math.min(result.getPoint(activeLine) + 1, series.getLength() - 1);
+                                    result.setPoint(activeLine, newIndex);
+                                }
+                                ch.redraw();
+                                break;
+                        }
+                    }})
                 .mouseAndMouseMoveListener(ch -> new MeasureEWMouseListener(ch, series, sh -> {
-                    updateShift(sh);
+                    shift += sh;
                     ch.redraw();
                     ch.forceFocus();
                 }, () ->  {
@@ -128,66 +187,25 @@ public class MeasureEWController {
                     activeLine = i;
                     ch.redraw();
                 }))
+                .plotAreaPaintListener(ch -> event -> {
+                    Range range = ch.getAxisSet().getXAxis(0).getRange();
+                    double diff = range.upper - range.lower;
+
+                    for (int i = 0; i <= 1; i++) {
+                        int x = (int) (event.width * (series.getX(result.getBound(i)) + (activeLine + 2 == i ? shift : 0) - range.lower) / diff);
+                        event.gc.setForeground(ColorManager.getColor(activeLine + 2 == i ? CYAN : BLUE));
+                        event.gc.drawLine(x, 0, x, event.height);
+                    }
+                    for (int i = result.pointsCount() - 1; i >= 0; i--) {
+                        int x = (int) (event.width * (series.getX(result.getPoint(i)) + (activeLine == i ? shift : 0) - range.lower) / diff);
+                        event.gc.setForeground(ColorManager.getColor(activeLine == i ? ORANGE : GRAY));
+                        event.gc.drawLine(x, 0, x, event.height);
+                        event.gc.drawString(result.getCategory(i).name(), x + 10, 10);
+                    }
+                })
+                .accept(ch -> adjustView(ch, result))
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene(false));
-
-        chart.getPlotArea().addPaintListener(event -> {
-            Range range = chart.getAxisSet().getXAxis(0).getRange();
-            double diff = range.upper - range.lower;
-
-            for (int i = 0; i <= 1; i++) {
-                int x = (int) (event.width * (series.getX(result.getBound(i)) + (activeLine + 2 == i ? shift : 0) - range.lower) / diff);
-                event.gc.setForeground(ColorManager.getColor(activeLine + 2 == i ? CYAN : BLUE));
-                event.gc.drawLine(x, 0, x, event.height);
-            }
-            for (int i = result.pointsCount() - 1; i >= 0; i--) {
-                int x = (int) (event.width * (series.getX(result.getPoint(i)) + (activeLine == i ? shift : 0) - range.lower) / diff);
-                event.gc.setForeground(ColorManager.getColor(activeLine == i ? ORANGE : GRAY));
-                event.gc.drawLine(x, 0, x, event.height);
-                event.gc.drawString(result.getCategory(i).name(), x + 10, 10);
-            }
-        });
-
-        chart.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.keyCode) {
-                    case SWT.END:
-                    case SWT.ESC:
-                        results.add(result);
-                        if (index + 1 < measurements.size()) {
-                            index += 1;
-                            ComponentManager.getDisplay().asyncExec(MeasureEWController.this::measureSingle);
-                        } else {
-                            finish();
-                        }
-                        break;
-
-                    case SWT.CR:
-                    case SWT.INSERT:
-                        MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
-                        if (dialog.openIsOk()) {
-                            Range xRange = chart.getAxisSet().getXAxis(0).getRange();
-                            int newIndex = ArrayUtils.indexOfClosest(series.getXSeries(), (xRange.upper + xRange.lower) / 2);
-
-                            result.add(newIndex, dialog.getCategory());
-
-                            activeLine = result.pointsCount() - 1;
-                            chart.redraw();
-                        }
-                        break;
-
-                    case SWT.DEL:
-                        if (activeLine >= 0) {
-                            result.remove(activeLine--);
-                            chart.redraw();
-                        }
-                        break;
-                }
-            }
-        });
-
-        adjustView(chart, result);
 
         table.setSelection(index);
     }
@@ -213,10 +231,6 @@ public class MeasureEWController {
         chart.getAxisSet().getYAxis(0).setRange(new Range(min - DOUBLE_PRECISION, max + DOUBLE_PRECISION));
 
         chart.getAxisSet().zoomOut();
-    }
-
-    private void updateShift(double shift) {
-        this.shift += shift;
     }
 
     private void snapToPoint(XYSeries series, MeasureEWResult result) {

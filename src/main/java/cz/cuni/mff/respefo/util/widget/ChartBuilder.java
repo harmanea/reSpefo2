@@ -4,10 +4,7 @@ import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseWheelListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -16,6 +13,7 @@ import org.swtchart.*;
 import org.swtchart.ILineSeries.PlotSymbolType;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -126,6 +124,11 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return this;
     }
 
+    public ChartBuilder plotAreaPaintListener(Function<Chart, PaintListener> paintListenerProvider) {
+        addProperty(ch -> ch.getPlotArea().addPaintListener(paintListenerProvider.apply(ch)));
+        return this;
+    }
+
     public ChartBuilder makeAllSeriesEqualRange() {
         addProperty(ChartUtils::makeAllSeriesEqualRange);
         return this;
@@ -148,6 +151,11 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
 
     public ChartBuilder apply(UnaryOperator<ChartBuilder> operator) {
         return operator.apply(this);
+    }
+
+    public ChartBuilder accept(Consumer<Chart> consumer) {
+        addProperty(consumer);
+        return this;
     }
 
     public ChartBuilder data(String key, Object value) {
