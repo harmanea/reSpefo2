@@ -4,11 +4,12 @@ import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
+import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.IntStream;
 
-public class CleanAsset implements FunctionAsset {
+public class CleanAsset implements FunctionAsset, Iterable<Integer> {
     private final SortedSet<Integer> deletedIndices;
     private transient int activeIndex = 0;
 
@@ -73,5 +74,10 @@ public class CleanAsset implements FunctionAsset {
         double[] newYSeries = MathUtils.intep(remainingXSeries, remainingYSeries, series.getXSeries());
 
         return new XYSeries(series.getXSeries(), newYSeries);
+    }
+
+    @Override
+    public Iterator<Integer> iterator() {
+        return deletedIndices.iterator();
     }
 }

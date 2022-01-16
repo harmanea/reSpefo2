@@ -6,6 +6,8 @@ import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.clean.CleanAsset;
+import cz.cuni.mff.respefo.function.clean.CleanFunction;
 import cz.cuni.mff.respefo.function.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
@@ -20,6 +22,7 @@ import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
+import cz.cuni.mff.respefo.util.utils.MathUtils;
 import cz.cuni.mff.respefo.util.widget.ChartBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -30,9 +33,10 @@ import org.swtchart.ILineSeries;
 import org.swtchart.ISeries;
 
 import java.io.File;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
@@ -57,7 +61,6 @@ public class RectifyFunction implements SingleFileFunction {
     public static final String CONTINUUM_SERIES_NAME = "continuum";
 
     private static RectifyAsset previousAsset;
-// TODO: see if there is a way to remember previous assets for echelle spectra
 
     @Override
     public void execute(File file) {
@@ -95,6 +98,11 @@ public class RectifyFunction implements SingleFileFunction {
     private static void rectifyEchelleSpectrum(EchelleSpectrum spectrum) {
         XYSeries[] series = spectrum.getOriginalSeries();
 
+        Optional<CleanAsset> optionalCleanAsset = spectrum.getFunctionAsset(CleanFunction.SERIALIZE_KEY, CleanAsset.class);
+        optionalCleanAsset.ifPresent(asset -> cleanSeries(series, asset));
+
+        BlazeAsset blazeAsset = spectrum.getFunctionAsset(BLAZE_SERIALIZE_KEY, BlazeAsset.class).orElseGet(BlazeAsset::new);
+
         String[][] names = new String[series.length][3];
         for (int i = 0; i <= series.length - 1; i++) {
             XYSeries xySeries = series[i];
@@ -115,12 +123,49 @@ public class RectifyFunction implements SingleFileFunction {
 
             Blaze[] blazes = new Blaze[series.length];
             for (int i = 0; i < series.length; i++) {
-                blazes[i] = new Blaze(series[i], 125 - i);
+                int order = 125 - i;
+                if (blazeAsset.hasParameters(order)) {
+                    double[] parameters = blazeAsset.getParameters(order);
+                    blazes[i] = new Blaze(series[i], order, parameters[0], parameters[1]);
+                } else {
+                    blazes[i] = new Blaze(series[i], order);
+                }
                 p.step();
             }
 
             return blazes;
         }, blazes -> rectifySingleEchelle(spectrum, dialog.getSelectedIndices(), blazes, new RectifyAsset[series.length], 0));
+    }
+
+    private static void cleanSeries(XYSeries[] series, CleanAsset asset) {
+        Map<Integer, List<Integer>> deletedIndices = new HashMap<>();
+        int n = series[0].getLength();
+        for (int index : asset) {
+            int order = Math.floorDiv(index, n);
+            int indexInOrder = index % order;
+            deletedIndices.putIfAbsent(order, new ArrayList<>());
+            deletedIndices.get(order).add(indexInOrder);
+        }
+
+        for (Map.Entry<Integer, List<Integer>> entries : deletedIndices.entrySet()) {
+            int order = entries.getKey();
+            Set<Integer> indices = new HashSet<>(entries.getValue());
+            XYSeries currentSeries = series[order];
+
+            double[] remainingXSeries = IntStream.range(0, currentSeries.getLength())
+                    .filter(index -> !indices.contains(index))
+                    .mapToDouble(currentSeries::getX)
+                    .toArray();
+
+            double[] remainingYSeries = IntStream.range(0, currentSeries.getLength())
+                    .filter(index -> !indices.contains(index))
+                    .mapToDouble(currentSeries::getY)
+                    .toArray();
+
+            double[] newYSeries = MathUtils.intep(remainingXSeries, remainingYSeries, currentSeries.getXSeries());
+
+            series[order] = new XYSeries(currentSeries.getXSeries(), newYSeries);
+        }
     }
 
     private static void rectifySingleEchelle(EchelleSpectrum spectrum, Set<Integer> selectedIndices,
@@ -130,15 +175,16 @@ public class RectifyFunction implements SingleFileFunction {
 
         } else if (selectedIndices.contains(index)) {
             // interactive
-            Display.getCurrent().asyncExec(() -> finetuneBlazeParameters(spectrum, selectedIndices, blazes, rectifyAssets, index));
+            Display.getCurrent().asyncExec(() -> fineTuneBlazeParameters(spectrum, selectedIndices, blazes, rectifyAssets, index));
         } else {
             // automatic
             rectifyAssets[index] = blazes[index].toRectifyAsset();
+            spectrum.getFunctionAsset(BLAZE_SERIALIZE_KEY, BlazeAsset.class).ifPresent(asset -> asset.removeIfPresent(125 - index));
             Display.getCurrent().asyncExec(() -> rectifySingleEchelle(spectrum, selectedIndices, blazes, rectifyAssets, index + 1));
         }
     }
 
-    private static void finetuneBlazeParameters(EchelleSpectrum spectrum, Set<Integer> selectedIndices,
+    private static void fineTuneBlazeParameters(EchelleSpectrum spectrum, Set<Integer> selectedIndices,
                                                 Blaze[] blazes, RectifyAsset[] rectifyAssets, int index) {
         XYSeries currentSeries = spectrum.getOriginalSeries()[index];
         XYSeries blazeSeries = blazes[index].series();
@@ -165,6 +211,10 @@ public class RectifyFunction implements SingleFileFunction {
                     @Override
                     public void keyPressed(KeyEvent e) {
                         if (e.keyCode == SWT.CR) {
+                            Blaze blaze = (Blaze) ch.getData("blaze");
+                            BlazeAsset asset = spectrum.getFunctionAsset(BLAZE_SERIALIZE_KEY, BlazeAsset.class).orElseGet(BlazeAsset::new);
+                            asset.setParameters(blaze.getOrder(), blaze.getCentralWavelength(), blaze.getScale());
+                            spectrum.putFunctionAsset(BLAZE_SERIALIZE_KEY, asset);
                             ComponentManager.getDisplay().asyncExec(()
                                     -> fineTuneRectificationPoints(spectrum, selectedIndices, blazes, rectifyAssets, index));
                         }
@@ -334,6 +384,12 @@ public class RectifyFunction implements SingleFileFunction {
 
     private static void finishEchelleSpectrum(EchelleSpectrum spectrum, RectifyAsset[] assets) {
         spectrum.setRectifyAssets(assets);
+        spectrum.getFunctionAsset(BLAZE_SERIALIZE_KEY, BlazeAsset.class)
+                .ifPresent(asset -> {
+                    if (asset.isEmpty()) {
+                        spectrum.removeFunctionAsset(BLAZE_SERIALIZE_KEY);
+                    }
+                });
 
         try {
             spectrum.save();

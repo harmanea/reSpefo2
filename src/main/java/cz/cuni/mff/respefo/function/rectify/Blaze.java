@@ -12,7 +12,7 @@ import static java.lang.Math.*;
 import static java.util.Arrays.stream;
 
 public class Blaze {
-    private static final double K = 565754; // More like 565660.2133333334 by my calculations
+    private static final double K = 565754; // More like 565660.213... by my calculations
     private static final double[] COEFFICIENTS = new double[]
             {-3.0817976563120606, 0.21780270894619688, -0.004371189338350063, 4.139193926208102e-05, -1.8545313075173e-07, 3.12485701485604e-10};
 
@@ -23,14 +23,17 @@ public class Blaze {
     private double scale;
 
     public Blaze(XYSeries series, int order) {
+        this(series, order, K / order, MathUtils.intep(series.getXSeries(), series.getYSeries(), K / order));
+        fit();
+    }
+
+    public Blaze(XYSeries series, int order, double centralWavelength, double scale) {
         this.series = series;
         this.order = order;
+        this.centralWavelength = centralWavelength;
+        this.scale = scale;
 
-        alpha = MathUtils.polynomial(order, COEFFICIENTS);  // based on a 5th order polynomial that was fitted to expert labeled data
-        centralWavelength = K / order;  // based on a pre-computed value of a constant 'K' that ties together these two values
-        scale = MathUtils.intep(series.getXSeries(), series.getYSeries(), centralWavelength);  // simply take the value at central wavelength
-
-        fit();
+        alpha = MathUtils.polynomial(order, COEFFICIENTS);
     }
 
     private void fit() {
@@ -62,6 +65,10 @@ public class Blaze {
         double[] parameters = fit.getParameters();
         centralWavelength = parameters[0];
         scale = parameters[1];
+    }
+
+    public int getOrder() {
+        return order;
     }
 
     public double getScale() {
