@@ -11,16 +11,15 @@ import cz.cuni.mff.respefo.util.collections.JulianDate;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static java.util.Arrays.asList;
+import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
 
 @Fun(name = "Repair", fileFilter = SpefoFormatFileFilter.class, group = "Debug")
 public class RepairFunction implements SingleFileFunction {
 
-    private static final List<Predicate<Spectrum>> FIX_OPERATIONS = Collections.unmodifiableList(asList(RepairFunction::fixNullDateOfObservation, RepairFunction::fixNullHJD));
+    private static final List<Predicate<Spectrum>> FIX_OPERATIONS = listOf(RepairFunction::fixNullDateOfObservation, RepairFunction::fixNullHJD);
 
     @Override
     public void execute(File file) {

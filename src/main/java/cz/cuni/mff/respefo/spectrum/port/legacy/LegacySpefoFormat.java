@@ -17,12 +17,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
-import static java.util.Arrays.asList;
+import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
 import static java.util.Arrays.stream;
-import static java.util.Collections.unmodifiableList;
 
 public class LegacySpefoFormat implements ImportFileFormat {
-    private static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("uui", "rui", "rci"));
+    private static final List<String> FILE_EXTENSIONS = listOf("uui", "rui", "rci");
 
     @Override
     public List<String> fileExtensions() {

@@ -6,12 +6,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
+import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
 
 public class SpefoAndLstFileFilter implements FileFilter {
 
-    public static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("spf", "lst"));
+    public static final List<String> FILE_EXTENSIONS = listOf("spf", "lst");
 
     @Override
     public boolean accept(File pathname) {

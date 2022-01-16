@@ -3,19 +3,17 @@ package cz.cuni.mff.respefo.spectrum.port.fits;
 import cz.cuni.mff.respefo.spectrum.origin.BaseOrigin;
 import cz.cuni.mff.respefo.spectrum.origin.Origin;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableSet;
+import static cz.cuni.mff.respefo.util.utils.CollectionUtils.setOf;
 
 @Origin(key = "fits")
 public class FitsOrigin extends BaseOrigin {
 
-    private static final Set<String> IGNORED_HEADER_KEYS = unmodifiableSet(new HashSet<>(
-            asList("", "END", "BITPIX", "NAXIS", "NAXIS1", "EXTEND", "CRPIX1", "CRVAL1", "CDELT1", "BZERO", "BSCALE", "SIMPLE")));
+    private static final Set<String> IGNORED_HEADER_KEYS =
+            setOf("", "END", "BITPIX", "NAXIS", "NAXIS1", "EXTEND","CRPIX1", "CRVAL1", "CDELT1", "BZERO", "BSCALE", "SIMPLE");
 
     private List<HeaderCard> headerCards;
 

@@ -4,11 +4,10 @@ import cz.cuni.mff.respefo.spectrum.port.FileFormat;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
+import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
 
 public class AsciiFormat implements FileFormat {
-    public static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("", "txt", "asc", "ascii"));
+    public static final List<String> FILE_EXTENSIONS = listOf("", "txt", "asc", "ascii");
 
     @Override
     public List<String> fileExtensions() {

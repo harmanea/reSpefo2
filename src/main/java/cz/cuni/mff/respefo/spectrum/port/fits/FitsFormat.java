@@ -4,11 +4,10 @@ import cz.cuni.mff.respefo.spectrum.port.FileFormat;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
+import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
 
 public class FitsFormat implements FileFormat {
-    public static final List<String> FILE_EXTENSIONS = unmodifiableList(asList("fits", "fts", "fit"));
+    public static final List<String> FILE_EXTENSIONS = listOf("fits", "fts", "fit");
 
     @Override
     public final List<String> fileExtensions() {
