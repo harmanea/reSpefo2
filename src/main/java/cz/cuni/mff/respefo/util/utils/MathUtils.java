@@ -129,18 +129,14 @@ public class MathUtils extends UtilityClass {
      * Transform an index to wavelength using Taylor polynomials.
      *
      * @param x            input value
-     * @param coefficients array of up to 5 polynomial coefficients
+     * @param coefficients array of polynomial coefficients
      * @return y output value
      */
     public static double polynomial(double x, double[] coefficients) {
         Objects.requireNonNull(coefficients);
 
-        int degree = coefficients.length;
-        if (degree > 6) {
-            degree = 6;
-        }
-
         // Horner's schema
+        int degree = coefficients.length;
         double result = coefficients[degree - 1];
         for (int i = degree - 2; i >= 0; --i) {
             result *= x;

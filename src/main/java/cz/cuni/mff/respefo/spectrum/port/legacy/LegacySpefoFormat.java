@@ -14,6 +14,7 @@ import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
@@ -70,7 +71,8 @@ public class LegacySpefoFormat implements ImportFileFormat {
 
         double[] xSeries = new double[spefoFile.getYSeries().length];
         for (int i = 0; i < xSeries.length; i++) {
-            xSeries[i] = MathUtils.polynomial(i, spefoFile.getDispCoef());
+            double[] coefficients = Arrays.copyOf(spefoFile.getDispCoef(), 6);
+            xSeries[i] = MathUtils.polynomial(i, coefficients);
 
             if (spefoFile.getRvCorr() != 0) {
                 xSeries[i] += spefoFile.getRvCorr() * (xSeries[i] / SPEED_OF_LIGHT);
