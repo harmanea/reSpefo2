@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.function.rectify;
 
+import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
@@ -12,13 +13,12 @@ import static java.lang.Math.*;
 import static java.util.Arrays.stream;
 
 public class Blaze {
-    private static final double K = 565754; // More like 565660.213... by my calculations
+    public static final double K = 565754; // More like 565660.213... by my calculations
     private static final double[] COEFFICIENTS = new double[]
-            {-3.0817976563120606, 0.21780270894619688, -0.004371189338350063, 4.139193926208102e-05, -1.8545313075173e-07, 3.12485701485604e-10};
+            {-1.52982125e+01, 1.27961723e-02, -3.97132440e-06, 6.06949396e-10, -4.56757646e-14, 1.35599569e-18};
 
     private final XYSeries series;
     private final int order;
-    private final double alpha;
     private double centralWavelength;
     private double scale;
 
@@ -32,15 +32,13 @@ public class Blaze {
         this.order = order;
         this.centralWavelength = centralWavelength;
         this.scale = scale;
-
-        alpha = MathUtils.polynomial(order, COEFFICIENTS);
     }
 
     private void fit() {
         Function fun = new Function() {
             @Override
             public double evaluate(double[] values, double[] parameters) {
-                return parameters[1] * r(values[0], order, parameters[0], alpha);
+                return parameters[1] * r(values[0], order, parameters[0], MathUtils.polynomial(values[0], COEFFICIENTS));
             }
 
             @Override
@@ -63,8 +61,12 @@ public class Blaze {
         fit.fitData();
 
         double[] parameters = fit.getParameters();
-        centralWavelength = parameters[0];
-        scale = parameters[1];
+        if (Double.isNaN(parameters[0]) || Double.isNaN(parameters[1])) {
+            Log.warning("Least squares fit failed for order " + order);
+        } else {
+            centralWavelength = parameters[0];
+            scale = parameters[1];
+        }
     }
 
     public int getOrder() {
@@ -96,7 +98,7 @@ public class Blaze {
 
         for (int i = 0; i < 20; i++) {
             double x = linearInterpolation(0, low, 19, high, i);
-            double y = scale * r(x, order, centralWavelength, alpha);
+            double y = scale * r(x, order, centralWavelength, MathUtils.polynomial(x, COEFFICIENTS));
 
             xCoordinates.add(x);
             yCoordinates.add(y);
@@ -108,7 +110,7 @@ public class Blaze {
     public XYSeries series() {
         double[] xSeries = series.getXSeries();
         double[] ySeries = stream(xSeries)
-                .map(x -> scale * r(x, order, centralWavelength, alpha))
+                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x, COEFFICIENTS)))
                 .toArray();
 
         return new XYSeries(xSeries, ySeries);

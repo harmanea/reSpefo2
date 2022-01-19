@@ -51,8 +51,8 @@ public class ChartUtils extends UtilityClass {
 
         }
 
-        Range xRange = new Range(xMin, xMax);
-        Range yRange = new Range(yMin, yMax);
+        Range xRange = rangeWithMargin(xMin, xMax);
+        Range yRange = rangeWithMargin(yMin, yMax);
 
         for (IAxis xAxis : chart.getAxisSet().getXAxes()) {
             xAxis.setRange(xRange);

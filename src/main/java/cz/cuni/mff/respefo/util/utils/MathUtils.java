@@ -147,6 +147,8 @@ public class MathUtils extends UtilityClass {
 
     /**
      * Fit a polynomial of a given degree to the provided data.
+     * <p>
+     * Based on the implementation from <a href="https://www.bragitoff.com/2017/04/polynomial-fitting-java-codeprogram-works-android-well/">Bragitoff.com</a>
      *
      * @param x independent variables
      * @param y dependent variables
@@ -265,9 +267,8 @@ public class MathUtils extends UtilityClass {
     /**
      * Compute the robust mean of the given sorted values.
      * <p>
-     * <p>
      * Andrews, D. F. (1972): Robust Estimates of Location, Princeton Univ. Press, Princeton
-     * <br>
+     * <p>
      * This implementation is based on the FORTRAN code stated therein.
      *
      * @param values sorted ascending numbers
