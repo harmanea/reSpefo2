@@ -24,9 +24,6 @@ import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 import cz.cuni.mff.respefo.util.widget.ChartBuilder;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Display;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
@@ -206,20 +203,16 @@ public class RectifyFunction implements SingleFileFunction {
                         .name("residuals")
                         .color(ORANGE)
                         .series(residuals))
-                .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
-                .keyListener(ch -> new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        if (e.keyCode == SWT.CR) {
+                .keyListener(ch -> new BlazeKeyListener(ch, blazes[index],
+                        () -> updateChart(ch),
+                        () -> {
                             Blaze blaze = (Blaze) ch.getData("blaze");
                             BlazeAsset asset = spectrum.getFunctionAsset(BLAZE_SERIALIZE_KEY, BlazeAsset.class).orElseGet(BlazeAsset::new);
                             asset.setParameters(blaze.getOrder(), blaze.getCentralWavelength(), blaze.getScale());
                             spectrum.putFunctionAsset(BLAZE_SERIALIZE_KEY, asset);
                             ComponentManager.getDisplay().asyncExec(()
                                     -> fineTuneRectificationPoints(spectrum, selectedIndices, blazes, rectifyAssets, index));
-                        }
-                    }
-                })
+                        }))
                 .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> updateChart(ch)))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .plotAreaPaintListener(ch -> event -> {
