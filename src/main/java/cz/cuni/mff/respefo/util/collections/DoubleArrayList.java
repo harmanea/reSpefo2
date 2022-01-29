@@ -189,6 +189,21 @@ public class DoubleArrayList implements Iterable<Double>, RandomAccess {
     }
 
     /**
+     * Returns the index of the first occurrence of the specified element in this list,
+     * or -1 if this list does not contain the element. More formally, returns the lowest index <tt>i</tt> such that
+     * <tt>element == get(i)</tt>, or -1 if there is no such index.
+     */
+    public int indexOf(double element) {
+        for (int i = 0; i < size; i++) {
+            if (element == elements[i]) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
      * Trims the capacity of this <tt>DoubleArrayList</tt> instance to be the list's current size.
      * An application can use this operation to minimize the storage of a <tt>DoubleArrayList</tt> instance.
      */

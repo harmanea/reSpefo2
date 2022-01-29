@@ -8,18 +8,18 @@ import org.swtchart.Chart;
 
 public class BlazeMouseListener extends DragMouseListener {
     private final Runnable update;
+    private final Blaze blaze;
     private boolean horizontal;
 
-    public BlazeMouseListener(Chart chart, Runnable update) {
+    public BlazeMouseListener(Chart chart, Runnable update, Blaze blaze) {
         super(chart);
 
         this.update = update;
+        this.blaze = blaze;
     }
 
     @Override
     public void mouseMove(MouseEvent event) {
-        Blaze blaze = (Blaze) chart.getData("blaze");
-
         if (drag) {
             // Move the active line
 

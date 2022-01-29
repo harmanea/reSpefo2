@@ -8,10 +8,11 @@ import static cz.cuni.mff.respefo.util.utils.ArrayUtils.*;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.DOUBLE_PRECISION;
 import static org.junit.Assert.*;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class ArrayUtilsTest {
 
     @Test
-    public void testFindFirstGreaterThan() {
+    public void testIndexOfFirstGreaterThan() {
         assertEquals(1, indexOfFirstGreaterThan(arrayOf(1, 2, 3), 1));
         assertEquals(0, indexOfFirstGreaterThan(arrayOf(0.1, 0.5, 1), 0));
         assertEquals(3, indexOfFirstGreaterThan(arrayOf(1000.1111, 2000.2222, 3000.3333), 5000.5555));
@@ -28,12 +29,16 @@ public class ArrayUtilsTest {
     }
 
     @Test
-    public void testFindClosest() {
+    public void testIndexOfClosest() {
         assertEquals(1, indexOfClosest(arrayOf(0, 1, 2, 3, 4, 5), 1));
         assertEquals(0, indexOfClosest(arrayOf(100, 200, 300), 0));
         assertEquals(0, indexOfClosest(arrayOf(100, 200, 300), 0));
         assertEquals(0, indexOfClosest(arrayOf(1), 1));
-        assertEquals(0, indexOfClosest(emptyArray(), 1));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIndexOfClosestEmptyArray() {
+        indexOfClosest(emptyArray(), 1);
     }
 
     @Test
@@ -134,5 +139,18 @@ public class ArrayUtilsTest {
     @Test(expected = IllegalArgumentException.class)
     public void testValuesHaveSameDifferenceSmallArray() {
         valuesHaveSameDifference(arrayOf(1));
+    }
+
+    @Test
+    public void testLinspace() {
+        assertArrayEquals(arrayOf(0, 0.25, 0.5, 0.75, 1), linspace(0, 1, 5), DOUBLE_PRECISION);
+        assertArrayEquals(arrayOf(-5, -5.5, -6), linspace(-5, -6, 3), DOUBLE_PRECISION);
+        assertArrayEquals(arrayOf(1, 1, 1, 1, 1, 1, 1, 1, 1, 1), linspace(1, 1, 10), DOUBLE_PRECISION);
+        assertArrayEquals(arrayOf(4200, 4262.5, 4325, 4387.5, 4450, 4512.5, 4575, 4637.5, 4700), linspace(4200, 4700, 9), DOUBLE_PRECISION);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testLinspaceNegativeSize() {
+        linspace(0, 1, -1);
     }
 }

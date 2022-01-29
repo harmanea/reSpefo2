@@ -14,31 +14,58 @@ import static java.util.Arrays.stream;
 
 public class Blaze {
     public static final double K = 565754; // More like 565660.213... by my calculations
-    private static final double[] COEFFICIENTS = new double[]
+    private static final double[] ALPHA_COEFFICIENTS = new double[]
             {-1.52982125e+01, 1.27961723e-02, -3.97132440e-06, 6.06949396e-10, -4.56757646e-14, 1.35599569e-18};
 
-    private final XYSeries series;
     private final int order;
     private double centralWavelength;
     private double scale;
 
-    public Blaze(XYSeries series, int order) {
-        this(series, order, K / order, MathUtils.intep(series.getXSeries(), series.getYSeries(), K / order));
-        fit();
-    }
-
-    public Blaze(XYSeries series, int order, double centralWavelength, double scale) {
-        this.series = series;
+    public Blaze(int order, double centralWavelength, double scale) {
         this.order = order;
         this.centralWavelength = centralWavelength;
         this.scale = scale;
     }
 
-    private void fit() {
+    public Blaze(int index, double[] coeffs) {
+        order = 125 - index;
+        centralWavelength = K / order;
+        scale = MathUtils.polynomial(centralWavelength, coeffs);
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public double getScale() {
+        return scale;
+    }
+
+    public void updateScale(double diff) {
+        scale += diff;
+    }
+
+    public void setScale(double value) {
+        scale = value;
+    }
+
+    public double getCentralWavelength() {
+        return centralWavelength;
+    }
+
+    public void updateCentralWavelength(double diff) {
+        centralWavelength += diff;
+    }
+
+    public void setCentralWavelength(double value) {
+        centralWavelength = value;
+    }
+
+    public void fit(XYSeries series) {
         Function fun = new Function() {
             @Override
             public double evaluate(double[] values, double[] parameters) {
-                return parameters[1] * r(values[0], order, parameters[0], MathUtils.polynomial(values[0], COEFFICIENTS));
+                return parameters[1] * r(values[0], order, parameters[0], MathUtils.polynomial(values[0], ALPHA_COEFFICIENTS));
             }
 
             @Override
@@ -57,7 +84,7 @@ public class Blaze {
                 stream(series.getXSeries()).mapToObj(x -> new double[]{x}).toArray(double[][]::new),
                 series.getYSeries()
         );
-        fit.setParameters(new double[] {centralWavelength, scale});
+        fit.setParameters(new double[]{centralWavelength, scale});
         fit.fitData();
 
         double[] parameters = fit.getParameters();
@@ -69,27 +96,7 @@ public class Blaze {
         }
     }
 
-    public int getOrder() {
-        return order;
-    }
-
-    public double getScale() {
-        return scale;
-    }
-
-    public void updateScale(double diff) {
-        scale += diff;
-    }
-
-    public double getCentralWavelength() {
-        return centralWavelength;
-    }
-
-    public void updateCentralWavelength(double diff) {
-        centralWavelength += diff;
-    }
-
-    public RectifyAsset toRectifyAsset() {
+    public RectifyAsset toRectifyAsset(XYSeries series) {
         DoubleArrayList xCoordinates = new DoubleArrayList(20);
         DoubleArrayList yCoordinates = new DoubleArrayList(20);
 
@@ -98,7 +105,7 @@ public class Blaze {
 
         for (int i = 0; i < 20; i++) {
             double x = linearInterpolation(0, low, 19, high, i);
-            double y = scale * r(x, order, centralWavelength, MathUtils.polynomial(x, COEFFICIENTS));
+            double y = scale * r(x, order, centralWavelength, MathUtils.polynomial(x, ALPHA_COEFFICIENTS));
 
             xCoordinates.add(x);
             yCoordinates.add(y);
@@ -107,13 +114,10 @@ public class Blaze {
         return new RectifyAsset(xCoordinates, yCoordinates);
     }
 
-    public XYSeries series() {
-        double[] xSeries = series.getXSeries();
-        double[] ySeries = stream(xSeries)
-                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x, COEFFICIENTS)))
+    public double[] ySeries(double[] xSeries) {
+        return stream(xSeries)
+                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x, ALPHA_COEFFICIENTS)))
                 .toArray();
-
-        return new XYSeries(xSeries, ySeries);
     }
 
     private static double r(double lambda, int order, double centralWavelength, double alpha) {

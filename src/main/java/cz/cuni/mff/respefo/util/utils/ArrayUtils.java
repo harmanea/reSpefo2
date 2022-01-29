@@ -183,6 +183,21 @@ public class ArrayUtils extends UtilityClass {
     }
 
     /**
+     * Create a new array with evenly spaced numbers over a specified interval.
+     * @param start the starting value of the sequence
+     * @param stop the end value of the sequence
+     * @param size number of samples to generate
+     * @return created array
+     */
+    public static double[] linspace(double start, double stop, int size) {
+        if (size < 1) {
+            throw new IllegalArgumentException("Size must be a positive integer");
+        }
+
+        return IntStream.range(0, size).mapToDouble(i -> start + i * (stop - start) / (size - 1)).toArray();
+    }
+
+    /**
      * Create a new array that is the mirrored version of the given array.
      * @param array to mirror
      * @return mirrored array

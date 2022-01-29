@@ -39,6 +39,8 @@ public enum ImageResource {
 
     FILTER("filter.png"),
     SCROLL_TO_END("scroll_to_end.png"),
+
+    POLY("poly.png"),
     ;
 
     private final String fileName;
