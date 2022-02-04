@@ -15,6 +15,7 @@ import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
+import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
@@ -421,6 +422,9 @@ public class RectifyFunction implements SingleFileFunction {
     }
 
     private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable callback, Blaze blaze) {
+        Log.info(String.valueOf(blaze.getCentralWavelength() * blaze.getOrder()));
+        System.out.println(blaze.getCentralWavelength() * blaze.getOrder());
+
         XYSeries currentSeries = context.series[index];
         rectify("#" + (index + 1),
                 currentSeries,

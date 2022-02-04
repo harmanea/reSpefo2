@@ -183,6 +183,8 @@ public class ComponentManager extends UtilityClass {
 
         eventLogTab.addTopBarToggleButton("Scroll to End", ImageResource.SCROLL_TO_END, fancyLogListener::setScrollToEnd);
 
+        eventLogTab.addTopBarButton("Copy", ImageResource.COPY, fancyLogListener::copy);
+
         eventLogTab.show();
         bottomToolBar.hide();
 

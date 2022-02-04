@@ -5,6 +5,9 @@ import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.util.utils.ExceptionUtils;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -24,6 +27,8 @@ public class FancyLogListener implements LogListener, LogActionListener {
 
     private boolean scrollToEnd = false;
 
+    private final Clipboard clipboard;
+
     public FancyLogListener(Composite parent) {
         textField = new StyledText(parent, READ_ONLY | H_SCROLL | V_SCROLL);
         actionsMap = new TreeMap<>();
@@ -35,6 +40,12 @@ public class FancyLogListener implements LogListener, LogActionListener {
 
         // Scroll to end
         textField.addModifyListener(event -> { if (scrollToEnd) scrollToEnd(); });
+
+        clipboard = new Clipboard(parent.getDisplay());
+    }
+
+    public void copy() {
+        clipboard.setContents(new Object[]{textField.getText()}, new Transfer[]{TextTransfer.getInstance()});
     }
 
     public void setLayoutData(Object layoutData) {
