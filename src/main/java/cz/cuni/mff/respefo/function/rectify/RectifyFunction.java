@@ -308,12 +308,14 @@ public class RectifyFunction implements SingleFileFunction {
         XYSeries residuals = new XYSeries(currentSeries.getXSeries(),
                 ArrayUtils.createArray(currentSeries.getLength(), i -> abs(currentSeries.getY(i) - ySeries[i])));
 
-        Text[] texts = new Text[2];  // TODO: redesign this
+        Text[] texts = new Text[3];  // TODO: redesign this
         Runnable updateTexts = () -> {
             texts[0].setText(String.valueOf(blaze.getCentralWavelength()));
             texts[1].setText(String.valueOf(blaze.getScale()));
+            texts[2].setText(String.valueOf(blaze.getCentralWavelength() * blaze.getOrder()));
         };
 
+        // TODO: draw recommendation from poly fit
         final Chart chart = newChart()
                 .title("#" + (index + 1))
                 .xAxisLabel("X axis")
@@ -379,7 +381,10 @@ public class RectifyFunction implements SingleFileFunction {
         Composite composite = compositeBuilder.build(tab.getWindow());
         labelBuilder.text("Central wavelength").build(composite);
         texts[0] = textBuilder.text(String.valueOf(blaze.getCentralWavelength())).build(composite);
-        buildButton(buttonBuilder, composite, texts[0], chart, blaze, blaze::setCentralWavelength);
+        buildButton(buttonBuilder, composite, texts[0], chart, blaze, value -> {
+            blaze.setCentralWavelength(value);
+            texts[2].setText(String.valueOf(value * blaze.getOrder()));
+        });
 
         separatorBuilder.build(tab.getWindow());
 
@@ -388,6 +393,13 @@ public class RectifyFunction implements SingleFileFunction {
         labelBuilder.text("Scale").build(composite);
         texts[1] = textBuilder.text(String.valueOf(blaze.getScale())).build(composite);
         buildButton(buttonBuilder, composite, texts[1], chart, blaze, blaze::setScale);
+
+        separatorBuilder.build(tab.getWindow());
+
+        // K
+        composite = compositeBuilder.build(tab.getWindow());
+        labelBuilder.text("K").build(composite);
+        texts[2] = textBuilder.editable(false).text(String.valueOf(K)).build(composite);
 
         tab.show();
     }
