@@ -3,12 +3,14 @@ package cz.cuni.mff.respefo.function.rectify;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 import org.orangepalantir.leastsquares.Fitter;
 import org.orangepalantir.leastsquares.Function;
 import org.orangepalantir.leastsquares.fitters.MarquardtFitter;
 
-import static cz.cuni.mff.respefo.util.utils.MathUtils.linearInterpolation;
+import java.util.Arrays;
+
 import static java.lang.Math.*;
 import static java.util.Arrays.stream;
 
@@ -20,6 +22,7 @@ public class Blaze {
     private final int order;
     private double centralWavelength;
     private double scale;
+    private double alphaDiff = 0;
 
     public Blaze(int order, double centralWavelength, double scale) {
         this.order = order;
@@ -61,6 +64,14 @@ public class Blaze {
         centralWavelength = value;
     }
 
+    public void updateAlphaDiff(double diff) {
+        alphaDiff += diff;
+    }
+
+    public double getCentralAlpha() {
+        return MathUtils.polynomial(centralWavelength + alphaDiff, ALPHA_COEFFICIENTS);
+    }
+
     public void fit(XYSeries series) {
         Function fun = new Function() {
             @Override
@@ -97,26 +108,17 @@ public class Blaze {
     }
 
     public RectifyAsset toRectifyAsset(XYSeries series) {
-        DoubleArrayList xCoordinates = new DoubleArrayList(20);
-        DoubleArrayList yCoordinates = new DoubleArrayList(20);
+        double[] xs = ArrayUtils.linspace(series.getX(0), series.getLastX(), 20);
+        double[] ys = Arrays.stream(xs)
+                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x + alphaDiff, ALPHA_COEFFICIENTS)))
+                .toArray();
 
-        double low = series.getX(0);
-        double high = series.getLastX();
-
-        for (int i = 0; i < 20; i++) {
-            double x = linearInterpolation(0, low, 19, high, i);
-            double y = scale * r(x, order, centralWavelength, MathUtils.polynomial(x, ALPHA_COEFFICIENTS));
-
-            xCoordinates.add(x);
-            yCoordinates.add(y);
-        }
-
-        return new RectifyAsset(xCoordinates, yCoordinates);
+        return new RectifyAsset(new DoubleArrayList(xs), new DoubleArrayList(ys));
     }
 
     public double[] ySeries(double[] xSeries) {
         return stream(xSeries)
-                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x, ALPHA_COEFFICIENTS)))
+                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x + alphaDiff, ALPHA_COEFFICIENTS)))
                 .toArray();
     }
 

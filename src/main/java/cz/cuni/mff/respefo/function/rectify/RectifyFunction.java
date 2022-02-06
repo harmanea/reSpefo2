@@ -305,7 +305,7 @@ public class RectifyFunction implements SingleFileFunction {
         XYSeries residuals = new XYSeries(currentSeries.getXSeries(),
                 ArrayUtils.createArray(currentSeries.getLength(), i -> abs(currentSeries.getY(i) - ySeries[i])));
 
-        Text[] texts = new Text[3];  // TODO: redesign this
+        Text[] texts = new Text[4];  // TODO: redesign this
         Runnable updateTexts = () -> {
             texts[0].setText(String.valueOf(blaze.getCentralWavelength()));
             texts[1].setText(String.valueOf(blaze.getScale()));
@@ -342,6 +342,20 @@ public class RectifyFunction implements SingleFileFunction {
                     updateChart(ch, blaze);
                 }, blaze))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
+                .mouseWheelListener(ch -> event -> {
+                    if ((event.stateMask & SWT.CTRL) != SWT.CTRL) {
+                        if (event.count > 0) {
+                            blaze.updateAlphaDiff(5);
+                            texts[3].setText(String.valueOf(blaze.getCentralAlpha()));
+                            updateChart(ch, blaze);
+
+                        } else if (event.count < 0) {
+                            blaze.updateAlphaDiff(-5);
+                            texts[3].setText(String.valueOf(blaze.getCentralAlpha()));
+                            updateChart(ch, blaze);
+                        }
+                    }
+                })
                 .plotAreaPaintListener(ch -> event -> {
                     boolean horizontal = (boolean) ch.getData("horizontal");
 
@@ -382,6 +396,8 @@ public class RectifyFunction implements SingleFileFunction {
             blaze.setCentralWavelength(value);
             texts[2].setText(String.valueOf(value * blaze.getOrder()));
         });
+        labelBuilder.text("K").build(composite);
+        texts[2] = textBuilder.editable(false).text(String.valueOf(K)).build(composite);
 
         separatorBuilder.build(tab.getWindow());
 
@@ -393,10 +409,10 @@ public class RectifyFunction implements SingleFileFunction {
 
         separatorBuilder.build(tab.getWindow());
 
-        // K
+        // alpha
         composite = compositeBuilder.build(tab.getWindow());
-        labelBuilder.text("K").build(composite);
-        texts[2] = textBuilder.editable(false).text(String.valueOf(K)).build(composite);
+        labelBuilder.text("Alpha").build(composite);
+        texts[3] = textBuilder.text(String.valueOf(blaze.getCentralAlpha())).build(composite);
 
         tab.show();
     }
@@ -418,8 +434,9 @@ public class RectifyFunction implements SingleFileFunction {
     }
 
     private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable callback, Blaze blaze) {
-        Log.info(String.valueOf(blaze.getCentralWavelength() * blaze.getOrder()));
-        System.out.println(blaze.getCentralWavelength() * blaze.getOrder());
+        Log.info(blaze.getOrder()
+                + " " + (blaze.getCentralWavelength() * blaze.getOrder())
+                + " " + blaze.getCentralAlpha());
 
         XYSeries currentSeries = context.series[index];
         rectify("#" + (index + 1),
