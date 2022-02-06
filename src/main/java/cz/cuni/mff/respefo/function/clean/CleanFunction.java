@@ -17,8 +17,7 @@ import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 
@@ -72,49 +71,46 @@ public class CleanFunction implements SingleFileFunction {
                         .symbolSize(3)
                         .series(asset.mapActiveIndexToValues(data)))
                 .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
-                .keyListener(ch -> new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        switch (e.keyCode) {
-                            case SWT.DEL:
-                                asset.addActiveIndex();
-                                updateSeries(ch, data, asset);
-                                updateActivePoint(ch, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
-                                break;
-                            case SWT.INSERT:
-                                asset.removeActiveIndex();
-                                updateSeries(ch, data, asset);
-                                updateActivePoint(ch, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
-                                break;
-                            case 'n':
-                                if (asset.getActiveIndex() > 0) {
-                                    updateActivePoint(ch, asset, asset.getActiveIndex() - 1);
-                                }
-                                break;
-                            case 'm':
-                                if (asset.getActiveIndex() < data.getLength() - 1) {
-                                    updateActivePoint(ch, asset, asset.getActiveIndex() + 1);
-                                }
-                                break;
-                            case SWT.CR:
-                                if (asset.isEmpty()) {
-                                    spectrum.removeFunctionAsset(SERIALIZE_KEY);
-                                } else {
-                                    spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
-                                }
+                .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
+                    switch (e.keyCode) {
+                        case SWT.DEL:
+                            asset.addActiveIndex();
+                            updateSeries(ch, data, asset);
+                            updateActivePoint(ch, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
+                            break;
+                        case SWT.INSERT:
+                            asset.removeActiveIndex();
+                            updateSeries(ch, data, asset);
+                            updateActivePoint(ch, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
+                            break;
+                        case 'n':
+                            if (asset.getActiveIndex() > 0) {
+                                updateActivePoint(ch, asset, asset.getActiveIndex() - 1);
+                            }
+                            break;
+                        case 'm':
+                            if (asset.getActiveIndex() < data.getLength() - 1) {
+                                updateActivePoint(ch, asset, asset.getActiveIndex() + 1);
+                            }
+                            break;
+                        case SWT.CR:
+                            if (asset.isEmpty()) {
+                                spectrum.removeFunctionAsset(SERIALIZE_KEY);
+                            } else {
+                                spectrum.putFunctionAsset(SERIALIZE_KEY, asset);
+                            }
 
-                                try {
-                                    spectrum.save();
-                                    OpenFunction.displaySpectrum(spectrum);
-                                    Message.info("Cleaned spectrum saved successfully.");
+                            try {
+                                spectrum.save();
+                                OpenFunction.displaySpectrum(spectrum);
+                                Message.info("Cleaned spectrum saved successfully.");
 
-                                } catch (Exception exception) {
-                                    Message.error("Spectrum file couldn't be saved.", exception);
-                                }
-                                break;
-                        }
+                            } catch (Exception exception) {
+                                Message.error("Spectrum file couldn't be saved.", exception);
+                            }
+                            break;
                     }
-                })
+                }))
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseMoveListener(ch -> new NearestPointMouseMoveListener(ch, POINTS_SERIES_NAME, index -> {
                     if (asset.getActiveIndex() != index) {

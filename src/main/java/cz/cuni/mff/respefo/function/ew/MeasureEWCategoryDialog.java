@@ -2,8 +2,7 @@ package cz.cuni.mff.respefo.function.ew;
 
 import cz.cuni.mff.respefo.dialog.SpefoDialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -41,18 +40,15 @@ public class MeasureEWCategoryDialog extends SpefoDialog {
             getButton(SWT.OK).setEnabled(!combo.getText().equals(""));
             category = combo.getText();
         });
-        combo.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                String ch = String.valueOf(e.character).toLowerCase();
-                for (MeasureEWResultPointCategory pointCategory : MeasureEWResultPointCategory.values()) {
-                    if (pointCategory.name().toLowerCase().startsWith(ch)) {
-                        combo.setText(pointCategory.name());
-                        break;
-                    }
+        combo.addKeyListener(KeyListener.keyPressedAdapter(e -> {
+            String ch = String.valueOf(e.character).toLowerCase();
+            for (MeasureEWResultPointCategory pointCategory : MeasureEWResultPointCategory.values()) {
+                if (pointCategory.name().toLowerCase().startsWith(ch)) {
+                    combo.setText(pointCategory.name());
+                    break;
                 }
             }
-        });
+        }));
     }
 
     @Override

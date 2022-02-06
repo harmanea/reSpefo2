@@ -10,8 +10,7 @@ import cz.cuni.mff.respefo.util.utils.MathUtils;
 import cz.cuni.mff.respefo.util.widget.ButtonBuilder;
 import cz.cuni.mff.respefo.util.widget.CompositeBuilder;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -85,58 +84,55 @@ public class DispersionController {
                         .color(GREEN)
                         .series(seriesB))
                 .keyListener(ch -> ChartKeyListener.customAction(ch, this::stackAbove))
-                .keyListener(ch -> new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        switch (e.keyCode) {
-                            case SWT.INSERT:
-                                if (Double.isNaN(newPoint)) {
-                                    Range range = ch.getAxisSet().getXAxis(0).getRange();
-                                    newPoint = (range.lower + range.upper) / 2;
-                                    ch.redraw();
-                                }
-                                break;
-                            case SWT.ESC:
-                                if (!Double.isNaN(newPoint)) {
-                                    newPoint = Double.NaN;
-                                    ch.redraw();
-                                }
-                                break;
-                            case SWT.CR:
-                                if (Double.isNaN(newPoint)) {
-                                    if (measurements.numberOfMeasured() < 2) {
-                                        Message.warning("You must first manually select at least two lines.");
-                                    } else {
-                                        secondStage(measurements.unmeasuredIndicesIterator());
-                                    }
-
+                .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
+                    switch (e.keyCode) {
+                        case SWT.INSERT:
+                            if (Double.isNaN(newPoint)) {
+                                Range range = ch.getAxisSet().getXAxis(0).getRange();
+                                newPoint = (range.lower + range.upper) / 2;
+                                ch.redraw();
+                            }
+                            break;
+                        case SWT.ESC:
+                            if (!Double.isNaN(newPoint)) {
+                                newPoint = Double.NaN;
+                                ch.redraw();
+                            }
+                            break;
+                        case SWT.CR:
+                            if (Double.isNaN(newPoint)) {
+                                if (measurements.numberOfMeasured() < 2) {
+                                    Message.warning("You must first manually select at least two lines.");
                                 } else {
-                                    NumberDialog dialog = new NumberDialog(measurements.size(), "Select line number", "Line number:");
-                                    if (dialog.openIsOk()) {
-                                        ComparisonLineMeasurement measurement = measurements.getMeasurement(dialog.getNumber() - 1);
+                                    secondStage(measurements.unmeasuredIndicesIterator());
+                                }
 
-                                        measurementController.measure(measurement, newPoint, () -> {
-                                            newPoint = Double.NaN;
-                                            firstStage();
-                                        });
-                                    }
+                            } else {
+                                NumberDialog dialog = new NumberDialog(measurements.size(), "Select line number", "Line number:");
+                                if (dialog.openIsOk()) {
+                                    ComparisonLineMeasurement measurement = measurements.getMeasurement(dialog.getNumber() - 1);
+
+                                    measurementController.measure(measurement, newPoint, () -> {
+                                        newPoint = Double.NaN;
+                                        firstStage();
+                                    });
                                 }
-                                break;
-                            case 'j':
-                                if (isNotNaN(newPoint)) {
-                                    newPoint -= getRelativeHorizontalStep(ch);
-                                    ch.redraw();
-                                }
-                                break;
-                            case 'l':
-                                if (isNotNaN(newPoint)) {
-                                    newPoint += getRelativeHorizontalStep(ch);
-                                    ch.redraw();
-                                }
-                                break;
-                        }
+                            }
+                            break;
+                        case 'j':
+                            if (isNotNaN(newPoint)) {
+                                newPoint -= getRelativeHorizontalStep(ch);
+                                ch.redraw();
+                            }
+                            break;
+                        case 'l':
+                            if (isNotNaN(newPoint)) {
+                                newPoint += getRelativeHorizontalStep(ch);
+                                ch.redraw();
+                            }
+                            break;
                     }
-                })
+                }))
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, shift -> {
                     if (isNotNaN(newPoint)) {
                         newPoint += shift;

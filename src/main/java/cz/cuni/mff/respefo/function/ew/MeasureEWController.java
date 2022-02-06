@@ -12,8 +12,7 @@ import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Table;
 import org.swtchart.Chart;
@@ -117,65 +116,63 @@ public class MeasureEWController {
                         .series(series)
                         .color(GREEN))
                 .keyListener(ch -> ChartKeyListener.customAction(ch, ch2 -> adjustView(ch, result)))
-                .keyListener(ch -> new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        switch (e.keyCode) {
-                            case SWT.END:
-                            case SWT.ESC:
-                                results.add(result);
-                                if (index + 1 < measurements.size()) {
-                                    index += 1;
-                                    ComponentManager.getDisplay().asyncExec(MeasureEWController.this::measureSingle);
-                                } else {
-                                    finish();
-                                }
-                                break;
+                .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
+                    switch (e.keyCode) {
+                        case SWT.END:
+                        case SWT.ESC:
+                            results.add(result);
+                            if (index + 1 < measurements.size()) {
+                                index += 1;
+                                ComponentManager.getDisplay().asyncExec(MeasureEWController.this::measureSingle);
+                            } else {
+                                finish();
+                            }
+                            break;
 
-                            case SWT.CR:
-                            case SWT.INSERT:
-                                MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
-                                if (dialog.openIsOk()) {
-                                    Range xRange = ch.getAxisSet().getXAxis(0).getRange();
-                                    int newIndex = ArrayUtils.indexOfClosest(series.getXSeries(), (xRange.upper + xRange.lower) / 2);
+                        case SWT.CR:
+                        case SWT.INSERT:
+                            MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
+                            if (dialog.openIsOk()) {
+                                Range xRange = ch.getAxisSet().getXAxis(0).getRange();
+                                int newIndex = ArrayUtils.indexOfClosest(series.getXSeries(), (xRange.upper + xRange.lower) / 2);
 
-                                    result.add(newIndex, dialog.getCategory());
+                                result.add(newIndex, dialog.getCategory());
 
-                                    activeLine = result.pointsCount() - 1;
-                                    ch.redraw();
-                                }
-                                break;
-
-                            case SWT.DEL:
-                                if (activeLine >= 0) {
-                                    result.remove(activeLine--);
-                                    ch.redraw();
-                                }
-                                break;
-
-                            case 'j':
-                                if (activeLine < 0) {
-                                    int newIndex = Math.max(result.getBound(activeLine + 2) - 1, 0);
-                                    result.setBound(activeLine + 2, newIndex);
-                                } else {
-                                    int newIndex = Math.max(result.getPoint(activeLine) - 1, 0);
-                                    result.setPoint(activeLine, newIndex);
-                                }
+                                activeLine = result.pointsCount() - 1;
                                 ch.redraw();
-                                break;
+                            }
+                            break;
 
-                            case 'l':
-                                if (activeLine < 0) {
-                                    int newIndex = Math.min(result.getBound(activeLine + 2) + 1, series.getLength() - 1);
-                                    result.setBound(activeLine + 2, newIndex);
-                                } else {
-                                    int newIndex = Math.min(result.getPoint(activeLine) + 1, series.getLength() - 1);
-                                    result.setPoint(activeLine, newIndex);
-                                }
+                        case SWT.DEL:
+                            if (activeLine >= 0) {
+                                result.remove(activeLine--);
                                 ch.redraw();
-                                break;
-                        }
-                    }})
+                            }
+                            break;
+
+                        case 'j':
+                            if (activeLine < 0) {
+                                int newIndex = Math.max(result.getBound(activeLine + 2) - 1, 0);
+                                result.setBound(activeLine + 2, newIndex);
+                            } else {
+                                int newIndex = Math.max(result.getPoint(activeLine) - 1, 0);
+                                result.setPoint(activeLine, newIndex);
+                            }
+                            ch.redraw();
+                            break;
+
+                        case 'l':
+                            if (activeLine < 0) {
+                                int newIndex = Math.min(result.getBound(activeLine + 2) + 1, series.getLength() - 1);
+                                result.setBound(activeLine + 2, newIndex);
+                            } else {
+                                int newIndex = Math.min(result.getPoint(activeLine) + 1, series.getLength() - 1);
+                                result.setPoint(activeLine, newIndex);
+                            }
+                            ch.redraw();
+                            break;
+                    }
+                }))
                 .mouseAndMouseMoveListener(ch -> new MeasureEWMouseListener(ch, series, sh -> {
                     shift += sh;
                     ch.redraw();

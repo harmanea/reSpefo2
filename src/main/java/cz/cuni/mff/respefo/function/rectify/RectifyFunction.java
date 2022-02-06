@@ -31,8 +31,7 @@ import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 import cz.cuni.mff.respefo.util.widget.*;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -188,14 +187,11 @@ public class RectifyFunction implements SingleFileFunction {
             chart.redraw();
         };
 
-        chart.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
-                    callback.run();
-                }
+        chart.addKeyListener(KeyListener.keyPressedAdapter(e -> {
+            if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
+                callback.run();
             }
-        });
+        }));
 
         final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "Orders", "Echelle Orders", ImageResource.RULER_LARGE);

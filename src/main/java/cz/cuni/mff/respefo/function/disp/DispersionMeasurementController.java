@@ -5,8 +5,7 @@ import cz.cuni.mff.respefo.function.common.HorizontalDragMouseListener;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 
@@ -63,35 +62,32 @@ public class DispersionMeasurementController {
                 .keyListener(ch -> new DispersionKeyListener(ch, MIRRORED_SERIES_NAME, hint,
                         () -> applyShift(ch, -getRelativeHorizontalStep(ch)),
                         () -> applyShift(ch, getRelativeHorizontalStep(ch))))
-                .keyListener(ch -> new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        switch (e.keyCode) {
-                            case SWT.CR:
-                            case SWT.INSERT:
-                                callback.accept(value);
-                                break;
+                .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
+                    switch (e.keyCode) {
+                        case SWT.CR:
+                        case SWT.INSERT:
+                            callback.accept(value);
+                            break;
 
-                            case SWT.END:
-                            case SWT.ESC:
-                                callback.accept(Double.NaN);
-                                break;
+                        case SWT.END:
+                        case SWT.ESC:
+                            callback.accept(Double.NaN);
+                            break;
 
-                            case SWT.TAB:
-                                if (e.stateMask == SWT.CTRL) {
-                                    radius = Math.max(1, radius / 2);
-                                } else {
-                                    radius *= 2;
-                                }
+                        case SWT.TAB:
+                            if (e.stateMask == SWT.CTRL) {
+                                radius = Math.max(1, radius / 2);
+                            } else {
+                                radius *= 2;
+                            }
 
-                                XYSeries newSeries = computeSeries(series);
-                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(newSeries.getXSeries());
-                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
-                                ch.redraw();
-                                break;
-                        }
+                            XYSeries newSeries = computeSeries(series);
+                            ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(newSeries.getXSeries());
+                            ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
+                            ch.redraw();
+                            break;
                     }
-                })
+                }))
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, shift -> applyShift(ch, shift)))
                 .centerAroundSeries(MIRRORED_SERIES_NAME)
                 .zoomOut()

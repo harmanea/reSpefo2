@@ -18,8 +18,7 @@ import cz.cuni.mff.respefo.util.widget.CompositeBuilder;
 import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
 import cz.cuni.mff.respefo.util.widget.LabelBuilder;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 import org.swtchart.Chart;
@@ -249,52 +248,49 @@ public class MeasureRVController {
                         () -> updateRelativeStep(ch),
                         () -> applyShift(ch, -rvStep),
                         () -> applyShift(ch, rvStep)))
-                .keyListener(ch -> new KeyAdapter() {
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        switch (e.keyCode) {
-                            case SWT.CR:
-                            case SWT.INSERT:
-                                MeasurementInputDialog dialog = new MeasurementInputDialog(measurement.isCorrection());
-                                if (dialog.openIsOk()) {
-                                    MeasureRVResult result = new MeasureRVResult(
-                                            deltaRV * shift / 2,
-                                            shift,
-                                            measurement.getRadius(),
-                                            dialog.getCategory(),
-                                            measurement.getL0(),
-                                            measurement.getName(),
-                                            dialog.getComment()
-                                    );
-                                    results.add(result);
-                                }
-                                break;
+                .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
+                    switch (e.keyCode) {
+                        case SWT.CR:
+                        case SWT.INSERT:
+                            MeasurementInputDialog dialog = new MeasurementInputDialog(measurement.isCorrection());
+                            if (dialog.openIsOk()) {
+                                MeasureRVResult result = new MeasureRVResult(
+                                        deltaRV * shift / 2,
+                                        shift,
+                                        measurement.getRadius(),
+                                        dialog.getCategory(),
+                                        measurement.getL0(),
+                                        measurement.getName(),
+                                        dialog.getComment()
+                                );
+                                results.add(result);
+                            }
+                            break;
 
-                            case SWT.END:
-                            case SWT.ESC:
-                                if (index + 1 < measurements.size()) {
-                                    index += 1;
-                                    ComponentManager.getDisplay().asyncExec(MeasureRVController.this::measureSingle);
-                                } else {
-                                    finish();
-                                }
-                                break;
+                        case SWT.END:
+                        case SWT.ESC:
+                            if (index + 1 < measurements.size()) {
+                                index += 1;
+                                ComponentManager.getDisplay().asyncExec(MeasureRVController.this::measureSingle);
+                            } else {
+                                finish();
+                            }
+                            break;
 
-                            case SWT.TAB:
-                                if (e.stateMask == SWT.CTRL) {
-                                    measurement.decreaseRadius();
-                                } else {
-                                    measurement.increaseRadius();
-                                }
+                        case SWT.TAB:
+                            if (e.stateMask == SWT.CTRL) {
+                                measurement.decreaseRadius();
+                            } else {
+                                measurement.increaseRadius();
+                            }
 
-                                XYSeries newSeries = computeSeries(measurement);
-                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(ArrayUtils.addValueToArrayElements(newSeries.getXSeries(), shift));
-                                ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
-                                ch.redraw();
-                                break;
-                        }
+                            XYSeries newSeries = computeSeries(measurement);
+                            ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setXSeries(ArrayUtils.addValueToArrayElements(newSeries.getXSeries(), shift));
+                            ch.getSeriesSet().getSeries(MIRRORED_SERIES_NAME).setYSeries(newSeries.getYSeries());
+                            ch.redraw();
+                            break;
                     }
-                })
+                }))
                 .mouseAndMouseMoveListener(ch -> new HorizontalDragMouseListener(ch, value -> applyShift(ch, value)))
                 .centerAroundSeries(MIRRORED_SERIES_NAME)
                 .zoomOut()

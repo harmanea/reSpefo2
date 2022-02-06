@@ -16,8 +16,7 @@ import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.GC;
@@ -235,33 +234,30 @@ public class FileExplorer {
     }
 
     private void addKeyListener() {
-        tree.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                switch (e.keyCode) {
-                    case 'c':
-                        if (e.stateMask == SWT.CTRL && tree.getSelectionCount() > 0) {
-                            copy();
-                        }
-                        break;
-                    case 'v':
-                        if (e.stateMask == SWT.CTRL && tree.getSelectionCount() == 1) {
-                            paste();
-                        }
-                        break;
-                    case F2:
-                        if (tree.getSelectionCount() == 1) {
-                            rename();
-                        }
-                        break;
-                    case DEL:
-                        if (tree.getSelectionCount() > 0) {
-                            delete();
-                        }
-                        break;
-                }
+        tree.addKeyListener(KeyListener.keyPressedAdapter(e -> {
+            switch (e.keyCode) {
+                case 'c':
+                    if (e.stateMask == SWT.CTRL && tree.getSelectionCount() > 0) {
+                        copy();
+                    }
+                    break;
+                case 'v':
+                    if (e.stateMask == SWT.CTRL && tree.getSelectionCount() == 1) {
+                        paste();
+                    }
+                    break;
+                case F2:
+                    if (tree.getSelectionCount() == 1) {
+                        rename();
+                    }
+                    break;
+                case DEL:
+                    if (tree.getSelectionCount() > 0) {
+                        delete();
+                    }
+                    break;
             }
-        });
+        }));
     }
 
     private void addExpandListener() {
