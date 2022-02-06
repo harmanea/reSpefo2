@@ -117,8 +117,8 @@ public class RectifyFunction implements SingleFileFunction {
 
         Async.sequence(context,
                 RectifyFunction::fitScalePoly,
-                RectifyFunction::selectOrders,
-                RectifyFunction::rectifyAllEchelleOrders,
+                RectifyFunction::selectOrdersLoop,
+                RectifyFunction::rectifyRemainingEchelleOrders,
                 RectifyFunction::finishEchelleSpectrum);
     }
 
@@ -187,16 +187,23 @@ public class RectifyFunction implements SingleFileFunction {
             chart.redraw();
         };
 
+        Runnable fullCallback = () -> {
+            context.pointXCoordinates = pointXCoordinates;
+            context.pointYCoordinates = pointYCoordinates;
+            context.polyDegree = (int) chart.getData("poly");
+            callback.run();
+        };
+
         chart.addKeyListener(KeyListener.keyPressedAdapter(e -> {
             if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
-                callback.run();
+                fullCallback.run();
             }
         }));
 
         final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "Orders", "Echelle Orders", ImageResource.RULER_LARGE);
 
-        tab.addTopBarButton("Confirm", ImageResource.CHECK, callback);
+        tab.addTopBarButton("Confirm", ImageResource.CHECK, fullCallback);
 
         final Menu menu = new Menu(ComponentManager.getShell(), POP_UP);
         for (int order = 3; order < 14; order++) {
@@ -266,37 +273,54 @@ public class RectifyFunction implements SingleFileFunction {
         tab.show();
     }
 
-    private static void selectOrders(EchelleRectificationContext context, Runnable callback) {
+    private static void selectOrdersLoop(EchelleRectificationContext context, Runnable callback) {
+        Async.whileLoop(context, RectifyFunction::selectOrdersAndInteractivelyRectifyThem, c -> callback.run());
+    }
+
+    private static void selectOrdersAndInteractivelyRectifyThem(EchelleRectificationContext context, Consumer<Boolean> callback) {
         ComponentManager.clearScene(true);
-        EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames);
+        EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices);
         if (dialog.openIsOk()) {
             context.selectedIndices = dialog.getSelectedIndices();
-            callback.run();
+            if (context.selectedIndices.hasNext()) {
+                Async.whileLoop(context, RectifyFunction::rectifySingleEchelleOrder,
+                        c -> {
+                            c.recalculatePolyCoeffs();
+                            callback.accept(true);
+                        });
+            } else {
+                callback.accept(false);
+            }
         }
     }
 
-    private static void rectifyAllEchelleOrders(EchelleRectificationContext context, Runnable callback) {
-        Async.loop(context.series.length, context,
-                RectifyFunction::rectifySingleEchelleOrder,
-                c -> callback.run());
-    }
-
-    private static void rectifySingleEchelleOrder(int index, EchelleRectificationContext context, Runnable callback) {
-        if (context.selectedIndices.contains(index)) {
-            // Interactive
-            fineTuneBlazeParameters(index, context, callback);
+    private static void rectifySingleEchelleOrder(EchelleRectificationContext context, Consumer<Boolean> callback) {
+        if (context.selectedIndices.hasNext()) {
+            int index = context.selectedIndices.next();
+            context.rectifiedIndices.add(index);
+            fineTuneBlazeParameters(index, context, () -> callback.accept(true));
         } else {
-            // Automatic
-            Blaze blaze = new Blaze(index, context.coeffs);
-            context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
-            context.blazeAsset.removeIfPresent(blaze.getOrder());
-            callback.run();
+            callback.accept(false);
         }
+    }
+
+    private static void rectifyRemainingEchelleOrders(EchelleRectificationContext context, Runnable callback) {
+        for (int index = 0; index < context.series.length; index++) {
+            if (!context.rectifiedIndices.contains(index)) {
+                Blaze blaze = new Blaze(index, context.coeffs);
+                context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
+                context.blazeAsset.removeIfPresent(blaze.getOrder());
+            }
+        }
+
+        callback.run();
     }
 
     private static void fineTuneBlazeParameters(int index, EchelleRectificationContext context, Runnable callback) {
         XYSeries currentSeries = context.series[index];
         Blaze blaze = new Blaze(index, context.coeffs);
+
+        final double originalScale = blaze.getScale();
 
         double[] xSeries = currentSeries.getXSeries();
         double[] ySeries = blaze.ySeries(xSeries);
@@ -312,7 +336,6 @@ public class RectifyFunction implements SingleFileFunction {
             texts[2].setText(String.valueOf(blaze.getCentralWavelength() * blaze.getOrder()));
         };
 
-        // TODO: draw recommendation from poly fit
         final Chart chart = newChart()
                 .title("#" + (index + 1))
                 .xAxisLabel("X axis")
@@ -357,6 +380,12 @@ public class RectifyFunction implements SingleFileFunction {
                     }
                 })
                 .plotAreaPaintListener(ch -> event -> {
+                    int y = ch.getAxisSet().getYAxis(0).getPixelCoordinate(originalScale);
+                    event.gc.setForeground(getColor(DARK_GRAY));
+                    event.gc.setLineStyle(SWT.LINE_DOT);
+                    event.gc.drawLine(0, y, event.width, y);
+                    event.gc.setLineStyle(SWT.LINE_SOLID);
+
                     boolean horizontal = (boolean) ch.getData("horizontal");
 
                     Point coordinates = ChartUtils.getCoordinatesFromRealValues(ch, blaze.getCentralWavelength(), blaze.getScale());
@@ -437,6 +466,12 @@ public class RectifyFunction implements SingleFileFunction {
         Log.info(blaze.getOrder()
                 + " " + (blaze.getCentralWavelength() * blaze.getOrder())
                 + " " + blaze.getCentralAlpha());
+
+        int pointIndex = context.pointXCoordinates.indexOf(K / blaze.getOrder());
+        if (pointIndex >= 0) {
+            context.pointXCoordinates.set(pointIndex, blaze.getCentralWavelength());
+            context.pointYCoordinates.set(pointIndex, blaze.getScale());
+        }
 
         XYSeries currentSeries = context.series[index];
         rectify("#" + (index + 1),
@@ -602,8 +637,12 @@ public class RectifyFunction implements SingleFileFunction {
         final BlazeAsset blazeAsset;
         final RectifyAsset[] rectifyAssets;
 
+        DoubleArrayList pointXCoordinates;
+        DoubleArrayList pointYCoordinates;
+        int polyDegree;
         double[] coeffs;
-        Set<Integer> selectedIndices;
+        Set<Integer> rectifiedIndices;
+        Iterator<Integer> selectedIndices;
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
             this.spectrum = spectrum;
@@ -619,6 +658,15 @@ public class RectifyFunction implements SingleFileFunction {
                     .orElseGet(BlazeAsset::new);
 
             rectifyAssets = new RectifyAsset[series.length];
+
+            rectifiedIndices = new HashSet<>(series.length);
+        }
+
+        public void recalculatePolyCoeffs() {
+            double[] xSeries = pointXCoordinates.toArray();
+            double[] ySeries = pointYCoordinates.toArray();
+
+            coeffs = MathUtils.fitPolynomial(xSeries, ySeries, polyDegree);
         }
 
         private static void cleanSeries(XYSeries[] series, CleanAsset asset) {

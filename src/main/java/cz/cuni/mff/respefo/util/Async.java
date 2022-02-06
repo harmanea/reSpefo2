@@ -39,6 +39,23 @@ public class Async extends UtilityClass {
         void accept(C context, Runnable callback);
     }
 
+    public static <C> void whileLoop(C context, WhileLoopAction<C> action, Consumer<C> finish) {
+        whileLoopInternal(true, context, action, finish);
+    }
+
+    private static <C> void whileLoopInternal(boolean shouldContinue, C context, WhileLoopAction<C> action, Consumer<C> finish) {
+        if (shouldContinue) {
+            asyncExec(() -> action.accept(context, shouldStillContinue -> whileLoopInternal(shouldStillContinue, context, action, finish)));
+        } else {
+            asyncExec(() -> finish.accept(context));
+        }
+    }
+
+    @FunctionalInterface
+    public interface WhileLoopAction<C> {
+        void accept(C context, Consumer<Boolean> callback);
+    }
+
     private static void asyncExec(Runnable runnable) {
         Display.getCurrent().asyncExec(runnable);
     }

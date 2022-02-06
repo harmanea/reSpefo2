@@ -10,6 +10,7 @@ public enum ColorResource {
     GREEN(0, 255, 0),
     LIGHT_GRAY(192, 192, 192),
     GRAY(128, 128, 128),
+    DARK_GRAY(64, 64, 64),
     ORANGE(255, 128, 0),
     PINK(255, 0, 255),
     PURPLE(128, 0, 255),
