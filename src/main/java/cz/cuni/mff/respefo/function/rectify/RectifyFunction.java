@@ -227,18 +227,7 @@ public class RectifyFunction implements SingleFileFunction {
 
     private static double getScale(XYSeries series, double centralWavelength) {
         int index = ArrayUtils.indexOfFirstGreaterThan(series.getXSeries(), centralWavelength);
-
-        double[] distances = IntStream.range(index - 2, index + 2)
-                .mapToDouble(i -> Math.abs(series.getX(i) - centralWavelength))
-                .toArray();
-
-        double weightedSum = IntStream.range(0, 4)
-                .mapToDouble(i -> series.getY(index - 2 + i) * distances[i])
-                .sum();
-
-        double sumOfDistances = Arrays.stream(distances).sum();
-
-        return weightedSum / sumOfDistances;
+        return MathUtils.robustMean(Arrays.copyOfRange(series.getYSeries(), max(0, index - 5), min(series.getLength(), index + 5)));
     }
 
     private static void selectOrdersLoop(EchelleRectificationContext context, Runnable callback) {
