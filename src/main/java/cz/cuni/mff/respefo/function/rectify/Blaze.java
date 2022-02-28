@@ -9,31 +9,32 @@ import org.orangepalantir.leastsquares.Fitter;
 import org.orangepalantir.leastsquares.Function;
 import org.orangepalantir.leastsquares.fitters.MarquardtFitter;
 
-import java.util.Arrays;
-
 import static java.lang.Math.*;
 import static java.util.Arrays.stream;
 
 public class Blaze {
-    public static final double K = 565754; // More like 565660.213... by my calculations
-    private static final double[] ALPHA_COEFFICIENTS = new double[]
-            {-1.52982125e+01, 1.27961723e-02, -3.97132440e-06, 6.06949396e-10, -4.56757646e-14, 1.35599569e-18};
+    private static final double[] K_COEFFICIENTS = new double[] {5.56243514e+05,  2.72704907e+02, -2.57380895e+00,  8.24940353e-03};
 
     private final int order;
     private double centralWavelength;
     private double scale;
-    private double alphaDiff = 0;
-
-    public Blaze(int order, double centralWavelength, double scale) {
-        this.order = order;
-        this.centralWavelength = centralWavelength;
-        this.scale = scale;
-    }
 
     public Blaze(int index, double[] coeffs) {
         order = 125 - index;
-        centralWavelength = K / order;
+        centralWavelength = getCentralWavelength(order);
         scale = MathUtils.polynomial(centralWavelength, coeffs);
+    }
+
+    public static double getAlpha(double wavelength) {
+        if (wavelength > 5.82178076e+03) {
+            return 9.61192285e-01 + (wavelength - 5.82178076e+03) * 2.56317390e-05;
+        } else {
+            return 9.61192285e-01 - (wavelength - 5.82178076e+03) * -2.38535971e-06;
+        }
+    }
+
+    public static double getCentralWavelength(int order) {
+        return MathUtils.polynomial(order, K_COEFFICIENTS) / order;
     }
 
     public int getOrder() {
@@ -56,27 +57,20 @@ public class Blaze {
         return centralWavelength;
     }
 
+    public void setCentralWavelength(double centralWavelength) {
+        this.centralWavelength = centralWavelength;
+    }
+
     public void updateCentralWavelength(double diff) {
         centralWavelength += diff;
     }
 
-    public void setCentralWavelength(double value) {
-        centralWavelength = value;
-    }
-
-    public void updateAlphaDiff(double diff) {
-        alphaDiff += diff;
-    }
-
-    public double getCentralAlpha() {
-        return MathUtils.polynomial(centralWavelength + alphaDiff, ALPHA_COEFFICIENTS);
-    }
-
+    @Deprecated
     public void fit(XYSeries series) {
         Function fun = new Function() {
             @Override
             public double evaluate(double[] values, double[] parameters) {
-                return parameters[1] * r(values[0], order, parameters[0], MathUtils.polynomial(values[0], ALPHA_COEFFICIENTS));
+                return parameters[1] * r(values[0], order, parameters[0], getAlpha(values[0]));
             }
 
             @Override
@@ -109,16 +103,14 @@ public class Blaze {
 
     public RectifyAsset toRectifyAsset(XYSeries series) {
         double[] xs = ArrayUtils.linspace(series.getX(0), series.getLastX(), 20);
-        double[] ys = Arrays.stream(xs)
-                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x + alphaDiff, ALPHA_COEFFICIENTS)))
-                .toArray();
+        double[] ys = ySeries(xs);
 
         return new RectifyAsset(new DoubleArrayList(xs), new DoubleArrayList(ys));
     }
 
     public double[] ySeries(double[] xSeries) {
         return stream(xSeries)
-                .map(x -> scale * r(x, order, centralWavelength, MathUtils.polynomial(x + alphaDiff, ALPHA_COEFFICIENTS)))
+                .map(x -> scale * r(x, order, centralWavelength, getAlpha(x)))
                 .toArray();
     }
 

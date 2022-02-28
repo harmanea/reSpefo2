@@ -5,37 +5,36 @@ import org.eclipse.swt.events.KeyEvent;
 import org.swtchart.Chart;
 
 public abstract class ArrowsChartKeyListener extends ChartKeyListener {
-    private final Runnable downAction;
-    private final Runnable leftAction;
-    private final Runnable rightAction;
-    private final Runnable upAction;
 
-    protected ArrowsChartKeyListener(Chart chart, Runnable downAction, Runnable leftAction, Runnable rightAction, Runnable upAction) {
+    protected ArrowsChartKeyListener(Chart chart) {
         super(chart);
-
-        this.downAction = downAction;
-        this.leftAction = leftAction;
-        this.rightAction = rightAction;
-        this.upAction = upAction;
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         switch (e.keyCode) {
             case SWT.ARROW_DOWN:
-                downAction.run();
+                down();
                 break;
             case SWT.ARROW_LEFT:
-                leftAction.run();
+                left();
                 break;
             case SWT.ARROW_RIGHT:
-                rightAction.run();
+                right();
                 break;
             case SWT.ARROW_UP:
-                upAction.run();
+                up();
                 break;
             default:
                 super.keyPressed(e);
         }
     }
+
+    protected abstract void down();
+
+    protected abstract void left();
+
+    protected abstract void right();
+
+    protected abstract void up();
 }

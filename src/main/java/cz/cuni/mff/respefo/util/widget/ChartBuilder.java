@@ -100,6 +100,11 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return this;
     }
 
+    public ChartBuilder keyListener(KeyListener keyListener) {
+        addProperty(ch -> ch.addKeyListener(keyListener));
+        return this;
+    }
+
     public ChartBuilder mouseListener(Function<Chart, MouseListener> mouseListenerProvider) {
         addProperty(ch -> ch.getPlotArea().addMouseListener(mouseListenerProvider.apply(ch)));
         return this;

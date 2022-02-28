@@ -15,7 +15,6 @@ import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
-import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
@@ -23,17 +22,16 @@ import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
 import cz.cuni.mff.respefo.spectrum.format.SimpleSpectrum;
 import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.ChartUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
-import cz.cuni.mff.respefo.util.widget.*;
+import cz.cuni.mff.respefo.util.widget.ChartBuilder;
+import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
@@ -43,11 +41,9 @@ import java.io.File;
 import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
-import static cz.cuni.mff.respefo.function.rectify.Blaze.K;
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
@@ -74,7 +70,7 @@ public class RectifyFunction implements SingleFileFunction {
     public static final String SELECTED_SERIES_NAME = "selected";
     public static final String CONTINUUM_SERIES_NAME = "continuum";
 
-    private static final List<Integer> DEFAULT_EXCLUDED_ORDERS = listOf(5, 10, 29, 35, 39, 43, 47, 51, 58, 61);
+    private static final List<Integer> DEFAULT_EXCLUDED_ORDERS = listOf(5, 10, 29, 35, 39, 43, 47, 51, 58, 61); // TODO: Does this make sense?
     private static final int DEFAULT_POLY_DEGREE = 7;
 
     private static RectifyAsset previousAsset;
@@ -122,29 +118,18 @@ public class RectifyFunction implements SingleFileFunction {
                 RectifyFunction::finishEchelleSpectrum);
     }
 
-    // TODO: Simplify / modularize this
     private static void fitScalePoly(EchelleRectificationContext context, Runnable callback) {
-        Set<Integer> excludedOrders = new HashSet<>(DEFAULT_EXCLUDED_ORDERS);
+        context.xCoordinates = IntStream.range(0, context.series.length)
+                .mapToDouble(index -> Blaze.getCentralWavelength(125 - index))
+                .toArray();
+
+        context.yCoordinates = IntStream.range(0, context.series.length)
+                .mapToDouble(index -> getScale(context.series[index], context.xCoordinates[index]))
+                .toArray();
+
+        context.recalculatePolyCoeffs();
+
         XYSeries mergedSeries = XYSeries.merge(context.series);
-
-        final DoubleArrayList pointXCoordinates = new DoubleArrayList(context.series.length);
-        final DoubleArrayList pointYCoordinates = new DoubleArrayList(context.series.length);
-        for (int index = 0; index < 62; index++) {
-            if (excludedOrders.contains(index)) {
-                continue;
-            }
-
-            XYSeries currentSeries = context.series[index];
-            double centralWavelength = K / (125 - index);
-            double scale = MathUtils.intep(currentSeries.getXSeries(), currentSeries.getYSeries(), centralWavelength);
-            pointXCoordinates.add(centralWavelength);
-            pointYCoordinates.add(scale);
-        }
-        double[] xSeries = pointXCoordinates.toArray();
-        double[] ySeries = pointYCoordinates.toArray();
-
-        context.coeffs = MathUtils.fitPolynomial(xSeries, ySeries, DEFAULT_POLY_DEGREE);
-
         double[] fitXSeries = ArrayUtils.linspace(mergedSeries.getX(0), mergedSeries.getLastX(), 100);
         double[] fitYSeries = Arrays.stream(fitXSeries).map(x -> MathUtils.polynomial(x, context.coeffs)).toArray();
 
@@ -156,54 +141,43 @@ public class RectifyFunction implements SingleFileFunction {
                         .name("series")
                         .series(mergedSeries))
                 .series(scatterSeries()
-                        .name("points")
+                        .name(POINTS_SERIES_NAME)
                         .color(ColorResource.ORANGE)
                         .plotSymbolType(ILineSeries.PlotSymbolType.CROSS)
                         .symbolSize(5)
-                        .xSeries(xSeries)
-                        .ySeries(ySeries))
+                        .xSeries(context.pointXSeries())
+                        .ySeries(context.pointYSeries()))
                 .series(lineSeries()
                         .name("fit")
                         .color(ColorResource.YELLOW)
                         .xSeries(fitXSeries)
                         .ySeries(fitYSeries))
                 .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
+                .keyListener(KeyListener.keyPressedAdapter(e -> {
+                    if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
+                        callback.run();
+                    }
+                }))
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .makeAllSeriesEqualRange()
-                .data("poly", DEFAULT_POLY_DEGREE)
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
 
-        Consumer<double[]> updateCoeffs = newCoeffs -> {
-            context.coeffs = newCoeffs;
+        Runnable updateFit = () -> {
             chart.getSeriesSet().getSeries("fit")
                     .setYSeries(
                             Arrays.stream(fitXSeries)
-                                    .map(x -> MathUtils.polynomial(x, newCoeffs))
+                                    .map(x -> MathUtils.polynomial(x, context.coeffs))
                                     .toArray()
                     );
-
             chart.redraw();
         };
-
-        Runnable fullCallback = () -> {
-            context.pointXCoordinates = pointXCoordinates;
-            context.pointYCoordinates = pointYCoordinates;
-            context.polyDegree = (int) chart.getData("poly");
-            callback.run();
-        };
-
-        chart.addKeyListener(KeyListener.keyPressedAdapter(e -> {
-            if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
-                fullCallback.run();
-            }
-        }));
 
         final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "Orders", "Echelle Orders", ImageResource.RULER_LARGE);
 
-        tab.addTopBarButton("Confirm", ImageResource.CHECK, fullCallback);
+        tab.addTopBarButton("Confirm", ImageResource.CHECK, callback);
 
         final Menu menu = new Menu(ComponentManager.getShell(), POP_UP);
         for (int order = 3; order < 14; order++) {
@@ -211,66 +185,60 @@ public class RectifyFunction implements SingleFileFunction {
             final MenuItem item = new MenuItem(menu, PUSH);
             item.setText(String.valueOf(order));
             item.addSelectionListener(new DefaultSelectionListener(event -> {
-                chart.setData("poly", polyDegree);
-                double[] newCoeffs = MathUtils.fitPolynomial(xSeries, ySeries, polyDegree);
-                updateCoeffs.accept(newCoeffs);
+                context.polyDegree = polyDegree;
+                context.recalculatePolyCoeffs();
+                updateFit.run();
             }));
         }
 
         tab.addTopBarMenuButton("Poly Degree", ImageResource.POLY, menu);
 
-        final Table table = newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+        newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .headerVisible(true)
                 .linesVisible(true)
                 .columns("No.", "From", "To")
                 .fixedAspectColumns(1, 2, 2)
                 .items(Arrays.asList(context.columnNames))
+                .decorate((i, item) -> item.setChecked(!context.excludedOrders.contains(i)))
                 .onSelection(event -> {
                     if (event.detail == SWT.CHECK) {
                         TableItem tableItem = (TableItem) event.item;
                         int index = ((Table) event.widget).indexOf(tableItem);
-                        double centralWavelength = K / (125 - index);
 
                         if (tableItem.getChecked()) {
-                            excludedOrders.add(index);
-
-                            int insertionIndex = IntStream.range(0, pointXCoordinates.size())
-                                    .filter(i -> pointXCoordinates.get(i) > centralWavelength)
-                                    .findFirst()
-                                    .orElse(pointXCoordinates.size());
-
-                            double scale = MathUtils.intep(context.series[index].getXSeries(), context.series[index].getYSeries(), centralWavelength);
-                            pointXCoordinates.add(centralWavelength, insertionIndex);
-                            pointYCoordinates.add(scale, insertionIndex);
-
+                            context.excludedOrders.remove(index);
                         } else {
-                            excludedOrders.remove(index);
-
-                            int removalIndex = pointXCoordinates.indexOf(centralWavelength);
-                            pointXCoordinates.remove(removalIndex);
-                            pointYCoordinates.remove(removalIndex);
+                            context.excludedOrders.add(index);
                         }
-                        double[] newXSeries = pointXCoordinates.toArray();
-                        double[] newYSeries = pointYCoordinates.toArray();
 
-                        ISeries pointSeries = chart.getSeriesSet().getSeries("points");
-                        pointSeries.setXSeries(newXSeries);
-                        pointSeries.setYSeries(newYSeries);
+                        ISeries pointSeries = chart.getSeriesSet().getSeries(POINTS_SERIES_NAME);
+                        pointSeries.setXSeries(context.pointXSeries());
+                        pointSeries.setYSeries(context.pointYSeries());
 
-                        double[] newCoeffs = MathUtils.fitPolynomial(newXSeries, newYSeries, (int) chart.getData("poly"));
-                        updateCoeffs.accept(newCoeffs);
+                        context.recalculatePolyCoeffs();
+                        updateFit.run();
                     }
                 })
                 .build(tab.getWindow());
 
-        for (int i = 0; i < 62; i++) {
-            if (!excludedOrders.contains(i)) {
-                table.getItem(i).setChecked(true);
-            }
-        }
-
         tab.show();
+    }
+
+    private static double getScale(XYSeries series, double centralWavelength) {
+        int index = ArrayUtils.indexOfFirstGreaterThan(series.getXSeries(), centralWavelength);
+
+        double[] distances = IntStream.range(index - 2, index + 2)
+                .mapToDouble(i -> Math.abs(series.getX(i) - centralWavelength))
+                .toArray();
+
+        double weightedSum = IntStream.range(0, 4)
+                .mapToDouble(i -> series.getY(index - 2 + i) * distances[i])
+                .sum();
+
+        double sumOfDistances = Arrays.stream(distances).sum();
+
+        return weightedSum / sumOfDistances;
     }
 
     private static void selectOrdersLoop(EchelleRectificationContext context, Runnable callback) {
@@ -308,8 +276,12 @@ public class RectifyFunction implements SingleFileFunction {
         for (int index = 0; index < context.series.length; index++) {
             if (!context.rectifiedIndices.contains(index)) {
                 Blaze blaze = new Blaze(index, context.coeffs);
+                if (context.blazeAsset.hasParameters(blaze.getOrder())) {
+                    double[] parameters = context.blazeAsset.getParameters(blaze.getOrder());
+                    blaze.setCentralWavelength(parameters[0]);
+                    blaze.setScale(parameters[1]);
+                }
                 context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
-                context.blazeAsset.removeIfPresent(blaze.getOrder());
             }
         }
 
@@ -322,21 +294,13 @@ public class RectifyFunction implements SingleFileFunction {
 
         final double originalScale = blaze.getScale();
 
-        double[] xSeries = currentSeries.getXSeries();
-        double[] ySeries = blaze.ySeries(xSeries);
+        double[] blazeXSeries = currentSeries.getXSeries();
+        double[] blazeYSeries = blaze.ySeries(blazeXSeries);
 
-        XYSeries blazeSeries = new XYSeries(xSeries, ySeries);
         XYSeries residuals = new XYSeries(currentSeries.getXSeries(),
-                ArrayUtils.createArray(currentSeries.getLength(), i -> abs(currentSeries.getY(i) - ySeries[i])));
+                ArrayUtils.createArray(currentSeries.getLength(), i -> abs(currentSeries.getY(i) - blazeYSeries[i])));
 
-        Text[] texts = new Text[4];  // TODO: redesign this
-        Runnable updateTexts = () -> {
-            texts[0].setText(String.valueOf(blaze.getCentralWavelength()));
-            texts[1].setText(String.valueOf(blaze.getScale()));
-            texts[2].setText(String.valueOf(blaze.getCentralWavelength() * blaze.getOrder()));
-        };
-
-        final Chart chart = newChart()
+        newChart()
                 .title("#" + (index + 1))
                 .xAxisLabel("X axis")
                 .yAxisLabel("Y axis")
@@ -346,39 +310,22 @@ public class RectifyFunction implements SingleFileFunction {
                 .series(lineSeries()
                         .name("blaze")
                         .color(GRAY)
-                        .series(blazeSeries))
+                        .xSeries(blazeXSeries)
+                        .ySeries(blazeYSeries))
                 .series(lineSeries()
                         .name("residuals")
                         .color(ORANGE)
                         .series(residuals))
                 .keyListener(ch -> new BlazeKeyListener(ch, blaze,
-                        () ->  {
-                            updateTexts.run();
-                            updateChart(ch, blaze);
-                        },
+                        () ->  updateChart(ch, blaze),
                         () -> {
+                            context.xCoordinates[index] = blaze.getCentralWavelength();
+                            context.yCoordinates[index] = blaze.getScale();
                             context.blazeAsset.setParameters(blaze.getOrder(), blaze.getCentralWavelength(), blaze.getScale());
                             Display.getCurrent().asyncExec(() -> fineTuneRectificationPoints(index, context, callback, blaze));
                         }))
-                .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () ->  {
-                    updateTexts.run();
-                    updateChart(ch, blaze);
-                }, blaze))
+                .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> updateChart(ch, blaze), blaze))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
-                .mouseWheelListener(ch -> event -> {
-                    if ((event.stateMask & SWT.CTRL) != SWT.CTRL) {
-                        if (event.count > 0) {
-                            blaze.updateAlphaDiff(5);
-                            texts[3].setText(String.valueOf(blaze.getCentralAlpha()));
-                            updateChart(ch, blaze);
-
-                        } else if (event.count < 0) {
-                            blaze.updateAlphaDiff(-5);
-                            texts[3].setText(String.valueOf(blaze.getCentralAlpha()));
-                            updateChart(ch, blaze);
-                        }
-                    }
-                })
                 .plotAreaPaintListener(ch -> event -> {
                     int y = ch.getAxisSet().getYAxis(0).getPixelCoordinate(originalScale);
                     event.gc.setForeground(getColor(DARK_GRAY));
@@ -400,92 +347,18 @@ public class RectifyFunction implements SingleFileFunction {
                 .data("horizontal", false)
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
-
-        final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
-                "Parameters", "Parameters", ImageResource.RULER_LARGE);
-
-        tab.addTopBarButton("Confirm", ImageResource.CHECK, () -> {
-            context.blazeAsset.setParameters(blaze.getOrder(), blaze.getCentralWavelength(), blaze.getScale());
-            Display.getCurrent().asyncExec(() -> fineTuneRectificationPoints(index, context, callback, blaze));
-        });
-
-        CompositeBuilder compositeBuilder = CompositeBuilder.newComposite()
-                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING)
-                .layout(new GridLayout());
-        LabelBuilder labelBuilder = LabelBuilder.newLabel(SWT.LEFT).bold();
-        TextBuilder textBuilder = TextBuilder.newText(SWT.SINGLE).gridLayoutData(GridData.FILL_HORIZONTAL);
-        ButtonBuilder buttonBuilder = ButtonBuilder.newButton(SWT.PUSH).text("Confirm");
-        LabelBuilder separatorBuilder = LabelBuilder.newLabel(SWT.SEPARATOR | SWT.HORIZONTAL).gridLayoutData(GridData.FILL_HORIZONTAL);
-
-        // central wavelength
-        Composite composite = compositeBuilder.build(tab.getWindow());
-        labelBuilder.text("Central wavelength").build(composite);
-        texts[0] = textBuilder.text(String.valueOf(blaze.getCentralWavelength())).build(composite);
-        buildButton(buttonBuilder, composite, texts[0], chart, blaze, value -> {
-            blaze.setCentralWavelength(value);
-            texts[2].setText(String.valueOf(value * blaze.getOrder()));
-        });
-        labelBuilder.text("K").build(composite);
-        texts[2] = textBuilder.editable(false).text(String.valueOf(K)).build(composite);
-
-        separatorBuilder.build(tab.getWindow());
-
-        // scale
-        composite = compositeBuilder.build(tab.getWindow());
-        labelBuilder.text("Scale").build(composite);
-        texts[1] = textBuilder.text(String.valueOf(blaze.getScale())).build(composite);
-        buildButton(buttonBuilder, composite, texts[1], chart, blaze, blaze::setScale);
-
-        separatorBuilder.build(tab.getWindow());
-
-        // alpha
-        composite = compositeBuilder.build(tab.getWindow());
-        labelBuilder.text("Alpha").build(composite);
-        texts[3] = textBuilder.text(String.valueOf(blaze.getCentralAlpha())).build(composite);
-
-        tab.show();
-    }
-
-    private static void buildButton(ButtonBuilder buttonBuilder, Composite composite, Text text, Chart chart, Blaze blaze, DoubleConsumer consumer) {
-        buttonBuilder
-                .onSelection(e -> {
-                    try {
-                        double value = Double.parseDouble(text.getText());
-                        consumer.accept(value);
-                        updateChart(chart, blaze);
-                        chart.forceFocus();
-
-                    } catch (NumberFormatException exception) {
-                        // ignore
-                    }
-                })
-                .build(composite);
     }
 
     private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable callback, Blaze blaze) {
-        Log.info(blaze.getOrder()
-                + " " + (blaze.getCentralWavelength() * blaze.getOrder())
-                + " " + blaze.getCentralAlpha());
-
-        int pointIndex = context.pointXCoordinates.indexOf(K / blaze.getOrder());
-        if (pointIndex >= 0) {
-            context.pointXCoordinates.set(pointIndex, blaze.getCentralWavelength());
-            context.pointYCoordinates.set(pointIndex, blaze.getScale());
-        }
-
         XYSeries currentSeries = context.series[index];
         rectify("#" + (index + 1),
                 currentSeries,
                 blaze.toRectifyAsset(currentSeries),
                 builder -> {
                     for (int i = max(index - 2, 0); i <= min(index + 2, context.rectifyAssets.length - 1); i++) {
-                        if (i == index) {
-                            continue;
+                        if (i != index) {
+                            builder.series(lineSeries().series(context.series[i]).color(GRAY));
                         }
-
-                        builder.series(lineSeries()
-                                .series(context.series[i])
-                                .color(GRAY));
                     }
                     return builder;
                 },
@@ -635,13 +508,16 @@ public class RectifyFunction implements SingleFileFunction {
         final XYSeries[] series;
         final String[][] columnNames;
         final BlazeAsset blazeAsset;
-        final RectifyAsset[] rectifyAssets;
 
-        DoubleArrayList pointXCoordinates;
-        DoubleArrayList pointYCoordinates;
-        int polyDegree;
+        final RectifyAsset[] rectifyAssets;
+        final Set<Integer> rectifiedIndices;
+
+        double[] xCoordinates;
+        double[] yCoordinates;
+        final Set<Integer> excludedOrders = new HashSet<>(DEFAULT_EXCLUDED_ORDERS);
+        int polyDegree = DEFAULT_POLY_DEGREE;
         double[] coeffs;
-        Set<Integer> rectifiedIndices;
+
         Iterator<Integer> selectedIndices;
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
@@ -663,8 +539,8 @@ public class RectifyFunction implements SingleFileFunction {
         }
 
         public void recalculatePolyCoeffs() {
-            double[] xSeries = pointXCoordinates.toArray();
-            double[] ySeries = pointYCoordinates.toArray();
+            double[] xSeries = pointXSeries();
+            double[] ySeries = pointYSeries();
 
             coeffs = MathUtils.fitPolynomial(xSeries, ySeries, polyDegree);
         }
@@ -711,6 +587,20 @@ public class RectifyFunction implements SingleFileFunction {
                 };
             }
             return names;
+        }
+
+        private double[] pointXSeries() {
+            return IntStream.range(0, xCoordinates.length)
+                    .filter(index -> !excludedOrders.contains(index))
+                    .mapToDouble(index -> xCoordinates[index])
+                    .toArray();
+        }
+
+        private double[] pointYSeries() {
+            return IntStream.range(0, yCoordinates.length)
+                    .filter(index -> !excludedOrders.contains(index))
+                    .mapToDouble(index -> yCoordinates[index])
+                    .toArray();
         }
     }
 }

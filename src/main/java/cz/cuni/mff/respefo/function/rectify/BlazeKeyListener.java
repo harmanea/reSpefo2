@@ -7,36 +7,40 @@ import org.eclipse.swt.events.KeyEvent;
 import org.swtchart.Chart;
 
 public class BlazeKeyListener extends ArrowsChartKeyListener {
+    private final Blaze blaze;
+    private final Runnable update;
     private final Runnable finishAction;
 
     protected BlazeKeyListener(Chart chart, Blaze blaze, Runnable update, Runnable finishAction) {
-        super(chart,
-                () -> down(blaze, chart, update),
-                () -> left(blaze, chart, update),
-                () -> right(blaze, chart, update),
-                () -> up(blaze, chart, update));
+        super(chart);
+        this.blaze = blaze;
+        this.update = update;
         this.finishAction = finishAction;
     }
 
-    private static void down(Blaze blaze, Chart chart, Runnable update) {
+    @Override
+    protected void down() {
         double diff = ChartUtils.getRelativeVerticalStep(chart);
         blaze.updateScale(-diff);
         update.run();
     }
 
-    private static void left(Blaze blaze, Chart chart, Runnable update) {
+    @Override
+    protected void left() {
         double diff = ChartUtils.getRelativeHorizontalStep(chart);
         blaze.updateCentralWavelength(-diff);
         update.run();
     }
 
-    private static void right(Blaze blaze, Chart chart, Runnable update) {
+    @Override
+    protected void right() {
         double diff = ChartUtils.getRelativeHorizontalStep(chart);
         blaze.updateCentralWavelength(diff);
         update.run();
     }
 
-    private static void up(Blaze blaze, Chart chart, Runnable update) {
+    @Override
+    protected void up() {
         double diff = ChartUtils.getRelativeVerticalStep(chart);
         blaze.updateScale(diff);
         update.run();

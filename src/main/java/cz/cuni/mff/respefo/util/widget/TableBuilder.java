@@ -147,4 +147,13 @@ public final class TableBuilder extends AbstractControlBuilder<TableBuilder, Tab
         })));
         return this;
     }
+
+    public TableBuilder decorate(BiConsumer<Integer, TableItem> decorator) {
+        addProperty(t -> {
+            for (int i = 0; i < t.getItemCount(); i++) {
+                decorator.accept(i, t.getItem(i));
+            }
+        });
+        return this;
+    }
 }
