@@ -25,9 +25,8 @@ public class JulianDateTest {
 
     @Test
     public void testDayOfTheWeek() {
-        JulianDate date = JulianDate.fromDate(2020, 7, 9);
-
-        assertEquals(4, date.getDayOfWeek());
+        assertEquals(4, JulianDate.fromDate(2020, 7, 9).getDayOfWeek());
+        assertEquals(1, JulianDate.fromDate(2022, 2, 28).getDayOfWeek());
     }
 
     @Test

@@ -53,8 +53,9 @@ public class MeasureEWDialog extends TitleAreaDialog {
                     } else if (e.keyCode == SWT.INSERT) {
                         addStlFile((List) e.widget);
                     }
-                }).build(topComposite);
-        list.setItems(fileNames);
+                })
+                .items(fileNames)
+                .build(topComposite);
 
         final Composite buttonsComposite = newComposite()
                 .layout(gridLayout().margins(0))

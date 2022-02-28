@@ -21,11 +21,16 @@ public final class ListBuilder extends AbstractControlBuilder<ListBuilder, List>
     }
 
     public ListBuilder selection(int value) {
-        addProperty(s -> s.setSelection(value));
+        addProperty(l -> l.setSelection(value));
         return this;
     }
 
     public ListBuilder onSelection(Listener listener) {
         return listener(SWT.Selection, listener).listener(SWT.DefaultSelection, listener);
+    }
+
+    public ListBuilder items(String... items) {
+        addProperty(l -> l.setItems(items));
+        return this;
     }
 }

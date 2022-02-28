@@ -47,12 +47,19 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                 .layoutData(gridData(GridData.FILL_BOTH).widthHint(400).heightHint(400).build())
                 .build(parent);
 
-        final Table table = newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+        newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
                 .headerVisible(true)
                 .linesVisible(true)
                 .columns("No.", "From", "To")
                 .columnWidths(50, 150, 150)
                 .items(Arrays.asList(names))
+                .decorate((i, item) -> {
+                    if (disabled.contains(i)) {
+                        item.setChecked(true);
+                        item.setGrayed(true);
+                        item.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+                    }
+                })
                 .onSelection(event -> {
                     if (event.detail == SWT.CHECK) {
                         TableItem tableItem = (TableItem) event.item;
@@ -67,12 +74,5 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                     }
                 })
                 .build(composite);
-
-        for (Integer index : disabled) {
-            final TableItem item = table.getItem(index);
-            item.setChecked(true);
-            item.setGrayed(true);
-            item.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
-        }
     }
 }
