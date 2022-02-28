@@ -36,7 +36,7 @@ configurations.all {
 
 dependencies {
     implementation 'junit:junit:4.12'
-    implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.15.3-SNAPSHOT' // snapshot necessary for header repairs
+    implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.16.1-SNAPSHOT'
     implementation 'org.swtchart:org.swtchart:0.10.0'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.4.1'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'

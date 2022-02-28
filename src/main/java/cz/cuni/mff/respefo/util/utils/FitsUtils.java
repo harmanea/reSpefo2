@@ -9,6 +9,8 @@ import nom.tam.fits.header.Standard;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FitsUtils extends UtilityClass {
 
@@ -21,6 +23,8 @@ public class FitsUtils extends UtilityClass {
     public static void init() {
         FitsFactory.setAllowHeaderRepairs(true);
         FitsFactory.setAllowTerminalJunk(true);
+        Header.setParserWarningsEnabled(false);
+        Logger.getLogger(Header.class.getName()).setLevel(Level.SEVERE);
     }
 
     public static JulianDate getHJD(Header header) {

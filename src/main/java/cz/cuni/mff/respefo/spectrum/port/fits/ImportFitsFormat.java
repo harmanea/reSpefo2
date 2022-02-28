@@ -10,8 +10,8 @@ import cz.cuni.mff.respefo.util.collections.JulianDate;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FitsUtils;
-import nom.tam.fits.BasicHDU;
 import nom.tam.fits.Header;
+import nom.tam.fits.header.Bitpix;
 import nom.tam.fits.header.Standard;
 import nom.tam.util.Cursor;
 
@@ -84,13 +84,13 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
 
     private double[] getSeriesFromData(Object data, int bitPix) throws SpefoException {
         switch (bitPix) {
-            case BasicHDU.BITPIX_DOUBLE:
+            case Bitpix.VALUE_FOR_DOUBLE:
                 return (double[]) data;
-            case BasicHDU.BITPIX_FLOAT:
-            case BasicHDU.BITPIX_INT:
-            case BasicHDU.BITPIX_SHORT:
-            case BasicHDU.BITPIX_LONG:
-            case BasicHDU.BITPIX_BYTE:
+            case Bitpix.VALUE_FOR_FLOAT:
+            case Bitpix.VALUE_FOR_INT:
+            case Bitpix.VALUE_FOR_SHORT:
+            case Bitpix.VALUE_FOR_LONG:
+            case Bitpix.VALUE_FOR_BYTE:
                 return IntStream.range(0, Array.getLength(data)).mapToDouble(j ->  Array.getDouble(data, j)).toArray();
             default:
                 throw new InvalidFileFormatException("Data is not of a valid value type");
