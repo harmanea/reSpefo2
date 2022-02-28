@@ -5,7 +5,7 @@ import cz.cuni.mff.respefo.dialog.OverwriteDialog;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
@@ -30,19 +30,11 @@ import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static org.eclipse.swt.SWT.CANCEL;
 
 @Fun(name = "Export", fileFilter = SpefoFormatFileFilter.class)
-public class ExportFunction implements SingleFileFunction, MultiFileFunction {
+public class ExportFunction extends SpectrumFunction implements MultiFileFunction {
 
     @Override
-    public void execute(File spectrumFile) {
-        Spectrum spectrum;
-        try {
-            spectrum = Spectrum.open(spectrumFile);
-        } catch (SpefoException exception) {
-            Message.error("An error occurred while opening file.", exception);
-            return;
-        }
-
-        String fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrumFile.getPath()));
+    public void execute(Spectrum spectrum) {
+        String fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrum.getFile().getPath()));
         if (fileName != null) {
             try {
                 if (exportTo(spectrum, fileName)) {

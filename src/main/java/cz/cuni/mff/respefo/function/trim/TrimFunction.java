@@ -3,28 +3,19 @@ package cz.cuni.mff.respefo.function.trim;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Message;
 
-import java.io.File;
-
 @Fun(name = "Trim", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = TrimFunction.SERIALIZE_KEY, assetClass = TrimAsset.class)
-public class TrimFunction implements SingleFileFunction {
+public class TrimFunction extends SpectrumFunction {
     public static final String SERIALIZE_KEY = "trim";
 
     @Override
-    public void execute(File file) {
-        Spectrum spectrum;
-        try {
-            spectrum = Spectrum.open(file);
-        } catch (SpefoException e) {
-            Message.error("Couldn't open file", e);
-            return;
-        }
+    public void execute(Spectrum spectrum) {
         TrimAsset asset = spectrum.getFunctionAsset (SERIALIZE_KEY, TrimAsset.class).orElse(new TrimAsset());
 
         TrimDialog dialog = new TrimDialog();

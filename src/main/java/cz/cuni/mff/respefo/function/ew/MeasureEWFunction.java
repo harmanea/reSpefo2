@@ -4,31 +4,22 @@ import cz.cuni.mff.respefo.component.SpectrumExplorer;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.common.Measurements;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 
-import java.io.File;
 import java.util.Optional;
 
 @Fun(name = "Measure EW", fileFilter = SpefoFormatFileFilter.class, group = "Measure")
 @Serialize(key = MeasureEWFunction.SERIALIZE_KEY, assetClass = MeasureEWResults.class)
-public class MeasureEWFunction implements SingleFileFunction {
+public class MeasureEWFunction extends SpectrumFunction {
     public static final String SERIALIZE_KEY = "ew";
 
     @Override
-    public void execute(File file) {
-        Spectrum spectrum;
-        try {
-            spectrum = Spectrum.open(file);
-        } catch (SpefoException exception) {
-            Message.error("Couldn't open file", exception);
-            return;
-        }
-
+    public void execute(Spectrum spectrum) {
         MeasureEWDialog dialog = new MeasureEWDialog();
         if (dialog.openIsNotOk()) {
             return;

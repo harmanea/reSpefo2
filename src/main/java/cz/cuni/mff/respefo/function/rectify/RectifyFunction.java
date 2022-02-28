@@ -7,7 +7,7 @@ import cz.cuni.mff.respefo.component.VerticalToggle;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.clean.CleanAsset;
 import cz.cuni.mff.respefo.function.clean.CleanFunction;
 import cz.cuni.mff.respefo.function.common.ChartKeyListener;
@@ -37,7 +37,6 @@ import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 import org.swtchart.ISeries;
 
-import java.io.File;
 import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
@@ -61,7 +60,7 @@ import static org.eclipse.swt.SWT.PUSH;
 @Fun(name = "Rectify", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = RectifyFunction.RECTIFY_SERIALIZE_KEY, assetClass = RectifyAsset.class)
 @Serialize(key = RectifyFunction.BLAZE_SERIALIZE_KEY, assetClass = BlazeAsset.class)
-public class RectifyFunction implements SingleFileFunction {
+public class RectifyFunction extends SpectrumFunction {
 
     public static final String RECTIFY_SERIALIZE_KEY = "rectify";
     public static final String BLAZE_SERIALIZE_KEY = "blaze";
@@ -76,15 +75,7 @@ public class RectifyFunction implements SingleFileFunction {
     private static RectifyAsset previousAsset;
 
     @Override
-    public void execute(File file) {
-        Spectrum spectrum;
-        try {
-            spectrum = Spectrum.open(file);
-        } catch (SpefoException e) {
-            Message.error("Couldn't open file", e);
-            return;
-        }
-
+    public void execute(Spectrum spectrum) {
         switch (spectrum.getFormat()) {
             case SimpleSpectrum.FORMAT:
                 rectifySimpleSpectrum((SimpleSpectrum) spectrum);
@@ -119,6 +110,8 @@ public class RectifyFunction implements SingleFileFunction {
     }
 
     private static void fitScalePoly(EchelleRectificationContext context, Runnable callback) {
+        // TODO: Use BlazeAsset here?
+
         context.xCoordinates = IntStream.range(0, context.series.length)
                 .mapToDouble(index -> Blaze.getCentralWavelength(125 - index))
                 .toArray();
@@ -310,6 +303,7 @@ public class RectifyFunction implements SingleFileFunction {
                         () -> {
                             context.xCoordinates[index] = blaze.getCentralWavelength();
                             context.yCoordinates[index] = blaze.getScale();
+//                            context.excludedOrders.remove(index);  // TODO: Do we want to do this?
                             context.blazeAsset.setParameters(blaze.getOrder(), blaze.getCentralWavelength(), blaze.getScale());
                             Display.getCurrent().asyncExec(() -> fineTuneRectificationPoints(index, context, callback, blaze));
                         }))

@@ -4,7 +4,7 @@ import cz.cuni.mff.respefo.component.SpectrumExplorer;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.common.Measurements;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
@@ -13,26 +13,17 @@ import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
-import java.io.File;
 import java.util.Optional;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 
 @Fun(name = "Measure RV", fileFilter = SpefoFormatFileFilter.class, group = "Measure")
 @Serialize(key = MeasureRVFunction.SERIALIZE_KEY, assetClass = MeasureRVResults.class)
-public class MeasureRVFunction implements SingleFileFunction {
+public class MeasureRVFunction extends SpectrumFunction {
     public static final String SERIALIZE_KEY = "rv";
 
     @Override
-    public void execute(File file) {
-        Spectrum spectrum;
-        try {
-            spectrum = Spectrum.open(file);
-        } catch (SpefoException exception) {
-            Message.error("Couldn't open file", exception);
-            return;
-        }
-
+    public void execute(Spectrum spectrum) {
         MeasureRVDialog dialog = new MeasureRVDialog();
         if (dialog.openIsNotOk()) {
             return;

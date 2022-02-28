@@ -1,10 +1,9 @@
 package cz.cuni.mff.respefo.function.clean;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
-import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.NearestPointMouseMoveListener;
@@ -21,8 +20,6 @@ import org.eclipse.swt.events.KeyListener;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 
-import java.io.File;
-
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.RELATIVE_FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
@@ -30,7 +27,7 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 
 @Fun(name = "Clean", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = CleanFunction.SERIALIZE_KEY, assetClass = CleanAsset.class)
-public class CleanFunction implements SingleFileFunction {
+public class CleanFunction extends SpectrumFunction {
 
     public static final String SERIALIZE_KEY = "clean";
     public static final String POINTS_SERIES_NAME = "points";
@@ -38,21 +35,13 @@ public class CleanFunction implements SingleFileFunction {
     public static final String DELETED_SERIES_NAME = "deleted";
 
     @Override
-    public void execute(File file) {
-        Spectrum spectrum;
-        try {
-            spectrum = Spectrum.open(file);
-        } catch (SpefoException e) {
-            Message.error("Couldn't open file", e);
-            return;
-        }
-
+    public void execute(Spectrum spectrum) {
         CleanAsset asset = spectrum.getFunctionAsset(SERIALIZE_KEY, CleanAsset.class).orElse(new CleanAsset());
 
         XYSeries data = spectrum.getProcessedSeriesWithout(asset);
 
         newChart()
-                .title(file.getName())
+                .title(spectrum.getFile().getName())
                 .xAxisLabel(WAVELENGTH)
                 .yAxisLabel(RELATIVE_FLUX)
                 .series(scatterSeries()

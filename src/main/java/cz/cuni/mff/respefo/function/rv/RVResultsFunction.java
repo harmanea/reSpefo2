@@ -6,7 +6,7 @@ import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.ProjectFunction;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
@@ -47,18 +47,10 @@ import static java.lang.Double.isNaN;
 import static org.eclipse.swt.SWT.COLOR_WIDGET_BACKGROUND;
 
 @Fun(name = "RV Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
-public class RVResultsFunction implements SingleFileFunction, MultiFileFunction, ProjectFunction {
+public class RVResultsFunction extends SpectrumFunction implements MultiFileFunction, ProjectFunction {
 
     @Override
-    public void execute(File file) {
-        Spectrum spectrum;
-        try {
-            spectrum = Spectrum.open(file);
-        } catch (SpefoException exception) {
-            Message.error("Couldn't open file", exception);
-            return;
-        }
-
+    public void execute(Spectrum spectrum) {
         if (!spectrum.containsFunctionAsset(MeasureRVFunction.SERIALIZE_KEY)) {
             Message.warning("There are no RV measurements in this file.");
             return;

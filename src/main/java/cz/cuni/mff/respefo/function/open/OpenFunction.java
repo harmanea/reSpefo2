@@ -5,7 +5,7 @@ import cz.cuni.mff.respefo.component.ToolBar;
 import cz.cuni.mff.respefo.component.VerticalToggle;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
-import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.common.ChartKeyListener;
 import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
@@ -21,7 +21,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
@@ -31,16 +30,10 @@ import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.lang.Double.isNaN;
 
 @Fun(name = "Open", fileFilter = SpefoFormatFileFilter.class)
-public class OpenFunction implements SingleFileFunction {
+public class OpenFunction extends SpectrumFunction {
     @Override
-    public void execute(File file) {
-        try {
-            Spectrum spectrum = Spectrum.open(file);
-            displaySpectrum(spectrum);
-
-        } catch (SpefoException ex) {
-            Message.error("Couldn't open file", ex);
-        }
+    public void execute(Spectrum spectrum) {
+        displaySpectrum(spectrum);
     }
 
     public static void displaySpectrum(Spectrum spectrum) {
