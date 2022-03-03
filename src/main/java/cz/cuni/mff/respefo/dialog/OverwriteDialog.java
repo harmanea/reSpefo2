@@ -1,6 +1,6 @@
 package cz.cuni.mff.respefo.dialog;
 
-import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.utils.StringUtils;
 import cz.cuni.mff.respefo.util.widget.CompositeBuilder;
 import cz.cuni.mff.respefo.util.widget.LabelBuilder;
@@ -200,13 +200,13 @@ public class OverwriteDialog extends TitleAreaDialog {
         bar.addExpandListener(new ExpandListener() {
             @Override
             public void itemCollapsed(ExpandEvent e) {
-                ComponentManager.getDisplay().asyncExec(() -> parent.getShell().pack(true));
+                Async.exec(() -> parent.getShell().pack(true));
             }
 
             @Override
             public void itemExpanded(ExpandEvent e) {
                 newNameText.setSelection(0, newNameText.getText().lastIndexOf('.'));
-                ComponentManager.getDisplay().asyncExec(() -> {
+                Async.exec(() -> {
                     parent.getShell().pack(true);
                     newNameText.forceFocus();
                 });

@@ -39,6 +39,7 @@ import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.lang.Double.isNaN;
 import static org.eclipse.swt.SWT.COLOR_WIDGET_BACKGROUND;
 
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 @Fun(name = "EW Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
 public class EWResultsFunction extends SpectrumFunction implements MultiFileFunction, ProjectFunction {
 

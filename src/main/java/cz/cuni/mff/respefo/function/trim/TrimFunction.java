@@ -9,6 +9,8 @@ import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Message;
 
+// TODO: Is this function even used?
+
 @Fun(name = "Trim", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = TrimFunction.SERIALIZE_KEY, assetClass = TrimAsset.class)
 public class TrimFunction extends SpectrumFunction {

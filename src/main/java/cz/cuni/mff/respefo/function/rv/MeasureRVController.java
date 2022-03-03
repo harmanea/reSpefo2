@@ -9,6 +9,7 @@ import cz.cuni.mff.respefo.function.common.Measurements;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
@@ -271,7 +272,7 @@ public class MeasureRVController {
                         case SWT.ESC:
                             if (index + 1 < measurements.size()) {
                                 index += 1;
-                                ComponentManager.getDisplay().asyncExec(MeasureRVController.this::measureSingle);
+                                Async.exec(MeasureRVController.this::measureSingle);
                             } else {
                                 finish();
                             }

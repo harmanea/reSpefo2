@@ -42,6 +42,7 @@ public class DispersionFunction implements SingleFileFunction {
             XYSeries seriesA = readFitsFile(dialog.getLabFileNameA());
             XYSeries seriesB = readFitsFile(dialog.getLabFileNameB());
 
+            // TODO: Use the new Async methods instead
             new DispersionController(cmpValues, seriesA, seriesB)
                     .start(results -> printToCmfFile(dialog.getCmpFileName(), dialog.getLabFileNameA(), dialog.getLabFileNameB(), results),
                             coefficients -> saveSpectrum(file, coefficients));

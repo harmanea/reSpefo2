@@ -8,6 +8,7 @@ import cz.cuni.mff.respefo.function.common.Measurement;
 import cz.cuni.mff.respefo.function.common.Measurements;
 import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
@@ -66,13 +67,13 @@ public class MeasureEWController {
         tab.addTopBarButton("Previous line", ImageResource.LEFT_ARROW, () -> {
             if (index > 0) {
                 index--;
-                ComponentManager.getDisplay().asyncExec(this::measureSingle);
+                Async.exec(this::measureSingle);
             }
         });
         tab.addTopBarButton("Next line", ImageResource.RIGHT_ARROW, () -> {
             if (index + 1 < measurements.size()) {
                 index++;
-                ComponentManager.getDisplay().asyncExec(this::measureSingle);
+                Async.exec(this::measureSingle);
             } else {
                 finish();
             }
@@ -123,7 +124,7 @@ public class MeasureEWController {
                             results.add(result);
                             if (index + 1 < measurements.size()) {
                                 index += 1;
-                                ComponentManager.getDisplay().asyncExec(MeasureEWController.this::measureSingle);
+                                Async.exec(MeasureEWController.this::measureSingle);
                             } else {
                                 finish();
                             }

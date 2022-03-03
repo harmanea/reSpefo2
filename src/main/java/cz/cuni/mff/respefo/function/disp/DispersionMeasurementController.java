@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.function.disp;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.function.common.HorizontalDragMouseListener;
+import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import org.eclipse.swt.SWT;
@@ -39,7 +40,7 @@ public class DispersionMeasurementController {
             measureSingle(seriesB, "B", measurement, hint, xDown -> {
                 measurement.setXUp(xUp);
                 measurement.setXDown(xDown);
-                ComponentManager.getDisplay().asyncExec(callback);
+                Async.exec(callback);
             }));
     }
 

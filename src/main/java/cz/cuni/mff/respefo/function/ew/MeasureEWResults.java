@@ -5,7 +5,6 @@ import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class MeasureEWResults implements FunctionAsset, Iterable<MeasureEWResult> {
     final List<MeasureEWResult> results;
@@ -47,22 +46,6 @@ public class MeasureEWResults implements FunctionAsset, Iterable<MeasureEWResult
 
     @Override
     public Iterator<MeasureEWResult> iterator() {
-        return new Iterator<MeasureEWResult>() {
-            private int i = 0;
-
-            @Override
-            public MeasureEWResult next() {
-                if (i >= results.size()) {
-                    throw new NoSuchElementException();
-                }
-
-                return results.get(i++);
-            }
-
-            @Override
-            public boolean hasNext() {
-                return i < results.size();
-            }
-        };
+        return results.iterator();
     }
 }

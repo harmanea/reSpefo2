@@ -10,7 +10,7 @@ import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
 
 public class SpefoAndLstFileFilter implements FileFilter {
 
-    public static final List<String> FILE_EXTENSIONS = listOf("spf", "lst");
+    private static final List<String> FILE_EXTENSIONS = listOf("spf", "lst");
 
     @Override
     public boolean accept(File pathname) {

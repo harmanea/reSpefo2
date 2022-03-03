@@ -48,6 +48,7 @@ public class MeasureRVFunction extends SpectrumFunction {
         double deltaRV = ((series.getX(1) - series.getX(0)) * SPEED_OF_LIGHT) / (series.getX(0) * 3);
         series = transformToEquidistant(series, deltaRV);
 
+        // TODO: Use the new Async methods instead
         new MeasureRVController(series, deltaRV)
                 .measure(measurements, results -> saveResults(spectrum, results));
     }

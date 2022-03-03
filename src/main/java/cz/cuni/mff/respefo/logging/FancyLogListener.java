@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.logging;
 
-import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.resources.ColorManager;
+import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.utils.ExceptionUtils;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -92,7 +92,7 @@ public class FancyLogListener implements LogListener, LogActionListener {
 
     @Override
     public void notify(LogEntry entry) {
-        ComponentManager.getDisplay().asyncExec(() -> addLogEntry(entry));
+        Async.exec(() -> addLogEntry(entry));
     }
 
     private void addLogEntry(LogEntry entry) {
@@ -121,7 +121,7 @@ public class FancyLogListener implements LogListener, LogActionListener {
 
     @Override
     public void notify(LogAction action) {
-        ComponentManager.getDisplay().asyncExec(() -> addAction(action.getText(), action.getLabel(), action.getAction(), action.isOneShot()));
+        Async.exec(() -> addAction(action.getText(), action.getLabel(), action.getAction(), action.isOneShot()));
     }
 
     private void addAction(String text, String label, Runnable action, boolean oneShot) {

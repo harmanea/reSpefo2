@@ -40,6 +40,7 @@ public class MeasureEWFunction extends SpectrumFunction {
 
         measurements.removeDuplicateNames();
 
+        // TODO: Use the new Async methods instead
         new MeasureEWController(data)
                 .measure(measurements, results -> saveResults(spectrum, results));
     }

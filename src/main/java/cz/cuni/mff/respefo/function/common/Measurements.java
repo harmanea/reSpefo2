@@ -79,22 +79,6 @@ public class Measurements implements Iterable<Measurement> {
 
     @Override
     public Iterator<Measurement> iterator() {
-        return new Iterator<Measurement>() {
-            private int i = 0;
-
-            @Override
-            public Measurement next() {
-                if (i >= elements.size()) {
-                    throw new NoSuchElementException();
-                }
-
-                return elements.get(i++);
-            }
-
-            @Override
-            public boolean hasNext() {
-                return i < elements.size();
-            }
-        };
+        return elements.iterator();
     }
 }

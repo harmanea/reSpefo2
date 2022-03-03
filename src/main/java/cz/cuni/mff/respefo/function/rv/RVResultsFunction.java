@@ -46,6 +46,7 @@ import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
 import static java.lang.Double.isNaN;
 import static org.eclipse.swt.SWT.COLOR_WIDGET_BACKGROUND;
 
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 @Fun(name = "RV Results", fileFilter = SpefoFormatFileFilter.class, group = "Results")
 public class RVResultsFunction extends SpectrumFunction implements MultiFileFunction, ProjectFunction {
 
