@@ -1,14 +1,11 @@
 package cz.cuni.mff.respefo.function.rectify;
 
-import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
-import org.orangepalantir.leastsquares.Fitter;
-import org.orangepalantir.leastsquares.Function;
-import org.orangepalantir.leastsquares.fitters.MarquardtFitter;
 
+import static cz.cuni.mff.respefo.util.utils.MathUtils.doublesEqual;
 import static java.lang.Math.*;
 import static java.util.Arrays.stream;
 
@@ -20,12 +17,13 @@ public class Blaze {
     private double scale;
 
     public Blaze(int index, double[] coeffs) {
-        order = 125 - index;
-        centralWavelength = getCentralWavelength(order);
+        order = indexToOrder(index);
+        centralWavelength = orderToCentralWavelength(order);
         scale = MathUtils.polynomial(centralWavelength, coeffs);
     }
 
-    public static double getAlpha(double wavelength) {
+
+    public static double wavelengthToAlpha(double wavelength) {
         if (wavelength > 5.82178076e+03) {
             return 9.61192285e-01 + (wavelength - 5.82178076e+03) * 2.56317390e-05;
         } else {
@@ -33,9 +31,14 @@ public class Blaze {
         }
     }
 
-    public static double getCentralWavelength(int order) {
+    public static double orderToCentralWavelength(int order) {
         return MathUtils.polynomial(order, K_COEFFICIENTS) / order;
     }
+
+    public static int indexToOrder(int index) {
+        return 125 - index;
+    }
+
 
     public int getOrder() {
         return order;
@@ -49,57 +52,30 @@ public class Blaze {
         scale += diff;
     }
 
-    public void setScale(double value) {
-        scale = value;
-    }
-
     public double getCentralWavelength() {
         return centralWavelength;
-    }
-
-    public void setCentralWavelength(double centralWavelength) {
-        this.centralWavelength = centralWavelength;
     }
 
     public void updateCentralWavelength(double diff) {
         centralWavelength += diff;
     }
 
-    @Deprecated
-    public void fit(XYSeries series) {
-        Function fun = new Function() {
-            @Override
-            public double evaluate(double[] values, double[] parameters) {
-                return parameters[1] * r(values[0], order, parameters[0], getAlpha(values[0]));
-            }
 
-            @Override
-            public int getNParameters() {
-                return 2; // central wavelength, scale
-            }
-
-            @Override
-            public int getNInputs() {
-                return 1; // wavelength
-            }
-        };
-
-        Fitter fit = new MarquardtFitter(fun);
-        fit.setData(
-                stream(series.getXSeries()).mapToObj(x -> new double[]{x}).toArray(double[][]::new),
-                series.getYSeries()
-        );
-        fit.setParameters(new double[]{centralWavelength, scale});
-        fit.fitData();
-
-        double[] parameters = fit.getParameters();
-        if (Double.isNaN(parameters[0]) || Double.isNaN(parameters[1])) {
-            Log.warning("Least squares fit failed for order " + order);
-        } else {
-            centralWavelength = parameters[0];
-            scale = parameters[1];
-        }
+    public void updateFromAsset(BlazeAsset asset) {
+        centralWavelength = asset.getCentralWavelength(order);
+        scale = asset.getScale(order);
     }
+
+    public void saveToAsset(BlazeAsset asset) {
+        asset.setParameters(order, centralWavelength, scale);
+    }
+
+    public boolean isUnchanged(BlazeAsset asset) {
+        return asset.hasParameters(order)
+                && doublesEqual(centralWavelength, asset.getCentralWavelength(order))
+                && doublesEqual(scale, asset.getScale(order));
+    }
+
 
     public RectifyAsset toRectifyAsset(XYSeries series) {
         double[] xs = ArrayUtils.linspace(series.getX(0), series.getLastX(), 20);
@@ -108,9 +84,10 @@ public class Blaze {
         return new RectifyAsset(new DoubleArrayList(xs), new DoubleArrayList(ys));
     }
 
+
     public double[] ySeries(double[] xSeries) {
         return stream(xSeries)
-                .map(x -> scale * r(x, order, centralWavelength, getAlpha(x)))
+                .map(x -> scale * r(x, order, centralWavelength, wavelengthToAlpha(x)))
                 .toArray();
     }
 

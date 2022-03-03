@@ -32,12 +32,14 @@ import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 import org.swtchart.ISeries;
 
-import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -53,6 +55,7 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.ScatterSeriesBuilder.
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.lang.Math.*;
+import static java.util.Arrays.copyOfRange;
 import static java.util.function.UnaryOperator.identity;
 import static org.eclipse.swt.SWT.POP_UP;
 import static org.eclipse.swt.SWT.PUSH;
@@ -69,8 +72,8 @@ public class RectifyFunction extends SpectrumFunction {
     public static final String SELECTED_SERIES_NAME = "selected";
     public static final String CONTINUUM_SERIES_NAME = "continuum";
 
-    private static final List<Integer> DEFAULT_EXCLUDED_ORDERS = listOf(5, 10, 29, 35, 39, 43, 47, 51, 58, 61); // TODO: Does this make sense?
-    private static final int DEFAULT_POLY_DEGREE = 7;
+    private static final List<Integer> DEFAULT_EXCLUDED_ORDERS = listOf(5, 10, 29, 35, 39, 43, 47, 51, 58, 61); // TODO: Make this editable?
+    private static final int DEFAULT_POLY_DEGREE = 9;
 
     private static RectifyAsset previousAsset;
 
@@ -110,15 +113,22 @@ public class RectifyFunction extends SpectrumFunction {
     }
 
     private static void fitScalePoly(EchelleRectificationContext context, Runnable callback) {
-        // TODO: Use BlazeAsset here?
+        for (int i = 0; i < context.series.length; i++) {
+            int order = Blaze.indexToOrder(i);
+            if (context.blazeAsset.hasParameters(order)) {
+                context.xCoordinates[i] = context.blazeAsset.getCentralWavelength(order);
+                context.yCoordinates[i] = context.blazeAsset.getScale(order);
 
-        context.xCoordinates = IntStream.range(0, context.series.length)
-                .mapToDouble(index -> Blaze.getCentralWavelength(125 - index))
-                .toArray();
+            } else {
+                double centralWavelength = Blaze.orderToCentralWavelength(order);
+                XYSeries series = context.series[i];
+                int index = ArrayUtils.indexOfFirstGreaterThan(series.getXSeries(), centralWavelength);
+                double scale = MathUtils.robustMean(copyOfRange(series.getYSeries(), max(0, index - 5), min(series.getLength(), index + 5)));
 
-        context.yCoordinates = IntStream.range(0, context.series.length)
-                .mapToDouble(index -> getScale(context.series[index], context.xCoordinates[index]))
-                .toArray();
+                context.xCoordinates[i] = centralWavelength;
+                context.yCoordinates[i] = scale;
+            }
+        }
 
         context.recalculatePolyCoeffs();
 
@@ -218,19 +228,14 @@ public class RectifyFunction extends SpectrumFunction {
         tab.show();
     }
 
-    private static double getScale(XYSeries series, double centralWavelength) {
-        int index = ArrayUtils.indexOfFirstGreaterThan(series.getXSeries(), centralWavelength);
-        return MathUtils.robustMean(Arrays.copyOfRange(series.getYSeries(), max(0, index - 5), min(series.getLength(), index + 5)));
-    }
-
     private static void selectOrdersLoop(EchelleRectificationContext context, Runnable callback) {
         Async.whileLoop(context, RectifyFunction::selectOrdersAndInteractivelyRectifyThem, c -> callback.run());
     }
 
     private static void selectOrdersAndInteractivelyRectifyThem(EchelleRectificationContext context, Consumer<Boolean> callback) {
-        ComponentManager.clearScene(true);
         EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices);
         if (dialog.openIsOk()) {
+            ComponentManager.clearScene(true);
             context.selectedIndices = dialog.getSelectedIndices();
             if (context.selectedIndices.hasNext()) {
                 Async.whileLoop(context, RectifyFunction::rectifySingleEchelleOrder,
@@ -259,11 +264,10 @@ public class RectifyFunction extends SpectrumFunction {
             if (!context.rectifiedIndices.contains(index)) {
                 Blaze blaze = new Blaze(index, context.coeffs);
                 if (context.blazeAsset.hasParameters(blaze.getOrder())) {
-                    double[] parameters = context.blazeAsset.getParameters(blaze.getOrder());
-                    blaze.setCentralWavelength(parameters[0]);
-                    blaze.setScale(parameters[1]);
+                    context.rectifyAssets[index] = context.spectrum.getRectifyAssets()[index];
+                } else {
+                    context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
                 }
-                context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
             }
         }
 
@@ -275,6 +279,11 @@ public class RectifyFunction extends SpectrumFunction {
         Blaze blaze = new Blaze(index, context.coeffs);
 
         final double originalScale = blaze.getScale();
+        // TODO: Also display original central wavelength, if so which one?
+
+        if (context.blazeAsset.hasParameters(blaze.getOrder())) {
+            blaze.updateFromAsset(context.blazeAsset);
+        }
 
         double[] blazeXSeries = currentSeries.getXSeries();
         double[] blazeYSeries = blaze.ySeries(blazeXSeries);
@@ -301,11 +310,15 @@ public class RectifyFunction extends SpectrumFunction {
                 .keyListener(ch -> new BlazeKeyListener(ch, blaze,
                         () ->  updateChart(ch, blaze),
                         () -> {
-                            context.xCoordinates[index] = blaze.getCentralWavelength();
-                            context.yCoordinates[index] = blaze.getScale();
-//                            context.excludedOrders.remove(index);  // TODO: Do we want to do this?
-                            context.blazeAsset.setParameters(blaze.getOrder(), blaze.getCentralWavelength(), blaze.getScale());
-                            Display.getCurrent().asyncExec(() -> fineTuneRectificationPoints(index, context, callback, blaze));
+                            if (blaze.isUnchanged(context.blazeAsset)) {
+                                Async.exec(() -> fineTuneRectificationPoints(index, context, callback, context.spectrum.getRectifyAssets()[index]));
+                            } else {
+                                // TODO: Also remove from removed indices?
+                                context.xCoordinates[index] = blaze.getCentralWavelength();
+                                context.yCoordinates[index] = blaze.getScale();
+                                blaze.saveToAsset(context.blazeAsset);
+                                Async.exec(() -> fineTuneRectificationPoints(index, context, callback, blaze.toRectifyAsset(currentSeries)));
+                            }
                         }))
                 .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> updateChart(ch, blaze), blaze))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
@@ -332,11 +345,23 @@ public class RectifyFunction extends SpectrumFunction {
                 .build(ComponentManager.clearAndGetScene());
     }
 
-    private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable callback, Blaze blaze) {
+    private static void updateChart(Chart chart, Blaze blaze) {
+        ISeries iSeries = chart.getSeriesSet().getSeries("series");
+        XYSeries series = new XYSeries(iSeries.getXSeries(), iSeries.getYSeries());
+
+        double[] blazeYSeries = blaze.ySeries(iSeries.getXSeries());
+        double[] residualsYSeries = ArrayUtils.createArray(series.getLength(), i -> abs(series.getY(i) - blazeYSeries[i]));
+
+        chart.getSeriesSet().getSeries("blaze").setYSeries(blazeYSeries);
+        chart.getSeriesSet().getSeries("residuals").setYSeries(residualsYSeries);
+        chart.redraw();
+    }
+
+    private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable callback, RectifyAsset asset) {
         XYSeries currentSeries = context.series[index];
         rectify("#" + (index + 1),
                 currentSeries,
-                blaze.toRectifyAsset(currentSeries),
+                asset,
                 builder -> {
                     for (int i = max(index - 2, 0); i <= min(index + 2, context.rectifyAssets.length - 1); i++) {
                         if (i != index) {
@@ -345,22 +370,10 @@ public class RectifyFunction extends SpectrumFunction {
                     }
                     return builder;
                 },
-                asset -> {
-                    context.rectifyAssets[index] = asset;
+                newAsset -> {
+                    context.rectifyAssets[index] = newAsset;
                     callback.run();
                 });
-    }
-
-    private static void updateChart(Chart chart, Blaze blaze) {
-        ISeries iSeries = chart.getSeriesSet().getSeries("series");
-        XYSeries series = new XYSeries(iSeries.getXSeries(), iSeries.getYSeries());
-
-        double[] blazeYSeries = blaze.ySeries(iSeries.getXSeries());
-        double[] residuals = ArrayUtils.createArray(series.getLength(), i -> abs(series.getY(i) - blazeYSeries[i]));
-
-        chart.getSeriesSet().getSeries("blaze").setYSeries(blazeYSeries);
-        chart.getSeriesSet().getSeries("residuals").setYSeries(residuals);
-        chart.redraw();
     }
 
     private static void rectify(String title, XYSeries series, RectifyAsset asset,
@@ -469,7 +482,7 @@ public class RectifyFunction extends SpectrumFunction {
     private static void finishEchelleSpectrum(EchelleRectificationContext context, Runnable callback) {
         EchelleSpectrum spectrum = context.spectrum;
         spectrum.setRectifyAssets(context.rectifyAssets);
-        if (context.blazeAsset.isEmpty()) {
+        if (context.blazeAsset.isEmpty()) { // This can never occur
             spectrum.removeFunctionAsset(BLAZE_SERIALIZE_KEY);
         } else {
             spectrum.putFunctionAsset(BLAZE_SERIALIZE_KEY, context.blazeAsset);
@@ -501,7 +514,7 @@ public class RectifyFunction extends SpectrumFunction {
         int polyDegree = DEFAULT_POLY_DEGREE;
         double[] coeffs;
 
-        Iterator<Integer> selectedIndices;
+        Iterator<Integer> selectedIndices;  // TODO: This doesn't need to be here
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
             this.spectrum = spectrum;
@@ -519,6 +532,9 @@ public class RectifyFunction extends SpectrumFunction {
             rectifyAssets = new RectifyAsset[series.length];
 
             rectifiedIndices = new HashSet<>(series.length);
+
+            xCoordinates = new double[series.length];
+            yCoordinates = new double[series.length];
         }
 
         public void recalculatePolyCoeffs() {

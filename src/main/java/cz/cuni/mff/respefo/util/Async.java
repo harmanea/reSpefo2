@@ -1,10 +1,15 @@
 package cz.cuni.mff.respefo.util;
 
+import cz.cuni.mff.respefo.component.ComponentManager;
 import org.eclipse.swt.widgets.Display;
 
 import java.util.function.Consumer;
 
 public class Async extends UtilityClass {
+    public static void exec(Runnable runnable) {
+        ComponentManager.getDisplay().asyncExec(runnable);
+    }
+
     public static <C> void loop(int count, C context, LoopAction<C> action, Consumer<C> finish) {
         loopInternal(0, count, context, action, finish);
     }

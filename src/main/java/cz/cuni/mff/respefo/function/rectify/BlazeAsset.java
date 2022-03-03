@@ -20,8 +20,12 @@ public class BlazeAsset implements FunctionAsset {
         return parameters.containsKey(order);
     }
 
-    public double[] getParameters(int order) {
-        return parameters.get(order);
+    public double getCentralWavelength(int order) {
+        return parameters.get(order)[0];
+    }
+
+    public double getScale(int order) {
+        return parameters.get(order)[1];
     }
 
     public void removeIfPresent(int order) {
