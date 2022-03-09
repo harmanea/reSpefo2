@@ -354,6 +354,10 @@ public class MathUtils extends UtilityClass {
             return values[values.length / 2];
     }
 
+    public static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     protected MathUtils() throws IllegalAccessException {
         super();
     }

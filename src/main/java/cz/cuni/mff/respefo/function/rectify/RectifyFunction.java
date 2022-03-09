@@ -11,7 +11,6 @@ import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.clean.CleanAsset;
 import cz.cuni.mff.respefo.function.clean.CleanFunction;
 import cz.cuni.mff.respefo.function.common.ChartKeyListener;
-import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
@@ -136,6 +135,18 @@ public class RectifyFunction extends SpectrumFunction {
         double[] fitXSeries = ArrayUtils.linspace(mergedSeries.getX(0), mergedSeries.getLastX(), 100);
         double[] fitYSeries = Arrays.stream(fitXSeries).map(x -> MathUtils.polynomial(x, context.coeffs)).toArray();
 
+        Consumer<Chart> updateCoeffsAndFit = ch -> {
+            context.recalculatePolyCoeffs();
+            ch.getSeriesSet().getSeries("fit")
+                    .setYSeries(
+                            Arrays.stream(fitXSeries)
+                                    .map(x -> MathUtils.polynomial(x, context.coeffs))
+                                    .toArray()
+                    );
+            ch.redraw();
+            ch.forceFocus();
+        };
+
         final Chart chart = newChart()
                 .title(context.spectrum.getFile().getName())
                 .xAxisLabel(WAVELENGTH)
@@ -145,14 +156,21 @@ public class RectifyFunction extends SpectrumFunction {
                         .series(mergedSeries))
                 .series(scatterSeries()
                         .name(POINTS_SERIES_NAME)
-                        .color(ColorResource.ORANGE)
-                        .plotSymbolType(ILineSeries.PlotSymbolType.CROSS)
-                        .symbolSize(5)
+                        .color(WHITE)
+                        .plotSymbolType(ILineSeries.PlotSymbolType.CIRCLE)
+                        .symbolSize(3)
                         .xSeries(context.pointXSeries())
                         .ySeries(context.pointYSeries()))
+                .series(scatterSeries()
+                        .name(SELECTED_SERIES_NAME)
+                        .color(RED)
+                        .plotSymbolType(ILineSeries.PlotSymbolType.CIRCLE)
+                        .symbolSize(3)
+                        .xSeries(new double[] {context.pointXSeries()[0]})
+                        .ySeries(new double[] {context.pointYSeries()[0]}))
                 .series(lineSeries()
                         .name("fit")
-                        .color(ColorResource.YELLOW)
+                        .color(YELLOW)
                         .xSeries(fitXSeries)
                         .ySeries(fitYSeries))
                 .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
@@ -161,21 +179,49 @@ public class RectifyFunction extends SpectrumFunction {
                         callback.run();
                     }
                 }))
-                .mouseAndMouseMoveListener(DragMouseListener::new)
+                .mouseAndMouseMoveListener(ch -> new RectifyMouseListener(ch,
+                        POINTS_SERIES_NAME,
+                        index -> {
+                            ILineSeries selected = (ILineSeries) ch.getSeriesSet().getSeries(SELECTED_SERIES_NAME);
+                            ILineSeries points = (ILineSeries) ch.getSeriesSet().getSeries(POINTS_SERIES_NAME);
+
+                            selected.setXSeries(new double[] {points.getXSeries()[index]});
+                            selected.setYSeries(new double[] {points.getYSeries()[index]});
+
+                            ch.redraw();
+                        },
+                        point -> {
+                            ISeries selectedSeries = ch.getSeriesSet().getSeries(SELECTED_SERIES_NAME);
+                            ISeries pointSeries = ch.getSeriesSet().getSeries(POINTS_SERIES_NAME);
+                            int index = Arrays.binarySearch(context.xCoordinates, selectedSeries.getXSeries()[0]);
+                            if (index >= 0) {
+                                double clampMin = max(context.series[index].getX(0),
+                                        index > 0
+                                                ? context.xCoordinates[index - 1] + MathUtils.DOUBLE_PRECISION
+                                                : Double.NEGATIVE_INFINITY);
+                                double clampMax = min(context.series[index].getLastX(),
+                                        index + 1 < context.series.length
+                                                ? context.xCoordinates[index + 1] - MathUtils.DOUBLE_PRECISION
+                                                : Double.POSITIVE_INFINITY);
+
+                                context.xCoordinates[index] = MathUtils.clamp(context.xCoordinates[index] + point.x, clampMin, clampMax);
+                                context.yCoordinates[index] += point.y;
+
+                                selectedSeries.setXSeries(new double[] {context.xCoordinates[index]});
+                                selectedSeries.setYSeries(new double[] {context.yCoordinates[index]});
+
+                                pointSeries.setXSeries(context.pointXSeries());
+                                pointSeries.setYSeries(context.pointYSeries());
+
+                                updateCoeffsAndFit.accept(ch);
+                            }
+                        },
+                        point -> {},
+                        () -> {}))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .makeAllSeriesEqualRange()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
-
-        Runnable updateFit = () -> {
-            chart.getSeriesSet().getSeries("fit")
-                    .setYSeries(
-                            Arrays.stream(fitXSeries)
-                                    .map(x -> MathUtils.polynomial(x, context.coeffs))
-                                    .toArray()
-                    );
-            chart.redraw();
-        };
 
         final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "Orders", "Echelle Orders", ImageResource.RULER_LARGE);
@@ -189,8 +235,7 @@ public class RectifyFunction extends SpectrumFunction {
             item.setText(String.valueOf(order));
             item.addSelectionListener(new DefaultSelectionListener(event -> {
                 context.polyDegree = polyDegree;
-                context.recalculatePolyCoeffs();
-                updateFit.run();
+                updateCoeffsAndFit.accept(chart);
             }));
         }
 
@@ -219,8 +264,7 @@ public class RectifyFunction extends SpectrumFunction {
                         pointSeries.setXSeries(context.pointXSeries());
                         pointSeries.setYSeries(context.pointYSeries());
 
-                        context.recalculatePolyCoeffs();
-                        updateFit.run();
+                        updateCoeffsAndFit.accept(chart);
                     }
                 })
                 .build(tab.getWindow());
@@ -284,6 +328,8 @@ public class RectifyFunction extends SpectrumFunction {
         if (context.blazeAsset.hasParameters(blaze.getOrder())) {
             blaze.updateFromAsset(context.blazeAsset);
         }
+
+        // TODO: what if the user has readjusted some points in the first step?
 
         double[] blazeXSeries = currentSeries.getXSeries();
         double[] blazeYSeries = blaze.ySeries(blazeXSeries);
@@ -388,7 +434,7 @@ public class RectifyFunction extends SpectrumFunction {
                         .series(series))
                 .series(lineSeries()
                         .name(CONTINUUM_SERIES_NAME)
-                        .color(ColorResource.YELLOW)
+                        .color(YELLOW)
                         .xSeries(series.getXSeries())
                         .ySeries(asset.getIntepData(series.getXSeries())))
                 .series(scatterSeries()
