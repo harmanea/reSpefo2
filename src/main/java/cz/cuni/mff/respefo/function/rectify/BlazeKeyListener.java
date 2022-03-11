@@ -54,10 +54,4 @@ public class BlazeKeyListener extends ArrowsChartKeyListener {
             super.keyPressed(e);
         }
     }
-
-    @Override
-    protected void adjustRange() {
-        ChartUtils.makeAllSeriesEqualRange(chart);
-        chart.redraw();
-    }
 }

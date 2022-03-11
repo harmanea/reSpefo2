@@ -12,11 +12,11 @@ import java.util.function.Function;
 
 import static org.eclipse.swt.SWT.*;
 
-public abstract class ChartKeyListener extends KeyAdapter {
+public class ChartKeyListener extends KeyAdapter {
 
     protected final Chart chart;
 
-    protected ChartKeyListener(Chart chart) {
+    public ChartKeyListener(Chart chart) {
         this.chart = chart;
     }
 
@@ -86,45 +86,40 @@ public abstract class ChartKeyListener extends KeyAdapter {
         chart.redraw();
     }
 
-    protected abstract void adjustRange();
-
-    public static ChartKeyListener defaultBehaviour(Chart chart) {
-        return new ChartKeyListener(chart) {
-            @Override
-            protected void adjustRange() {
-                chart.getAxisSet().adjustRange();
-                chart.redraw();
-            }
-        };
+    protected void adjustRange() {
+        ChartUtils.adjustRange(chart);
+        chart.redraw();
     }
 
-    public static ChartKeyListener makeAllSeriesEqualRange(Chart chart) {
-        return new ChartKeyListener(chart) {
-            @Override
-            protected void adjustRange() {
-                ChartUtils.makeAllSeriesEqualRange(chart);
-                chart.redraw();
-            }
-        };
+    public static class CenterAroundSeries extends ChartKeyListener {
+        private final String seriesName;
+
+        public CenterAroundSeries(Chart chart, String seriesName) {
+            super(chart);
+
+            this.seriesName = seriesName;
+        }
+
+        @Override
+        protected void adjustRange() {
+            ChartUtils.centerAroundSeries(chart, seriesName);
+            chart.redraw();
+        }
     }
 
-    public static ChartKeyListener centerAroundSeries(Chart chart, String seriesName) {
-        return new ChartKeyListener(chart) {
-            @Override
-            protected void adjustRange() {
-                ChartUtils.centerAroundSeries(chart, seriesName);
-                chart.redraw();
-            }
-        };
-    }
+    public static class CustomAction extends ChartKeyListener {
+        private final Consumer<Chart> adjustRangeAction;
 
-    public static ChartKeyListener customAction(Chart chart, Consumer<Chart> adjustRangeAction) {
-        return new ChartKeyListener(chart) {
-            @Override
-            protected void adjustRange() {
-                adjustRangeAction.accept(chart);
-                chart.redraw();
-            }
-        };
+        public CustomAction(Chart chart, Consumer<Chart> adjustRangeAction) {
+            super(chart);
+
+            this.adjustRangeAction = adjustRangeAction;
+        }
+
+        @Override
+        protected void adjustRange() {
+            adjustRangeAction.accept(chart);
+            chart.redraw();
+        }
     }
 }

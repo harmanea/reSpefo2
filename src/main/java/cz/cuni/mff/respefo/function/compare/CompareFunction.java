@@ -58,9 +58,7 @@ public class CompareFunction implements MultiFileFunction {
     }
 
     private void displaySpectra(List<Spectrum> spectra) {
-        ChartBuilder chartBuilder = ChartBuilder.newChart()
-                .xAxisLabel("X Axis")
-                .yAxisLabel("Y Axis");
+        ChartBuilder chartBuilder = ChartBuilder.newChart();
 
         for (int i = 0; i < spectra.size(); i++) {
             Spectrum spectrum = spectra.get(i);
@@ -73,10 +71,10 @@ public class CompareFunction implements MultiFileFunction {
         }
 
         Chart chart = chartBuilder
-                .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
+                .keyListener(ChartKeyListener::new)
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
-                .makeAllSeriesEqualRange()
+                .adjustRange()
                 .build(ComponentManager.clearAndGetScene());
 
         setTitle(chart, spectra);

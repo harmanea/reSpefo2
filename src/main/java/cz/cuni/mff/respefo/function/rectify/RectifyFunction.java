@@ -47,7 +47,7 @@ import java.util.stream.IntStream;
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
-import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.RELATIVE_FLUX;
+import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
@@ -71,7 +71,7 @@ public class RectifyFunction extends SpectrumFunction {
     public static final String SELECTED_SERIES_NAME = "selected";
     public static final String CONTINUUM_SERIES_NAME = "continuum";
 
-    private static final List<Integer> DEFAULT_EXCLUDED_ORDERS = listOf(5, 10, 29, 35, 39, 43, 47, 51, 58, 61); // TODO: Make this editable?
+    private static final List<Integer> DEFAULT_EXCLUDED_ORDERS = listOf(5, 10, 29, 35, 39, 43, 47, 51, 58); // TODO: Make this automatic, carry over to next
     private static final int DEFAULT_POLY_DEGREE = 9;
 
     private static RectifyAsset previousAsset;
@@ -150,7 +150,7 @@ public class RectifyFunction extends SpectrumFunction {
         final Chart chart = newChart()
                 .title(context.spectrum.getFile().getName())
                 .xAxisLabel(WAVELENGTH)
-                .yAxisLabel(RELATIVE_FLUX)
+                .yAxisLabel(FLUX)
                 .series(lineSeries()
                         .name("series")
                         .series(mergedSeries))
@@ -173,7 +173,7 @@ public class RectifyFunction extends SpectrumFunction {
                         .color(YELLOW)
                         .xSeries(fitXSeries)
                         .ySeries(fitYSeries))
-                .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
+                .keyListener(ChartKeyListener::new)
                 .keyListener(KeyListener.keyPressedAdapter(e -> {
                     if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
                         callback.run();
@@ -219,7 +219,7 @@ public class RectifyFunction extends SpectrumFunction {
                         point -> {},
                         () -> {}))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
-                .makeAllSeriesEqualRange()
+                .adjustRange()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
 
@@ -229,7 +229,7 @@ public class RectifyFunction extends SpectrumFunction {
         tab.addTopBarButton("Confirm", ImageResource.CHECK, callback);
 
         final Menu menu = new Menu(ComponentManager.getShell(), POP_UP);
-        for (int order = 3; order < 14; order++) {
+        for (int order = 5; order < 16; order++) {
             final int polyDegree = order;
             final MenuItem item = new MenuItem(menu, PUSH);
             item.setText(String.valueOf(order));
@@ -323,13 +323,11 @@ public class RectifyFunction extends SpectrumFunction {
         Blaze blaze = new Blaze(index, context.coeffs);
 
         final double originalScale = blaze.getScale();
-        // TODO: Also display original central wavelength, if so which one?
+        final double originalCentralWavelength = blaze.getCentralWavelength();
 
         if (context.blazeAsset.hasParameters(blaze.getOrder())) {
             blaze.updateFromAsset(context.blazeAsset);
         }
-
-        // TODO: what if the user has readjusted some points in the first step?
 
         double[] blazeXSeries = currentSeries.getXSeries();
         double[] blazeYSeries = blaze.ySeries(blazeXSeries);
@@ -339,8 +337,8 @@ public class RectifyFunction extends SpectrumFunction {
 
         newChart()
                 .title("#" + (index + 1))
-                .xAxisLabel("X axis")
-                .yAxisLabel("Y axis")
+                .xAxisLabel(WAVELENGTH)
+                .yAxisLabel(FLUX)
                 .series(lineSeries()
                         .name("series")
                         .series(currentSeries))
@@ -370,9 +368,11 @@ public class RectifyFunction extends SpectrumFunction {
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .plotAreaPaintListener(ch -> event -> {
                     int y = ch.getAxisSet().getYAxis(0).getPixelCoordinate(originalScale);
+                    int x = ch.getAxisSet().getXAxis(0).getPixelCoordinate(originalCentralWavelength);
                     event.gc.setForeground(getColor(DARK_GRAY));
                     event.gc.setLineStyle(SWT.LINE_DOT);
                     event.gc.drawLine(0, y, event.width, y);
+                    event.gc.drawLine(x, 0, x, event.height);
                     event.gc.setLineStyle(SWT.LINE_SOLID);
 
                     boolean horizontal = (boolean) ch.getData("horizontal");
@@ -385,8 +385,8 @@ public class RectifyFunction extends SpectrumFunction {
                     event.gc.setForeground(getColor(horizontal ? CYAN : BLUE));
                     event.gc.drawLine((int) coordinates.x, 0, (int) coordinates.x, event.height);
                 })
-                .makeAllSeriesEqualRange()
                 .data("horizontal", false)
+                .adjustRange()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
     }
@@ -427,7 +427,7 @@ public class RectifyFunction extends SpectrumFunction {
         newChart()
                 .title(title)
                 .xAxisLabel(WAVELENGTH)
-                .yAxisLabel(RELATIVE_FLUX)
+                .yAxisLabel(FLUX)
                 .series(lineSeries()
                         .name("original")
                         .color(ColorResource.GREEN)
@@ -449,7 +449,7 @@ public class RectifyFunction extends SpectrumFunction {
                         .symbolSize(3)
                         .series(asset.getActivePoint()))
                 .apply(operator)
-                .keyListener(ChartKeyListener::makeAllSeriesEqualRange)
+                .keyListener(ChartKeyListener::new)
                 .keyListener(ch -> new RectifyKeyListener(ch, asset,
                         () -> updateAllSeries(ch, asset, series),
                         newIndex -> updateActivePoint(ch, asset, newIndex),
@@ -474,7 +474,7 @@ public class RectifyFunction extends SpectrumFunction {
                             updateAllSeries(ch, asset, series);
                         }))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
-                .makeAllSeriesEqualRange()
+                .adjustRange()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
     }

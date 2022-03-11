@@ -6,7 +6,7 @@ import org.swtchart.Chart;
 import static org.eclipse.swt.SWT.ARROW_LEFT;
 import static org.eclipse.swt.SWT.ARROW_RIGHT;
 
-public abstract class LeftRightChartKeyListener extends ChartKeyListener {
+public class LeftRightChartKeyListener extends ChartKeyListener {
 
     private final Runnable moveLeft;
     private final Runnable moveRight;

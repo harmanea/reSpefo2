@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 
@@ -24,11 +25,15 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
     private static final ColorResource PRIMARY_COLOR = ColorResource.YELLOW;
     private static final ColorResource SECONDARY_COLOR = ColorResource.BLACK;
 
+    private boolean hideTitle = true;
+    private boolean hideYAxisLabel = true;
+    private boolean hideXAxisLabel = true;
+
     private ChartBuilder(int style) {
         super((Composite parent) -> new Chart(parent, style));
+        addProperty(this::addSecondaryAxis);
         addProperty(this::setTheme);
-        addProperty(ch -> ch.setLayoutData(new GridData(GridData.FILL_BOTH)));
-        addProperty(ch -> ch.getParent().layout());
+        addProperty(this::layoutSettings);
     }
 
     public static ChartBuilder newChart() {
@@ -36,35 +41,37 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
     }
 
     public ChartBuilder title(String title) {
+        hideTitle = false;
         addProperty(ch -> ch.getTitle().setText(title));
         return this;
     }
 
     public ChartBuilder xAxisLabel(String label) {
+        hideXAxisLabel = false;
         addProperty(ch -> ch.getAxisSet().getXAxis(0).getTitle().setText(label));
         return this;
     }
 
     public ChartBuilder xAxisLabel(AxisLabel axisLabel) {
-        addProperty(ch -> ch.getAxisSet().getXAxis(0).getTitle().setText(axisLabel.getLabel()));
-        return this;
+        return xAxisLabel(axisLabel.getLabel());
     }
 
     public ChartBuilder yAxisLabel(String label) {
+        hideYAxisLabel = false;
         addProperty(ch -> ch.getAxisSet().getYAxis(0).getTitle().setText(label));
         return this;
     }
 
     public ChartBuilder yAxisLabel(AxisLabel axisLabel) {
-        addProperty(ch -> ch.getAxisSet().getYAxis(0).getTitle().setText(axisLabel.getLabel()));
-        return this;
+        return yAxisLabel(axisLabel.getLabel());
     }
 
-    public ChartBuilder hideYAxis() {
+    public ChartBuilder hideYAxes() {
         addProperty(ch -> {
-            IAxis axis = ch.getAxisSet().getYAxis(0);
-            axis.getTick().setVisible(false);
-            axis.getTitle().setVisible(false);
+            for (IAxis axis : ch.getAxisSet().getYAxes()) {
+                axis.getTick().setVisible(false);
+                axis.getTitle().setVisible(false);
+            }
         });
         return this;
     }
@@ -87,21 +94,28 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
             lineSeries.setSymbolColor(seriesBuilder.color);
             lineSeries.setSymbolSize(seriesBuilder.symbolSize);
 
-            if (ch.getSeriesSet().getSeries().length > 1) {
-                adjustExtraSeries(ch, lineSeries);
+            if (seriesBuilder.newYAxis) {
+                int yAxisId = ch.getAxisSet().createYAxis();
+                IAxis yAxis = ch.getAxisSet().getYAxis(yAxisId);
+
+                yAxis.getTick().setVisible(false);
+                yAxis.getTitle().setVisible(false);
+                yAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
+
+                lineSeries.setYAxisId(yAxisId);
             }
         });
 
         return this;
     }
 
-    public ChartBuilder keyListener(Function<Chart, KeyListener> keyListenerProvider) {
-        addProperty(ch -> ch.addKeyListener(keyListenerProvider.apply(ch)));
+    public ChartBuilder keyListener(KeyListener keyListener) {
+        addProperty(ch -> ch.addKeyListener(keyListener));
         return this;
     }
 
-    public ChartBuilder keyListener(KeyListener keyListener) {
-        addProperty(ch -> ch.addKeyListener(keyListener));
+    public ChartBuilder keyListener(Function<Chart, KeyListener> keyListenerProvider) {
+        addProperty(ch -> ch.addKeyListener(keyListenerProvider.apply(ch)));
         return this;
     }
 
@@ -134,18 +148,13 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return this;
     }
 
-    public ChartBuilder makeAllSeriesEqualRange() {
-        addProperty(ChartUtils::makeAllSeriesEqualRange);
-        return this;
-    }
-
     public ChartBuilder centerAroundSeries(String name) {
         addProperty(ch -> ChartUtils.centerAroundSeries(ch, name));
         return this;
     }
 
     public ChartBuilder adjustRange() {
-        addProperty(ch -> ch.getAxisSet().adjustRange());
+        addProperty(ChartUtils::adjustRange);
         return this;
     }
 
@@ -168,24 +177,11 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return this;
     }
 
-    private void adjustExtraSeries(Chart chart, ILineSeries lineSeries) {
-        int yAxisId = chart.getAxisSet().createYAxis();
-        IAxis yAxis = chart.getAxisSet().getYAxis(yAxisId);
-
-        yAxis.getTick().setVisible(false);
-        yAxis.getTitle().setVisible(false);
-        yAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
-
-        lineSeries.setYAxisId(yAxisId);
-
-        int xAxisId = chart.getAxisSet().createXAxis();
-        IAxis xAxis = chart.getAxisSet().getXAxis(xAxisId);
-
-        xAxis.getTick().setVisible(false);
-        xAxis.getTitle().setVisible(false);
-        xAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
-
-        lineSeries.setXAxisId(xAxisId);
+    private void addSecondaryAxis(Chart chart) {
+        int axisId = chart.getAxisSet().createYAxis();
+        IAxis axis = chart.getAxisSet().getYAxis(axisId);
+        axis.setPosition(IAxis.Position.Secondary);
+        axis.getTitle().setVisible(false);
     }
 
     private void setTheme(Chart chart) {
@@ -194,17 +190,30 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         chart.setBackground(getColor(SECONDARY_COLOR));
         chart.setBackgroundInPlotArea(getColor(SECONDARY_COLOR));
 
-        IAxisSet axisset = chart.getAxisSet();
-
-        axisset.getXAxis(0).getGrid().setForeground(getColor(SECONDARY_COLOR));
-        axisset.getYAxis(0).getGrid().setForeground(getColor(SECONDARY_COLOR));
-
-        axisset.getXAxis(0).getTick().setForeground(getColor(PRIMARY_COLOR));
-        axisset.getYAxis(0).getTick().setForeground(getColor(PRIMARY_COLOR));
-        axisset.getXAxis(0).getTitle().setForeground(getColor(PRIMARY_COLOR));
-        axisset.getYAxis(0).getTitle().setForeground(getColor(PRIMARY_COLOR));
-
         chart.getLegend().setVisible(false);
+
+        IAxisSet axisSet = chart.getAxisSet();
+        Stream.of(axisSet.getXAxis(0), axisSet.getYAxis(0), axisSet.getYAxis(1))
+                .forEach(axis -> {
+                    axis.getGrid().setStyle(LineStyle.NONE);
+                    axis.getTick().setForeground(getColor(PRIMARY_COLOR));
+                    axis.getTitle().setForeground(getColor(PRIMARY_COLOR));
+                });
+
+        if (hideTitle) {
+            chart.getTitle().setVisible(false);
+        }
+        if (hideXAxisLabel) {
+            axisSet.getXAxis(0).getTitle().setVisible(false);
+        }
+        if (hideYAxisLabel) {
+            axisSet.getYAxis(0).getTitle().setVisible(false);
+        }
+    }
+
+    private void layoutSettings(Chart chart) {
+        chart.setLayoutData(new GridData(GridData.FILL_BOTH));
+        chart.getParent().layout();
     }
 
     @SuppressWarnings("unchecked")
@@ -220,6 +229,7 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         Color color = getColor(ColorResource.GREEN);
         double[] xSeries = {};
         double[] ySeries = {};
+        boolean newYAxis = false;
 
         private SeriesBuilder(ISeries.SeriesType seriesType) {
             this.seriesType = seriesType;
@@ -259,6 +269,12 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         public B series(XYSeries xySeries) {
             this.xSeries = xySeries.getXSeries();
             this.ySeries = xySeries.getYSeries();
+
+            return (B) this;
+        }
+
+        public B newYAxis() {
+            this.newYAxis = true;
 
             return (B) this;
         }
@@ -310,9 +326,10 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
     }
 
     public enum AxisLabel {
-        WAVELENGTH("wavelength (Å)"),
-        RELATIVE_FLUX("relative flux I(λ)"),
-        PIXELS("pixels");
+        WAVELENGTH("Wavelength (Å)"),
+        RELATIVE_FLUX("Relative flux I(λ)"),
+        FLUX("Flux"),
+        PIXELS("Pixels");
 
         private final String label;
 

@@ -39,12 +39,10 @@ public class OpenFunction extends SpectrumFunction {
     public static void displaySpectrum(Spectrum spectrum) {
         newChart()
                 .title(spectrum.getFile().getName())
-                .xAxisLabel("X axis")
-                .yAxisLabel("Y axis")
                 .series(lineSeries()
                         .name("series")
                         .series(spectrum.getProcessedSeries()))
-                .keyListener(ChartKeyListener::defaultBehaviour)
+                .keyListener(ChartKeyListener::new)
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .adjustRange()

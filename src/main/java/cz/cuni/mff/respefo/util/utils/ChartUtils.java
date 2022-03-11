@@ -13,56 +13,6 @@ import static java.util.Arrays.stream;
 public class ChartUtils extends UtilityClass {
 
     /**
-     * Set the range of all chart axes so that all are fully visible.
-     * @param chart whose axes will be adjusted
-     */
-    public static void makeAllSeriesEqualRange(Chart chart) {
-        Objects.requireNonNull(chart);
-
-        double xMax = Double.NEGATIVE_INFINITY;
-        double xMin = Double.POSITIVE_INFINITY;
-        double yMax = Double.NEGATIVE_INFINITY;
-        double yMin = Double.POSITIVE_INFINITY;
-
-        for (ISeries series : chart.getSeriesSet().getSeries()) {
-            double[] xSeries = series.getXSeries();
-            double[] ySeries = series.getYSeries();
-
-            if (xSeries.length == 0 || ySeries.length == 0) {
-                continue;
-            }
-
-            if (xMax < xSeries[xSeries.length - 1]) {
-                xMax = xSeries[xSeries.length - 1];
-            }
-            if (xMin > xSeries[0]) {
-                xMin = xSeries[0];
-            }
-
-            double ySeriesMax = stream(ySeries).max().getAsDouble();
-            double ySeriesMin = stream(ySeries).min().getAsDouble();
-
-            if (yMax < ySeriesMax) {
-                yMax = ySeriesMax;
-            }
-            if (yMin > ySeriesMin) {
-                yMin = ySeriesMin;
-            }
-
-        }
-
-        Range xRange = rangeWithMargin(xMin, xMax);
-        Range yRange = rangeWithMargin(yMin, yMax);
-
-        for (IAxis xAxis : chart.getAxisSet().getXAxes()) {
-            xAxis.setRange(xRange);
-        }
-        for (IAxis yAxis : chart.getAxisSet().getYAxes()) {
-            yAxis.setRange(yRange);
-        }
-    }
-
-    /**
      * Set the range of all axes so that the series with the given name are fully visible.
      * @param chart whose axes will be adjusted
      * @param seriesName name of the series to center around
@@ -103,12 +53,10 @@ public class ChartUtils extends UtilityClass {
         double ySeriesMin = stream(ySeries).min().getAsDouble();
         Range yRange = rangeWithMargin(ySeriesMin, ySeriesMax);
 
-        for (IAxis xAxis : chart.getAxisSet().getXAxes()) {
-            xAxis.setRange(xRange);
-        }
-        for (IAxis yAxis : chart.getAxisSet().getYAxes()) {
-            yAxis.setRange(yRange);
-        }
+        IAxisSet axisSet = chart.getAxisSet();
+        axisSet.getXAxis(0).setRange(xRange);
+        axisSet.getYAxis(0).setRange(yRange);
+        axisSet.getYAxis(1).setRange(yRange);
     }
 
     private static Range rangeWithMargin(double lower, double upper) {
@@ -116,6 +64,23 @@ public class ChartUtils extends UtilityClass {
         double margin = length / 100;
 
         return new Range(lower - margin, upper + margin);
+    }
+
+    /**
+     * Set the range of all chart axes so that all are fully visible.
+     * @param chart whose axes will be adjusted
+     */
+    public static void adjustRange(Chart chart) {
+        Objects.requireNonNull(chart);
+
+        IAxisSet axisSet = chart.getAxisSet();
+        axisSet.getXAxis(0).adjustRange();
+
+        IAxis primaryYAxis = axisSet.getYAxis(0);
+        IAxis secondaryYAxis = axisSet.getYAxis(1);
+
+        primaryYAxis.adjustRange();
+        secondaryYAxis.setRange(primaryYAxis.getRange());
     }
 
     /**

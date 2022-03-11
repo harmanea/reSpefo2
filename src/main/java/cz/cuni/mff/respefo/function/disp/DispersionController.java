@@ -74,7 +74,7 @@ public class DispersionController {
         newChart()
                 .title("Derive dispersion")
                 .xAxisLabel(PIXELS)
-                .hideYAxis()
+                .hideYAxes()
                 .series(lineSeries()
                         .name("a")
                         .color(GREEN)
@@ -82,8 +82,9 @@ public class DispersionController {
                 .series(lineSeries()
                         .name("b")
                         .color(GREEN)
-                        .series(seriesB))
-                .keyListener(ch -> ChartKeyListener.customAction(ch, this::stackAbove))
+                        .series(seriesB)
+                        .newYAxis())
+                .keyListener(ch -> new ChartKeyListener.CustomAction(ch, this::stackAbove))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {
                         case SWT.INSERT:
@@ -160,18 +161,21 @@ public class DispersionController {
                         event.gc.drawLine(x, 0, x, event.height);
                     }
                 })
-                .adjustRange()
                 .accept(this::stackAbove)
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
     }
 
     private void stackAbove(Chart chart) {
+        chart.getAxisSet().getXAxis(0).adjustRange();
+
         IAxis aAxis = chart.getAxisSet().getYAxis(chart.getSeriesSet().getSeries("a").getYAxisId());
+        aAxis.adjustRange();
         Range aRange = aAxis.getRange();
         aAxis.setRange(new Range(2 * aRange.lower - aRange.upper, aRange.upper));
 
         IAxis bAxis = chart.getAxisSet().getYAxis(chart.getSeriesSet().getSeries("b").getYAxisId());
+        bAxis.adjustRange();
         Range bRange = bAxis.getRange();
         bAxis.setRange(new Range(bRange.lower, 2 * bRange.upper  - bRange.lower));
     }
@@ -229,7 +233,7 @@ public class DispersionController {
         newChart()
                 .title("Residuals")
                 .xAxisLabel(PIXELS)
-                .yAxisLabel("error")
+                .yAxisLabel("Error")
                 .series(scatterSeries()
                         .name("points")
                         .xSeries(x)

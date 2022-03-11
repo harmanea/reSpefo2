@@ -116,7 +116,7 @@ public class MeasureEWController {
                 .series(lineSeries()
                         .series(series)
                         .color(GREEN))
-                .keyListener(ch -> ChartKeyListener.customAction(ch, ch2 -> adjustView(ch, result)))
+                .keyListener(ch -> new ChartKeyListener.CustomAction(ch, ch2 -> adjustView(ch, result)))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {
                         case SWT.END:
@@ -227,6 +227,7 @@ public class MeasureEWController {
 
         chart.getAxisSet().getXAxis(0).setRange(new Range(series.getX(lowerBound), series.getX(upperBound)));
         chart.getAxisSet().getYAxis(0).setRange(new Range(min - DOUBLE_PRECISION, max + DOUBLE_PRECISION));
+        chart.getAxisSet().getYAxis(1).setRange(new Range(min - DOUBLE_PRECISION, max + DOUBLE_PRECISION));
 
         chart.getAxisSet().zoomOut();
     }
