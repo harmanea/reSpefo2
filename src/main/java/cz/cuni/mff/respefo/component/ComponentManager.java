@@ -24,7 +24,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
 import java.io.File;
-import java.net.URL;
+import java.io.IOException;
 import java.util.Arrays;
 
 import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
@@ -402,15 +402,16 @@ public class ComponentManager extends UtilityClass {
 
     private static void showDocumentation() {
         try {
+            String docsText = FileUtils.getResourceFileAsString("docs/documentation.html");
+
             final Browser browser = new Browser(clearAndGetScene(), NONE);
             browser.setLayoutData(new GridData(GridData.FILL_BOTH));
             browser.addProgressListener(Progress.progressListener());
-            URL url = ComponentManager.class.getClassLoader().getResource("docs/documentation.html");
-            browser.setUrl(url.toString());
+            browser.setText(docsText);
             browser.requestLayout();
 
-        } catch (SWTError error) {
-            Message.error("Couldn't instantiate browser", error);
+        } catch (SWTError | IOException error) {
+            Message.error("Couldn't open documentation in browser", error);
         }
     }
 

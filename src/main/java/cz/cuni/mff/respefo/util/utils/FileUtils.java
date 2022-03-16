@@ -4,8 +4,7 @@ import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.UtilityClass;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
@@ -207,6 +206,26 @@ public class FileUtils extends UtilityClass {
         } catch (NumberFormatException | IndexOutOfBoundsException exception) {
             // File name does not conform to the naming convention
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Reads given resource file as a string.
+     * <p>
+     * Taken from a <a href="https://stackoverflow.com/a/46613809/">StackOverflow answer </a>.
+     *
+     * @param fileName path to the resource file
+     * @return the file's contents
+     * @throws IOException if read fails for any reason
+     */
+    public static String getResourceFileAsString(String fileName) throws IOException {
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        try (InputStream is = classLoader.getResourceAsStream(fileName)) {
+            if (is == null) return null;
+            try (InputStreamReader isr = new InputStreamReader(is);
+                 BufferedReader reader = new BufferedReader(isr)) {
+                return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+            }
         }
     }
 
