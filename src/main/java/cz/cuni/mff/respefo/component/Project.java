@@ -23,6 +23,8 @@ public class Project extends UtilityClass {
 
         FileExplorer.getDefault().setRootDirectory(directory);
         SpectrumExplorer.getDefault().setRootDirectory(directory);
+
+        FileDialogs.setFilterPath(directory.getPath());
     }
 
     public static File getRootDirectory() {
@@ -44,7 +46,6 @@ public class Project extends UtilityClass {
         if (directoryName != null) {
             try {
                 setRootDirectory(new File(directoryName));
-                FileDialogs.setFilterPath(directoryName);
             } catch (Exception exception) {
                 Message.error("Couldn't change project directory", exception);
             }

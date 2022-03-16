@@ -554,8 +554,8 @@ public class RectifyFunction extends SpectrumFunction {
         final RectifyAsset[] rectifyAssets;
         final Set<Integer> rectifiedIndices;
 
-        double[] xCoordinates;
-        double[] yCoordinates;
+        final double[] xCoordinates;
+        final double[] yCoordinates;
         final Set<Integer> excludedOrders = new HashSet<>(DEFAULT_EXCLUDED_ORDERS);
         int polyDegree = DEFAULT_POLY_DEGREE;
         double[] coeffs;
