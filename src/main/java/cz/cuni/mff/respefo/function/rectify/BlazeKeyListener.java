@@ -48,7 +48,7 @@ public class BlazeKeyListener extends ArrowsChartKeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.keyCode == SWT.CR) {
+        if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
             finishAction.run();
         } else {
             super.keyPressed(e);
