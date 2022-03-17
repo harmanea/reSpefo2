@@ -4,9 +4,9 @@ import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
+import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
 import cz.cuni.mff.respefo.function.lst.LstFile;
 import cz.cuni.mff.respefo.logging.Log;
-import cz.cuni.mff.respefo.spectrum.port.fits.FitsFormat;
 import cz.cuni.mff.respefo.spectrum.port.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
@@ -36,7 +36,7 @@ public class AddToProjectFunction extends PrepareProjectFunction {
     public void execute(List<File> files) {
         List<File> lstFiles = files.stream().filter(hasExtension("lst")).collect(toList());
 
-        ProjectDialog dialog = projectDialog(lstFiles, false);  // TODO: Can we suggest the prefix in a more clever way?
+        ProjectDialog dialog = projectDialog(lstFiles, false);
         int status = dialog.open();
         if (status == SWT.CANCEL) {
             return;
@@ -49,8 +49,8 @@ public class AddToProjectFunction extends PrepareProjectFunction {
         }
 
         // Files to be added
-        // TODO: Make this editable
         List<FitsFile> fitsFiles = files.stream()
+                .filter(new FitsFileFilter()::accept)
                 .filter(AddToProjectFunction.fileToAdd(prefix))
                 .map(AddToProjectFunction::openFile)
                 .filter(Objects::nonNull)
@@ -65,7 +65,7 @@ public class AddToProjectFunction extends PrepareProjectFunction {
                 .map(FileUtils::getFileIndex)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .max(Integer::compareTo) // TODO: What happens if the indices are not ascending with 1 increments?
+                .max(Integer::compareTo)
                 .orElse(0);
 
         switch (status) {
@@ -124,7 +124,7 @@ public class AddToProjectFunction extends PrepareProjectFunction {
     }
 
     private static Predicate<File> fileToAdd(String prefix) {
-        final Pattern pattern = Pattern.compile(prefix + "\\d{5}.(?:" + String.join("|", FitsFormat.FILE_EXTENSIONS) + ")");
-        return file -> !file.isDirectory() && !pattern.matcher(file.getName()).matches();
+        final Pattern pattern = Pattern.compile(prefix + "\\d{5}");
+        return file -> !file.isDirectory() && !pattern.matcher(FileUtils.stripFileExtension(file.getName())).matches();
     }
 }
