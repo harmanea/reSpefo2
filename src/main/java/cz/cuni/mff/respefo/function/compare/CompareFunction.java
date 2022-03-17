@@ -82,6 +82,7 @@ public class CompareFunction implements MultiFileFunction {
 
     private void setTitle(Chart chart, List<Spectrum> spectra) {
         ITitle title = chart.getTitle();
+        title.setVisible(true);
 
         StringBuilder stringBuilder = new StringBuilder();
         StyleRange[] styleRanges = new StyleRange[spectra.size()];

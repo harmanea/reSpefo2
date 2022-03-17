@@ -21,10 +21,16 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.*;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 
 import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
@@ -256,6 +262,7 @@ public class ComponentManager extends UtilityClass {
                         )
                 ),
                 header("Help",
+                        item("Project Website ↗", ComponentManager::openWebsite),
                         item("Documentation", ComponentManager::showDocumentation)
                 )
         );
@@ -412,6 +419,14 @@ public class ComponentManager extends UtilityClass {
 
         } catch (SWTError | IOException error) {
             Message.error("Couldn't open documentation in browser", error);
+        }
+    }
+
+    private static void openWebsite() {
+        try {
+            Desktop.getDesktop().browse(URI.create("https://astro.troja.mff.cuni.cz/projects/respefo/"));
+        } catch (Exception exception) {
+            Message.error("Couldn't open website in default broswer.\n You can also copy and open this link manually:\n\nhttps://astro.troja.mff.cuni.cz/projects/respefo/", exception);
         }
     }
 

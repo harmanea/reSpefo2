@@ -116,7 +116,7 @@ public class MeasureEWController {
                 .series(lineSeries()
                         .series(series)
                         .color(GREEN))
-                .keyListener(ch -> new ChartKeyListener.CustomAction(ch, ch2 -> adjustView(ch, result)))
+                .keyListener(ch -> new ChartKeyListener.CustomAction(ch, ch2 -> adjustView(ch2, result)))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {
                         case SWT.END:

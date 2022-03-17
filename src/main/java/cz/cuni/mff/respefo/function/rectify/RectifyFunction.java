@@ -280,11 +280,12 @@ public class RectifyFunction extends SpectrumFunction {
         EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices);
         if (dialog.openIsOk()) {
             ComponentManager.clearScene(true);
-            context.selectedIndices = dialog.getSelectedIndices();
-            if (context.selectedIndices.hasNext()) {
-                Async.whileLoop(context, RectifyFunction::rectifySingleEchelleOrder,
-                        c -> {
-                            c.recalculatePolyCoeffs();
+            Iterator<Integer> selectedIndices = dialog.getSelectedIndices();
+            if (selectedIndices.hasNext()) {
+                Async.whileLoop(context,
+                        (ctx, call) -> rectifySingleEchelleOrder(selectedIndices, ctx, call),
+                        ctx -> {
+                            ctx.recalculatePolyCoeffs();
                             callback.accept(true);
                         });
             } else {
@@ -293,9 +294,9 @@ public class RectifyFunction extends SpectrumFunction {
         }
     }
 
-    private static void rectifySingleEchelleOrder(EchelleRectificationContext context, Consumer<Boolean> callback) {
-        if (context.selectedIndices.hasNext()) {
-            int index = context.selectedIndices.next();
+    private static void rectifySingleEchelleOrder(Iterator<Integer> selectedIndices, EchelleRectificationContext context, Consumer<Boolean> callback) {
+        if (selectedIndices.hasNext()) {
+            int index = selectedIndices.next();
             context.rectifiedIndices.add(index);
             fineTuneBlazeParameters(index, context, () -> callback.accept(true));
         } else {
@@ -357,7 +358,6 @@ public class RectifyFunction extends SpectrumFunction {
                             if (blaze.isUnchanged(context.blazeAsset)) {
                                 Async.exec(() -> fineTuneRectificationPoints(index, context, callback, context.spectrum.getRectifyAssets()[index]));
                             } else {
-                                // TODO: Also remove from removed indices?
                                 context.xCoordinates[index] = blaze.getCentralWavelength();
                                 context.yCoordinates[index] = blaze.getScale();
                                 blaze.saveToAsset(context.blazeAsset);
@@ -559,8 +559,6 @@ public class RectifyFunction extends SpectrumFunction {
         final Set<Integer> excludedOrders = new HashSet<>(DEFAULT_EXCLUDED_ORDERS);
         int polyDegree = DEFAULT_POLY_DEGREE;
         double[] coeffs;
-
-        Iterator<Integer> selectedIndices;  // TODO: This doesn't need to be here
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
             this.spectrum = spectrum;
