@@ -4,6 +4,9 @@ plugins {
     id 'com.palantir.git-version' version '0.13.0' // for git version plugin
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 group 'cz.cuni.mff'
 version gitVersion().replace('.dirty', '') // There is a JGit bug
 
