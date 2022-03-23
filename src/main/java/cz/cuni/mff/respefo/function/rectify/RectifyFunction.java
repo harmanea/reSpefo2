@@ -369,7 +369,7 @@ public class RectifyFunction extends SpectrumFunction {
                 .plotAreaPaintListener(ch -> event -> {
                     int y = ch.getAxisSet().getYAxis(0).getPixelCoordinate(originalScale);
                     int x = ch.getAxisSet().getXAxis(0).getPixelCoordinate(originalCentralWavelength);
-                    event.gc.setForeground(getColor(DARK_GRAY));
+                    event.gc.setForeground(getColor(LIGHT_GRAY));
                     event.gc.setLineStyle(SWT.LINE_DOT);
                     event.gc.drawLine(0, y, event.width, y);
                     event.gc.drawLine(x, 0, x, event.height);
