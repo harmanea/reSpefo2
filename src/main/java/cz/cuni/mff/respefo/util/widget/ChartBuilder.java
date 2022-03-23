@@ -148,6 +148,24 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         return this;
     }
 
+    public ChartBuilder verticalLine(double x, ColorResource color, int lineStyle) {
+        return plotAreaPaintListener(ch -> event -> {
+            int coordinate = ch.getAxisSet().getXAxis(0).getPixelCoordinate(x);
+            event.gc.setForeground(getColor(color));
+            event.gc.setLineStyle(lineStyle);
+            event.gc.drawLine(coordinate, 0, coordinate, event.height);
+        });
+    }
+
+    public ChartBuilder horizontalLine(double y, ColorResource color, int lineStyle) {
+        return plotAreaPaintListener(ch -> event -> {
+            int coordinate = ch.getAxisSet().getYAxis(0).getPixelCoordinate(y);
+            event.gc.setForeground(getColor(color));
+            event.gc.setLineStyle(lineStyle);
+            event.gc.drawLine(0, coordinate, event.width, coordinate);
+        });
+    }
+
     public ChartBuilder centerAroundSeries(String name) {
         addProperty(ch -> ChartUtils.centerAroundSeries(ch, name));
         return this;

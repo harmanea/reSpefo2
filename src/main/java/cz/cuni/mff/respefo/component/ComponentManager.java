@@ -181,8 +181,11 @@ public class ComponentManager extends UtilityClass {
 
         final Menu menu = new Menu(shell, POP_UP);
         for (LogLevel level : LogLevel.values()) {
-            final MenuItem item = new MenuItem(menu, PUSH);
+            final MenuItem item = new MenuItem(menu, RADIO);
             item.setText(level.name());
+            if (level.equals(LogLevel.INFO)) {
+                item.setSelection(true);
+            }
             item.addSelectionListener(new DefaultSelectionListener(event -> fancyLogListener.setMinimumLevel(level)));
         }
         eventLogTab.addTopBarMenuButton("Minimum Level", ImageResource.FILTER, menu);

@@ -46,7 +46,7 @@ import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
+import static cz.cuni.mff.respefo.util.utils.CollectionUtils.setOf;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
@@ -56,8 +56,7 @@ import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.lang.Math.*;
 import static java.util.Arrays.copyOfRange;
 import static java.util.function.UnaryOperator.identity;
-import static org.eclipse.swt.SWT.POP_UP;
-import static org.eclipse.swt.SWT.PUSH;
+import static org.eclipse.swt.SWT.*;
 
 @Fun(name = "Rectify", fileFilter = SpefoFormatFileFilter.class, group = "Preprocessing")
 @Serialize(key = RectifyFunction.RECTIFY_SERIALIZE_KEY, assetClass = RectifyAsset.class)
@@ -71,10 +70,10 @@ public class RectifyFunction extends SpectrumFunction {
     public static final String SELECTED_SERIES_NAME = "selected";
     public static final String CONTINUUM_SERIES_NAME = "continuum";
 
-    private static final List<Integer> DEFAULT_EXCLUDED_ORDERS = listOf(5, 10, 29, 35, 39, 43, 47, 51, 58); // TODO: Make this automatic, carry over to next
-    private static final int DEFAULT_POLY_DEGREE = 9;
-
     private static RectifyAsset previousAsset;
+
+    private static Set<Integer> previousExcludedOrders = setOf(5, 10, 29, 35, 39, 43, 47, 51, 58);  // TODO: Make this automatic?
+    private static int previousPolyDegree = 9;
 
     @Override
     public void execute(Spectrum spectrum) {
@@ -193,7 +192,7 @@ public class RectifyFunction extends SpectrumFunction {
                         point -> {
                             ISeries selectedSeries = ch.getSeriesSet().getSeries(SELECTED_SERIES_NAME);
                             ISeries pointSeries = ch.getSeriesSet().getSeries(POINTS_SERIES_NAME);
-                            int index = Arrays.binarySearch(context.xCoordinates, selectedSeries.getXSeries()[0]);
+                            int index = Arrays.binarySearch(context.xCoordinates, selectedSeries.getXSeries()[0]);  // TODO: Cache this
                             if (index >= 0) {
                                 double clampMin = max(context.series[index].getX(0),
                                         index > 0
@@ -219,6 +218,21 @@ public class RectifyFunction extends SpectrumFunction {
                         point -> {},
                         () -> {}))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
+                .plotAreaPaintListener(ch -> event -> {
+                    ILineSeries selected = (ILineSeries) ch.getSeriesSet().getSeries(SELECTED_SERIES_NAME);
+                    double x = selected.getXSeries()[0];
+                    double y = selected.getYSeries()[0];
+
+                    int index = Arrays.binarySearch(context.xCoordinates, x);  // TODO: Cache this
+                    if (index >= 0) {
+                        Point position = ChartUtils.getCoordinatesFromRealValues(ch, x, y);
+
+                        event.gc.setForeground(getColor(RED));
+                        event.gc.drawText(Integer.toString(index + 1),
+                                (int) position.x - (index > 8 ? 8 : 4),
+                                (int) position.y - 20, true);
+                    }
+                })
                 .adjustRange()
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
@@ -231,8 +245,11 @@ public class RectifyFunction extends SpectrumFunction {
         final Menu menu = new Menu(ComponentManager.getShell(), POP_UP);
         for (int order = 5; order < 16; order++) {
             final int polyDegree = order;
-            final MenuItem item = new MenuItem(menu, PUSH);
+            final MenuItem item = new MenuItem(menu, RADIO);
             item.setText(String.valueOf(order));
+            if (order == context.polyDegree) {
+                item.setSelection(true);
+            }
             item.addSelectionListener(new DefaultSelectionListener(event -> {
                 context.polyDegree = polyDegree;
                 updateCoeffsAndFit.accept(chart);
@@ -345,7 +362,7 @@ public class RectifyFunction extends SpectrumFunction {
                         .series(currentSeries))
                 .series(lineSeries()
                         .name("blaze")
-                        .color(GRAY)
+                        .color(LIGHT_GRAY)
                         .xSeries(blazeXSeries)
                         .ySeries(blazeYSeries))
                 .series(lineSeries()
@@ -366,18 +383,14 @@ public class RectifyFunction extends SpectrumFunction {
                         }))
                 .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> updateChart(ch, blaze), blaze))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
+                .verticalLine(originalCentralWavelength, GRAY, LINE_DOT)
+                .horizontalLine(originalScale, GRAY, LINE_DOT)
                 .plotAreaPaintListener(ch -> event -> {
-                    int y = ch.getAxisSet().getYAxis(0).getPixelCoordinate(originalScale);
-                    int x = ch.getAxisSet().getXAxis(0).getPixelCoordinate(originalCentralWavelength);
-                    event.gc.setForeground(getColor(LIGHT_GRAY));
-                    event.gc.setLineStyle(SWT.LINE_DOT);
-                    event.gc.drawLine(0, y, event.width, y);
-                    event.gc.drawLine(x, 0, x, event.height);
-                    event.gc.setLineStyle(SWT.LINE_SOLID);
-
                     boolean horizontal = (boolean) ch.getData("horizontal");
 
                     Point coordinates = ChartUtils.getCoordinatesFromRealValues(ch, blaze.getCentralWavelength(), blaze.getScale());
+
+                    event.gc.setLineStyle(LINE_SOLID);
 
                     event.gc.setForeground(getColor(horizontal ? BLUE : CYAN));
                     event.gc.drawLine(0, (int) coordinates.y, event.width, (int) coordinates.y);
@@ -533,6 +546,8 @@ public class RectifyFunction extends SpectrumFunction {
         } else {
             spectrum.putFunctionAsset(BLAZE_SERIALIZE_KEY, context.blazeAsset);
         }
+        previousPolyDegree = context.polyDegree;
+        previousExcludedOrders = context.excludedOrders;
 
         try {
             spectrum.save();
@@ -556,8 +571,8 @@ public class RectifyFunction extends SpectrumFunction {
 
         final double[] xCoordinates;
         final double[] yCoordinates;
-        final Set<Integer> excludedOrders = new HashSet<>(DEFAULT_EXCLUDED_ORDERS);
-        int polyDegree = DEFAULT_POLY_DEGREE;
+        final Set<Integer> excludedOrders = new HashSet<>(previousExcludedOrders);
+        int polyDegree = previousPolyDegree;
         double[] coeffs;
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
