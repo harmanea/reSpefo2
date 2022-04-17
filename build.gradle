@@ -24,7 +24,6 @@ eclipseMavenCentral {
 repositories {
     mavenCentral()
     maven { url 'https://buchen.github.io/maven-repo' } // for swtchart
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } // for nom-tam-fits snapshot
 }
 
 configurations.all {
@@ -37,7 +36,7 @@ configurations.all {
 
 dependencies {
     implementation 'junit:junit:4.13'
-    implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.16.1-SNAPSHOT'
+    implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.16.1'
     implementation 'org.swtchart:org.swtchart:0.10.0'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.4.1'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.4.1'
