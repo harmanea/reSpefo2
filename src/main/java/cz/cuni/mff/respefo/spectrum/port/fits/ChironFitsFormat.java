@@ -55,7 +55,7 @@ public class ChironFitsFormat extends ImportFitsFormat {
     @Override
     public String description() {
         return "The CTIO Chiron FITS format.\n\n" +
-                "Pixels extracted along each echelle are stored separately in a 3-D array of type float.\n\n" +
+                "Values extracted along each echelle are stored separately in a 3-D array of type float.\n\n" +
                 "This format is used by the Cerro Tololo Inter-American Observatory (CTIO) to store data obtained using CHIRON, the optical high-resolution echelle spectrometer.";
     }
 
