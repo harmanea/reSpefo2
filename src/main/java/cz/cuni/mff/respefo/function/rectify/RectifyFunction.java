@@ -608,7 +608,7 @@ public class RectifyFunction extends SpectrumFunction {
             int n = series[0].getLength();
             for (int index : asset) {
                 int order = Math.floorDiv(index, n);
-                int indexInOrder = index % order;
+                int indexInOrder = index % n;
                 deletedIndices.putIfAbsent(order, new ArrayList<>());
                 deletedIndices.get(order).add(indexInOrder);
             }
