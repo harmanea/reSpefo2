@@ -7,6 +7,8 @@ import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
+import cz.cuni.mff.respefo.function.rv.MeasureRVFunction;
+import cz.cuni.mff.respefo.function.rv.MeasureRVResults;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.port.ExportFileFormat;
@@ -27,6 +29,7 @@ import static cz.cuni.mff.respefo.dialog.OverwriteDialog.*;
 import static cz.cuni.mff.respefo.util.FileType.COMPATIBLE_SPECTRUM_FILES;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
+import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static org.eclipse.swt.SWT.CANCEL;
 
 @Fun(name = "Export", fileFilter = SpefoFormatFileFilter.class)
@@ -59,12 +62,27 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
         }
 
         List<ExportFileFormat> fileFormats = FormatManager.getExportFileFormats(fileName);
-
-        FileFormatSelectionDialog<ExportFileFormat> dialog = new FileFormatSelectionDialog<>(fileFormats, "Export");
-        if (dialog.openIsOk()) {
-            dialog.getFileFormat().exportTo(spectrum, fileName);
+        ExportDialog exportDialog = new ExportDialog(fileFormats);
+        if (exportDialog.openIsOk()) {
+            ExportDialog.Options options = exportDialog.getOptions();
+            if (options.applyZeroPointRvCorrection) {
+                applyZeroPointRvCorrection(spectrum);
+            }
+            options.format.exportTo(spectrum, fileName);
+            return true;
         }
-        return true;
+
+        return false;
+    }
+
+    private static void applyZeroPointRvCorrection(Spectrum spectrum) {
+        spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class)
+                .ifPresent(results -> {
+                    double measuredRvCorrection = results.getRvOfCategory("corr");
+                    if (isNotNaN(measuredRvCorrection)) {
+                        spectrum.updateRvCorrection(measuredRvCorrection);
+                    }
+                });
     }
 
     @Override
@@ -83,11 +101,11 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
             return;
         }
 
-        FileFormatSelectionDialog<ExportFileFormat> formatDialog = new FileFormatSelectionDialog<>(fileFormats, "Export");
-        if (formatDialog.openIsNotOk()) {
+        ExportDialog exportDialog = new ExportDialog(fileFormats);
+        if (exportDialog.openIsNotOk()) {
             return;
         }
-        ExportFileFormat exportFormat = formatDialog.getFileFormat();
+        ExportDialog.Options options = exportDialog.getOptions();
 
         Progress.withProgressTracking(p -> {
             p.refresh("Exporting files", spectrumFiles.size() * 2);
@@ -97,6 +115,9 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
             for (File spectrumFile : spectrumFiles) {
                 try {
                     Spectrum spectrum = Spectrum.open(spectrumFile);
+                    if (options.applyZeroPointRvCorrection) {
+                        applyZeroPointRvCorrection(spectrum);
+                    }
                     spectra.add(spectrum);
                 } catch (SpefoException exception) {
                     Log.error("An error occurred while opening file " + spectrumFile.toPath(), exception);
@@ -111,7 +132,7 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
                 try {
                     String fileName = FileUtils.replaceFileExtension(spectrum.getFile().getPath(), fileExtension);
 
-                    int response = exportTo(p, spectrum, fileName, exportFormat, applyToAllAction);
+                    int response = exportTo(p, spectrum, fileName, options.format, applyToAllAction);
                     if (response == CANCEL) {
                         break;
                     } else if (response < 0) {

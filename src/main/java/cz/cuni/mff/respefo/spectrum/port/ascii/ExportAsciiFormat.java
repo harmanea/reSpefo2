@@ -13,6 +13,7 @@ import java.util.Locale;
 
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripParent;
+import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 
 public class ExportAsciiFormat extends AsciiFormat implements ExportFileFormat {
 
@@ -25,16 +26,18 @@ public class ExportAsciiFormat extends AsciiFormat implements ExportFileFormat {
         double[] y = series.getYSeries();
 
         try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.print("# ");
             if (spectrum.getOrigin() instanceof AsciiOrigin) {
                 String originalFirstLine = ((AsciiOrigin) spectrum.getOrigin()).getFirstLine();
                 if (originalFirstLine != null) {
-                    writer.println("# " + originalFirstLine);
+                    writer.print(originalFirstLine);
                 }
 
             } else {
                 String strippedName = stripFileExtension(stripParent(fileName));
-                writer.println(strippedName);
+                writer.print(strippedName);
             }
+            writer.println(" | RV correction: " + formatDouble(spectrum.getRvCorrection(), 2, 2, true));
 
             for (int i = 0; i < x.length; i++) {
                 writer.print(FORMAT.format(x[i]));
