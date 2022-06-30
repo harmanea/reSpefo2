@@ -38,9 +38,11 @@ import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 import org.swtchart.ISeries;
+import org.swtchart.Range;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
@@ -53,7 +55,8 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lin
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.ScatterSeriesBuilder.scatterSeries;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
-import static java.lang.Math.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.util.Arrays.copyOfRange;
 import static java.util.function.UnaryOperator.identity;
 import static org.eclipse.swt.SWT.*;
@@ -128,20 +131,30 @@ public class RectifyFunction extends SpectrumFunction {
             }
         }
 
-        context.recalculatePolyCoeffs();
-
         XYSeries mergedSeries = XYSeries.merge(context.series);
-        double[] fitXSeries = ArrayUtils.linspace(mergedSeries.getX(0), mergedSeries.getLastX(), 100);
-        double[] fitYSeries = Arrays.stream(fitXSeries).map(x -> MathUtils.polynomial(x, context.coeffs)).toArray();
+        double[] fitXSeries = ArrayUtils.linspace(mergedSeries.getX(0), mergedSeries.getLastX(), 5_000);
+        double[] fitYSeries;
+        if (context.polyDegree > 0) {
+            context.recalculatePolyCoeffs();
+            fitYSeries = Arrays.stream(fitXSeries).map(x -> MathUtils.polynomial(x, context.polyCoeffs)).toArray();
+        } else {
+            fitYSeries = MathUtils.intep(context.pointXSeries(), context.pointYSeries(), fitXSeries);
+        }
 
         Consumer<Chart> updateCoeffsAndFit = ch -> {
-            context.recalculatePolyCoeffs();
-            ch.getSeriesSet().getSeries("fit")
-                    .setYSeries(
-                            Arrays.stream(fitXSeries)
-                                    .map(x -> MathUtils.polynomial(x, context.coeffs))
-                                    .toArray()
-                    );
+            ISeries fitSeries = ch.getSeriesSet().getSeries("fit");
+            if (context.polyDegree > 0) {
+                context.recalculatePolyCoeffs();
+                fitSeries.setYSeries(
+                        Arrays.stream(fitXSeries)
+                                .map(x -> MathUtils.polynomial(x, context.polyCoeffs))
+                                .toArray()
+                );
+            } else {
+                fitSeries.setYSeries(
+                        MathUtils.intep(context.pointXSeries(), context.pointYSeries(), fitXSeries)
+                );
+            }
             ch.redraw();
             ch.forceFocus();
         };
@@ -255,6 +268,15 @@ public class RectifyFunction extends SpectrumFunction {
                 updateCoeffsAndFit.accept(chart);
             }));
         }
+        final MenuItem menuItem = new MenuItem(menu, RADIO);
+        menuItem.setText("Spline");
+        if (context.polyDegree <= 0) {
+            menuItem.setSelection(true);
+        }
+        menuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+            context.polyDegree = -1;
+            updateCoeffsAndFit.accept(chart);
+        }));
 
         tab.addTopBarMenuButton("Poly Degree", ImageResource.POLY, menu);
 
@@ -302,7 +324,9 @@ public class RectifyFunction extends SpectrumFunction {
                 Async.whileLoop(context,
                         (ctx, call) -> rectifySingleEchelleOrder(selectedIndices, ctx, call),
                         ctx -> {
-                            ctx.recalculatePolyCoeffs();
+                            if (ctx.polyDegree > 0) {
+                                ctx.recalculatePolyCoeffs();
+                            }
                             callback.accept(true);
                         });
             } else {
@@ -324,7 +348,7 @@ public class RectifyFunction extends SpectrumFunction {
     private static void rectifyRemainingEchelleOrders(EchelleRectificationContext context, Runnable callback) {
         for (int index = 0; index < context.series.length; index++) {
             if (!context.rectifiedIndices.contains(index)) {
-                Blaze blaze = new Blaze(index, context.coeffs);
+                Blaze blaze = new Blaze(index, context.scaleFunction());
                 if (context.blazeAsset.hasParameters(blaze.getOrder())) {
                     context.rectifyAssets[index] = context.spectrum.getRectifyAssets()[index];
                 } else {
@@ -338,7 +362,7 @@ public class RectifyFunction extends SpectrumFunction {
 
     private static void fineTuneBlazeParameters(int index, EchelleRectificationContext context, Runnable callback) {
         XYSeries currentSeries = context.series[index];
-        Blaze blaze = new Blaze(index, context.coeffs);
+        Blaze blaze = new Blaze(index, context.scaleFunction());
 
         final double originalScale = blaze.getScale();
         final double originalCentralWavelength = blaze.getCentralWavelength();
@@ -350,8 +374,8 @@ public class RectifyFunction extends SpectrumFunction {
         double[] blazeXSeries = currentSeries.getXSeries();
         double[] blazeYSeries = blaze.ySeries(blazeXSeries);
 
-        XYSeries residuals = new XYSeries(currentSeries.getXSeries(),
-                ArrayUtils.createArray(currentSeries.getLength(), i -> abs(currentSeries.getY(i) - blazeYSeries[i])));
+        XYSeries rectified = new XYSeries(currentSeries.getXSeries(),
+                ArrayUtils.divideArrayValues(currentSeries.getYSeries(), blazeYSeries));
 
         newChart()
                 .title("#" + (index + 1))
@@ -362,13 +386,37 @@ public class RectifyFunction extends SpectrumFunction {
                         .series(currentSeries))
                 .series(lineSeries()
                         .name("blaze")
-                        .color(LIGHT_GRAY)
+                        .color(SILVER)
                         .xSeries(blazeXSeries)
                         .ySeries(blazeYSeries))
+                .newYAxis()
                 .series(lineSeries()
-                        .name("residuals")
+                        .name("rectified")
                         .color(ORANGE)
-                        .series(residuals))
+                        .series(rectified)
+                        .yAxis(2))
+                .apply(builder -> {
+                    for (int i = max(index - 1, 0); i <= min(index + 1, context.rectifyAssets.length - 1); i++) {
+                        if (i != index) {
+                            XYSeries series = context.series[i];
+
+                            RectifyAsset asset;
+                            if (context.rectifyAssets[i] != null) {
+                                asset = context.rectifyAssets[i];
+                            } else {
+                                asset = new Blaze(i, context.scaleFunction()).toRectifyAsset(series);
+                            }
+
+                            builder.series(lineSeries()
+                                            .color(YELLOW)
+                                            .xSeries(series.getXSeries())
+                                            .ySeries(ArrayUtils.divideArrayValues(series.getYSeries(),
+                                                                                  asset.getIntepData(series.getXSeries())))
+                                            .yAxis(2));
+                        }
+                    }
+                    return builder;
+                })
                 .keyListener(ch -> new BlazeKeyListener(ch, blaze,
                         () ->  updateChart(ch, blaze),
                         () -> {
@@ -397,23 +445,39 @@ public class RectifyFunction extends SpectrumFunction {
 
                     event.gc.setForeground(getColor(horizontal ? CYAN : BLUE));
                     event.gc.drawLine((int) coordinates.x, 0, (int) coordinates.x, event.height);
+
+                    int coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(1);
+                    event.gc.setForeground(getColor(GOLD));
+                    event.gc.setLineStyle(LINE_DOT);
+                    event.gc.drawLine(0, coordinate, event.width, coordinate);
                 })
                 .data("horizontal", false)
                 .adjustRange()
+                .accept(RectifyFunction::adjustRectifiedSeriesAxisRange)
+                .accept(ch -> ch.getAxisSet().getXAxis(0).zoomIn())
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
     }
 
     private static void updateChart(Chart chart, Blaze blaze) {
         ISeries iSeries = chart.getSeriesSet().getSeries("series");
-        XYSeries series = new XYSeries(iSeries.getXSeries(), iSeries.getYSeries());
 
         double[] blazeYSeries = blaze.ySeries(iSeries.getXSeries());
-        double[] residualsYSeries = ArrayUtils.createArray(series.getLength(), i -> abs(series.getY(i) - blazeYSeries[i]));
+        double[] rectifiedYSeries = ArrayUtils.divideArrayValues(iSeries.getYSeries(), blazeYSeries);
 
         chart.getSeriesSet().getSeries("blaze").setYSeries(blazeYSeries);
-        chart.getSeriesSet().getSeries("residuals").setYSeries(residualsYSeries);
+        chart.getSeriesSet().getSeries("rectified").setYSeries(rectifiedYSeries);
+        adjustRectifiedSeriesAxisRange(chart);
         chart.redraw();
+    }
+
+    private static void adjustRectifiedSeriesAxisRange(Chart chart) {
+        ISeries series = chart.getSeriesSet().getSeries("rectified");
+        double maxAbsValue = Arrays.stream(series.getYSeries())
+                .map(y -> Math.abs(y - 1))
+                .max().getAsDouble();
+        Range range = ChartUtils.rangeWithMargin(1 - maxAbsValue, 1 + 4 * maxAbsValue);
+        chart.getAxisSet().getYAxis(series.getYAxisId()).setRange(range);
     }
 
     private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable callback, RectifyAsset asset) {
@@ -427,6 +491,35 @@ public class RectifyFunction extends SpectrumFunction {
                             builder.series(lineSeries().series(context.series[i]).color(GRAY));
                         }
                     }
+
+//                    builder.newYAxis()
+//                            .series(lineSeries()
+//                                    .color(ORANGE)
+//                                    .xSeries(currentSeries.getXSeries())
+//                                    .ySeries(ArrayUtils.divideArrayValues(currentSeries.getYSeries(),
+//                                                                          asset.getIntepData(currentSeries.getXSeries())))
+//                                    .yAxis(2));
+//
+//                    for (int i = max(index - 1, 0); i <= min(index + 1, context.rectifyAssets.length - 1); i++) {
+//                        if (i != index) {
+//                            XYSeries series = context.series[i];
+//
+//                            RectifyAsset rectifyAsset;
+//                            if (context.rectifyAssets[i] != null) {
+//                                rectifyAsset = context.rectifyAssets[i];
+//                            } else {
+//                                rectifyAsset = new Blaze(i, context.scaleFunction()).toRectifyAsset(context.series[i]);
+//                            }
+//
+//                            builder.series(lineSeries()
+//                                    .color(YELLOW)
+//                                    .xSeries(series.getXSeries())
+//                                    .ySeries(ArrayUtils.divideArrayValues(series.getYSeries(),
+//                                                                          rectifyAsset.getIntepData(series.getXSeries())))
+//                                    .yAxis(2));
+//                        }
+//                    }
+
                     return builder;
                 },
                 newAsset -> {
@@ -571,9 +664,11 @@ public class RectifyFunction extends SpectrumFunction {
 
         final double[] xCoordinates;
         final double[] yCoordinates;
+
         final Set<Integer> excludedOrders = new HashSet<>(previousExcludedOrders);
-        int polyDegree = previousPolyDegree;
-        double[] coeffs;
+
+        int polyDegree = previousPolyDegree;  // a value <= 0 means use intep
+        double[] polyCoeffs;
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
             this.spectrum = spectrum;
@@ -600,7 +695,7 @@ public class RectifyFunction extends SpectrumFunction {
             double[] xSeries = pointXSeries();
             double[] ySeries = pointYSeries();
 
-            coeffs = MathUtils.fitPolynomial(xSeries, ySeries, polyDegree);
+            polyCoeffs = MathUtils.fitPolynomial(xSeries, ySeries, polyDegree);
         }
 
         private static void cleanSeries(XYSeries[] series, CleanAsset asset) {
@@ -630,7 +725,7 @@ public class RectifyFunction extends SpectrumFunction {
 
                 double[] newYSeries = MathUtils.intep(remainingXSeries, remainingYSeries, currentSeries.getXSeries());
 
-                series[order] = new XYSeries(currentSeries.getXSeries(), newYSeries);
+                currentSeries.updateYSeries(newYSeries);
             }
         }
 
@@ -659,6 +754,14 @@ public class RectifyFunction extends SpectrumFunction {
                     .filter(index -> !excludedOrders.contains(index))
                     .mapToDouble(index -> yCoordinates[index])
                     .toArray();
+        }
+
+        private DoubleUnaryOperator scaleFunction() {
+            if (polyDegree > 0) {
+                return x -> MathUtils.polynomial(x, polyCoeffs);
+            } else {
+                return x -> MathUtils.intep(pointXSeries(), pointYSeries(), x);
+            }
         }
     }
 }

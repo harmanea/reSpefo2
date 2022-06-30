@@ -5,6 +5,8 @@ import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
+import java.util.function.DoubleUnaryOperator;
+
 import static cz.cuni.mff.respefo.util.utils.MathUtils.doublesEqual;
 import static java.lang.Math.*;
 import static java.util.Arrays.stream;
@@ -16,10 +18,10 @@ public class Blaze {
     private double centralWavelength;
     private double scale;
 
-    public Blaze(int index, double[] coeffs) {
+    public Blaze(int index, DoubleUnaryOperator scaleFunction) {
         order = indexToOrder(index);
         centralWavelength = orderToCentralWavelength(order);
-        scale = MathUtils.polynomial(centralWavelength, coeffs);
+        scale = scaleFunction.applyAsDouble(centralWavelength);
     }
 
 

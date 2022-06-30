@@ -75,6 +75,7 @@ public class DispersionController {
                 .title("Derive dispersion")
                 .xAxisLabel(PIXELS)
                 .hideYAxes()
+                .newYAxis()
                 .series(lineSeries()
                         .name("a")
                         .color(GREEN)
@@ -83,7 +84,7 @@ public class DispersionController {
                         .name("b")
                         .color(GREEN)
                         .series(seriesB)
-                        .newYAxis())
+                        .yAxis(2))
                 .keyListener(ch -> new ChartKeyListener.CustomAction(ch, this::stackAbove))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {

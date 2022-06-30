@@ -94,18 +94,34 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
             lineSeries.setSymbolColor(seriesBuilder.color);
             lineSeries.setSymbolSize(seriesBuilder.symbolSize);
 
-            if (seriesBuilder.newYAxis) {
-                int yAxisId = ch.getAxisSet().createYAxis();
-                IAxis yAxis = ch.getAxisSet().getYAxis(yAxisId);
-
-                yAxis.getTick().setVisible(false);
-                yAxis.getTitle().setVisible(false);
-                yAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
-
-                lineSeries.setYAxisId(yAxisId);
-            }
+            lineSeries.setXAxisId(seriesBuilder.xAxisId);
+            lineSeries.setYAxisId(seriesBuilder.yAxisId);
         });
 
+        return this;
+    }
+
+    public ChartBuilder newXAxis() {
+        addProperty(ch -> {
+            int xAxisId = ch.getAxisSet().createXAxis();
+            IAxis xAxis = ch.getAxisSet().getXAxis(xAxisId);
+
+            xAxis.getTick().setVisible(false);
+            xAxis.getTitle().setVisible(false);
+            xAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
+        });
+        return this;
+    }
+
+    public ChartBuilder newYAxis() {
+        addProperty(ch -> {
+            int yAxisId = ch.getAxisSet().createYAxis();
+            IAxis yAxis = ch.getAxisSet().getYAxis(yAxisId);
+
+            yAxis.getTick().setVisible(false);
+            yAxis.getTitle().setVisible(false);
+            yAxis.getGrid().setForeground(getColor(SECONDARY_COLOR));
+        });
         return this;
     }
 
@@ -247,7 +263,8 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
         Color color = getColor(ColorResource.GREEN);
         double[] xSeries = {};
         double[] ySeries = {};
-        boolean newYAxis = false;
+        int xAxisId = 0;
+        int yAxisId = 0;
 
         private SeriesBuilder(ISeries.SeriesType seriesType) {
             this.seriesType = seriesType;
@@ -291,8 +308,14 @@ public class ChartBuilder extends AbstractControlBuilder<ChartBuilder, Chart> {
             return (B) this;
         }
 
-        public B newYAxis() {
-            this.newYAxis = true;
+        public B xAxis(int xAxisId) {
+            this.xAxisId = xAxisId;
+
+            return (B) this;
+        }
+
+        public B yAxis(int yAxisId) {
+            this.yAxisId = yAxisId;
 
             return (B) this;
         }

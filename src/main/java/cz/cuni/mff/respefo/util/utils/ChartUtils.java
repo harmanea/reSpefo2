@@ -59,7 +59,7 @@ public class ChartUtils extends UtilityClass {
         axisSet.getYAxis(1).setRange(yRange);
     }
 
-    private static Range rangeWithMargin(double lower, double upper) {
+    public static Range rangeWithMargin(double lower, double upper) {
         double length = upper - lower;
         double margin = length / 100;
 
