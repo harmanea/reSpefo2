@@ -368,6 +368,6 @@ public class MeasureRVController {
             return;
         }
 
-        callback.andThen(r -> ComponentManager.clearScene(true)).accept(results);
+        callback.accept(results);
     }
 }

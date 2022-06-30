@@ -53,7 +53,7 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
         displayResults(spectrum);
     }
 
-    private static void displayResults(Spectrum spectrum) {
+    public static void displayResults(Spectrum spectrum) {
         MeasureEWResults results = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get();
         XYSeries series = spectrum.getProcessedSeries();
 

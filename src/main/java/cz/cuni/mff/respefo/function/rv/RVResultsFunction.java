@@ -60,7 +60,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
         displayResults(spectrum);
     }
 
-    private static void displayResults(Spectrum spectrum) {
+    public static void displayResults(Spectrum spectrum) {
         MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
 
         final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);

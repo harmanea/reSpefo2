@@ -84,6 +84,7 @@ public class MeasureRVFunction extends SpectrumFunction {
         try {
             spectrum.save();
             SpectrumExplorer.getDefault().refresh();
+            RVResultsFunction.displayResults(spectrum);
             Message.info("Measurements saved successfully.");
 
         } catch (SpefoException exception) {

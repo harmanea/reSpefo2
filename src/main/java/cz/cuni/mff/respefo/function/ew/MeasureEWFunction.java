@@ -57,6 +57,7 @@ public class MeasureEWFunction extends SpectrumFunction {
         try {
             spectrum.save();
             SpectrumExplorer.getDefault().refresh();
+            EWResultsFunction.displayResults(spectrum);
             Message.info("Measurements saved successfully.");
 
         } catch (SpefoException exception) {
