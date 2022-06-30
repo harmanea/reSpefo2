@@ -49,41 +49,61 @@ public class MathUtils extends UtilityClass {
 
         // Treat points inside bounds
         for (int i = iLow; i <= iHigh; i++) {
-            double xp = xinter[i];
-
-            int j = ArrayUtils.indexOfFirstGreaterThan(x, xp) - 1;
-            if (x[j] == xp) {
-                result[i] = y[j];  // short-circuit speedup
-                continue;
-            }
-
-            double lp1 = 1 / (x[j] - x[j + 1]);
-            double lp2 = -lp1;
-
-            double fp1 = j <= 0
-                    ? (y[1] - y[0]) / (x[1] - x[0]) // first point
-                    : (y[j + 1] - y[j - 1]) / (x[j + 1] - x[j - 1]);
-
-            double fp2 = j >= x.length - 2
-                    ? (y[y.length - 1] - y[y.length - 2]) / (x[x.length - 1] - x[x.length - 2]) // last point
-                    : (y[j + 2] - y[j]) / (x[j + 2] - x[j]);
-
-            double xpi1 = xp - x[j + 1];
-            double xpi = xp - x[j];
-            double l1 = xpi1 * lp1;
-            double l2 = xpi * lp2;
-
-            result[i] = y[j] * (1 - 2 * lp1 * xpi) * l1 * l1
-                    + y[j + 1] * (1 - 2 * lp2 * xpi1) * l2 * l2
-                    + fp2 * xpi1 * l2 * l2
-                    + fp1 * xpi * l1 * l1;
+            result[i] = intepInsideBounds(x, y, xinter[i]);
         }
 
         return result;
     }
 
-    public static double intep(double[] x, double[] y, double xinter) {
-        return intep(x, y, new double[] {xinter})[0];  // TODO: See if this can be done more efficiently
+    /**
+     * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine").
+     * This implementation is based on the FORTRAN code stated therein.
+     *
+     * @param x      Independent values sorted in ascending order
+     * @param y      Dependent values
+     * @param xp     Value at which to interpolate the tabulated data given by 'x' and 'y'
+     * @return Interpolated value at the location specified by 'xp',
+     *  values outside of given bounds are replaced with the last value within the bounds
+     */
+    public static double intep(double[] x, double[] y, double xp) {
+        Objects.requireNonNull(x);
+        Objects.requireNonNull(y);
+
+        if (xp <= x[0]) {
+            return y[0];
+        } else if (xp >= x[x.length - 1]) {
+            return y[y.length - 1];
+        } else {
+            return intepInsideBounds(x, y, xp);
+        }
+    }
+
+    private static double intepInsideBounds(double[] x, double[] y, double xp) {
+        int j = ArrayUtils.indexOfFirstGreaterThan(x, xp) - 1;
+        if (x[j] == xp) {
+            return y[j];  // short-circuit speedup
+        }
+
+        double lp1 = 1 / (x[j] - x[j + 1]);
+        double lp2 = -lp1;
+
+        double fp1 = j <= 0
+                ? (y[1] - y[0]) / (x[1] - x[0]) // first point
+                : (y[j + 1] - y[j - 1]) / (x[j + 1] - x[j - 1]);
+
+        double fp2 = j >= x.length - 2
+                ? (y[y.length - 1] - y[y.length - 2]) / (x[x.length - 1] - x[x.length - 2]) // last point
+                : (y[j + 2] - y[j]) / (x[j + 2] - x[j]);
+
+        double xpi1 = xp - x[j + 1];
+        double xpi = xp - x[j];
+        double l1 = xpi1 * lp1;
+        double l2 = xpi * lp2;
+
+        return y[j] * (1 - 2 * lp1 * xpi) * l1 * l1
+                + y[j + 1] * (1 - 2 * lp2 * xpi1) * l2 * l2
+                + fp2 * xpi1 * l2 * l2
+                + fp1 * xpi * l1 * l1;
     }
 
     /**
@@ -252,6 +272,7 @@ public class MathUtils extends UtilityClass {
      * @param mean    value
      * @return root mean square error
      */
+    @SuppressWarnings("OptionalGetWithoutIsPresent")  // We check for array size before the statement
     public static double sem(double[] observations, double mean) {
         Objects.requireNonNull(observations);
 
