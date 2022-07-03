@@ -109,8 +109,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                 tableItem.setText(3, result.getName());
                 tableItem.setText(4, result.getComment());
 
-                final Button button = newButton(SWT.PUSH).text("Delete").build(table);
-                button.pack();
+                final Button button = newButton(SWT.PUSH).text("Delete").pack().build(table);
 
                 TableEditor editor = new TableEditor(table);
                 editor.horizontalAlignment = SWT.RIGHT;
@@ -133,7 +132,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
 
                     } else if (table.getItemCount() == 1) {
                         meanText.dispose();
-                        group.requestLayout();
+                        table.requestLayout();
 
                     } else {
                         double mean = results.getRvOfCategory(category);
@@ -141,7 +140,8 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
 
                         meanText.setText("mean RV: " + format(mean, 4, 4)
                                 + "\nstd. error: " + format(MathUtils.sem(rvs, mean), 4, 4));
-                        group.requestLayout();
+                        meanText.requestLayout();
+                        table.requestLayout();
                     }
 
                     if (results.isEmpty()) {
@@ -392,8 +392,8 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                     continue;
                 }
 
-                double rvCorr = spectrum.getRvCorrection() - results.getRvOfCategory("corr");
-                writer.print(formatDouble(rvCorr, 2, 2, true));
+                double rvCorrDiff = spectrum.getRvCorrection() - results.getRvOfCategory("corr");
+                writer.print(formatDouble(rvCorrDiff, 2, 2, true));
 
                 writer.print("  ");
 

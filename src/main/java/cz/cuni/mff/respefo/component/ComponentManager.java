@@ -71,6 +71,10 @@ public class ComponentManager extends UtilityClass {
                 if (Project.getRootDirectory() == null) {
                     Project.setRootDirectory(FileUtils.getUserDirectory());
                 }
+
+                if (scene != null && scene.getChildren().length > 0) {
+                    scene.getChildren()[0].forceFocus();
+                }
             }
         });
 

@@ -51,7 +51,7 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                 .headerVisible(true)
                 .linesVisible(true)
                 .columns("No.", "From", "To")
-                .columnWidths(50, 150, 150)
+                .columnWidths(75, 150, 150)
                 .items(Arrays.asList(names))
                 .decorate((i, item) -> {
                     if (disabled.contains(i)) {
