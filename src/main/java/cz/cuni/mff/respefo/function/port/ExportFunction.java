@@ -80,7 +80,8 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
                 .ifPresent(results -> {
                     double measuredRvCorrection = results.getRvOfCategory("corr");
                     if (isNotNaN(measuredRvCorrection)) {
-                        spectrum.updateRvCorrection(measuredRvCorrection);
+                        double headerRvCorrection = spectrum.getRvCorrection();
+                        spectrum.updateRvCorrection(2 * headerRvCorrection - measuredRvCorrection);
                     }
                 });
     }
