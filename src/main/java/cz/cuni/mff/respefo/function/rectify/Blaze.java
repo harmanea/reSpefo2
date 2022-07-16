@@ -5,6 +5,8 @@ import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.function.DoubleUnaryOperator;
 
 import static cz.cuni.mff.respefo.util.utils.MathUtils.doublesEqual;
@@ -17,11 +19,13 @@ public class Blaze {
     private final int order;
     private double centralWavelength;
     private double scale;
+    private double alpha;
 
     public Blaze(int index, DoubleUnaryOperator scaleFunction) {
         order = indexToOrder(index);
         centralWavelength = orderToCentralWavelength(order);
         scale = scaleFunction.applyAsDouble(centralWavelength);
+        alpha = wavelengthToAlpha(centralWavelength);
     }
 
 
@@ -62,6 +66,22 @@ public class Blaze {
         centralWavelength += diff;
     }
 
+    public double getK() {
+        return order * centralWavelength;
+    }
+
+    public double getAlpha() {
+        return alpha;
+    }
+
+    public int getSpinnerAlpha(int digits) {
+        BigDecimal bd = new BigDecimal(alpha * Math.pow(10, digits)).setScale(0, RoundingMode.HALF_EVEN);
+        return bd.intValue();
+    }
+
+    public void setAlpha(double newValue) {
+        alpha = newValue;
+    }
 
     public void updateFromAsset(BlazeAsset asset) {
         centralWavelength = asset.getCentralWavelength(order);
@@ -89,7 +109,7 @@ public class Blaze {
 
     public double[] ySeries(double[] xSeries) {
         return stream(xSeries)
-                .map(x -> scale * r(x, order, centralWavelength, wavelengthToAlpha(x)))
+                .map(x -> scale * r(x, order, centralWavelength, alpha))
                 .toArray();
     }
 

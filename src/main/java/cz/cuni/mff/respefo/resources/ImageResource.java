@@ -2,6 +2,8 @@ package cz.cuni.mff.respefo.resources;
 
 public enum ImageResource {
 
+    // TODO: Make this more developer friendly, especially the LARGE versions
+
     FOLDER("folder.png"),
     OPENED_FOLDER("opened_folder.png"),
     FILE("file.png"),
@@ -32,6 +34,8 @@ public enum ImageResource {
 
     LINES_LARGE("lines_large.png"),
     RULER_LARGE("ruler_large.png"),
+    WRENCH_LARGE("wrench_large.png"),
+    NUMBERED_LIST_LARGE("numbered_list_large.png"),
 
     RECTIFY("rectify.png"),
     RV("rv.png"),
