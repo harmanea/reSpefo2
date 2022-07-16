@@ -3,6 +3,7 @@ package cz.cuni.mff.respefo.util.widget;
 import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -33,30 +34,48 @@ public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, B
         return new ButtonBuilder(style);
     }
 
+    /**
+     * @see Button#setImage(Image)
+     */
     public ButtonBuilder image(Image image) {
         addProperty(b -> b.setImage(image));
         return this;
     }
 
+    /**
+     * @see Button#setImage(Image)
+     */
     public ButtonBuilder image(ImageResource imageResource) {
         return image(ImageManager.getImage(imageResource));
     }
 
+    /**
+     * @see Button#setSelection(boolean)
+     */
     public ButtonBuilder selection(boolean selected) {
         addProperty(b -> b.setSelection(selected));
         return this;
     }
 
+    /**
+     * @see Button#setGrayed(boolean)
+     */
     public ButtonBuilder grayed(boolean grayed) {
         addProperty(b -> b.setGrayed(grayed));
         return this;
     }
 
+    /**
+     * @see Button#setText(String)
+     */
     public ButtonBuilder text(String text) {
         addProperty(b -> b.setText(text));
         return this;
     }
 
+    /**
+     * @see Button#addSelectionListener(SelectionListener)
+     */
     public ButtonBuilder onSelection(Listener listener) {
         return listener(SWT.Selection, listener).listener(SWT.DefaultSelection, listener);
     }

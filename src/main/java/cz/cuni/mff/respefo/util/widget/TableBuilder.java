@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.util.widget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
@@ -31,16 +32,25 @@ public final class TableBuilder extends AbstractControlBuilder<TableBuilder, Tab
         return new TableBuilder(style);
     }
 
+    /**
+     * @see Table#setHeaderVisible(boolean)
+     */
     public TableBuilder headerVisible(boolean show) {
         addProperty(t -> t.setHeaderVisible(show));
         return this;
     }
 
+    /**
+     * @see Table#setLinesVisible(boolean)
+     */
     public TableBuilder linesVisible(boolean show) {
         addProperty(t -> t.setLinesVisible(show));
         return this;
     }
 
+    /**
+     * @see Table#addSelectionListener(SelectionListener)
+     */
     public TableBuilder onSelection(Listener listener) {
         return listener(SWT.Selection, listener).listener(SWT.DefaultSelection, listener);
     }
@@ -69,6 +79,9 @@ public final class TableBuilder extends AbstractControlBuilder<TableBuilder, Tab
         return this;
     }
 
+    /**
+     * @see TableColumn#setWidth(int)
+     */
     public TableBuilder columnWidths(int... columnWidths) {
         addProperty(t -> {
             for (int i = 0; i < columnWidths.length; i++) {
@@ -108,6 +121,9 @@ public final class TableBuilder extends AbstractControlBuilder<TableBuilder, Tab
         return this;
     }
 
+    /**
+     * @see TableColumn#pack()
+     */
     public TableBuilder packColumns() {
         addProperty(t -> {
             for (TableColumn column : t.getColumns()) {

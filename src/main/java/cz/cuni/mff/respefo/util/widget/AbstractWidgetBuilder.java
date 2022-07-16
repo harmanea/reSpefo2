@@ -32,6 +32,9 @@ public abstract class AbstractWidgetBuilder<B extends AbstractWidgetBuilder<?, ?
         properties.add(property);
     }
 
+    /**
+     * @see Widget#addListener(int, Listener)
+     */
     public B listener(int eventType, Listener listener) {
         listeners.put(eventType, listener);
         return (B) this;

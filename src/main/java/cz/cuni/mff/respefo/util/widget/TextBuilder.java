@@ -1,8 +1,8 @@
 package cz.cuni.mff.respefo.util.widget;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -30,23 +30,35 @@ public final class TextBuilder extends AbstractControlBuilder<TextBuilder, Text>
         return new TextBuilder(style);
     }
 
+    /**
+     * @see Text#setEditable(boolean)
+     */
     public TextBuilder editable(boolean editable) {
         addProperty(t -> t.setEditable(editable));
         return this;
     }
 
+    /**
+     * @see Text#setMessage(String)
+     */
     public TextBuilder message(String message) {
         addProperty(t -> t.setMessage(message));
         return this;
     }
 
+    /**
+     * @see Text#setText(String)
+     */
     public TextBuilder text(String text) {
         addProperty(t -> t.setText(text));
         return this;
     }
 
+    /**
+     * @see Text#requestLayout()
+     */
     public TextBuilder requestLayout() {
-        addProperty(Control::requestLayout);
+        addProperty(Text::requestLayout);
         return this;
     }
 
@@ -55,6 +67,9 @@ public final class TextBuilder extends AbstractControlBuilder<TextBuilder, Text>
         return this;
     }
 
+    /**
+     * @see Text#addModifyListener(ModifyListener)
+     */
     public TextBuilder onModify(Listener listener) {
         return listener(SWT.Modify, listener);
     }

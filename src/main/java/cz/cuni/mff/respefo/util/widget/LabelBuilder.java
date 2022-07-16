@@ -37,15 +37,24 @@ public final class LabelBuilder extends AbstractControlBuilder<LabelBuilder, Lab
         return new LabelBuilder(SWT.NONE);
     }
 
+    /**
+     * @see Label#setImage(Image)
+     */
     public LabelBuilder image(Image image) {
         addProperty(l -> l.setImage(image));
         return this;
     }
 
+    /**
+     * @see Label#setImage(Image)
+     */
     public LabelBuilder image(ImageResource imageResource) {
         return image(ImageManager.getImage(imageResource));
     }
 
+    /**
+     * @see Label#setText(String)
+     */
     public LabelBuilder text(String text) {
         addProperty(l -> l.setText(text));
         return this;

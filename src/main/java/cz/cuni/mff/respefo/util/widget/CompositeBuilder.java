@@ -30,11 +30,17 @@ public final class CompositeBuilder extends AbstractControlBuilder<CompositeBuil
         return new CompositeBuilder(SWT.NONE);
     }
 
+    /**
+     * @see Composite#setLayout(Layout)
+     */
     public CompositeBuilder layout(Layout layout) {
         addProperty(c -> c.setLayout(layout));
         return this;
     }
 
+    /**
+     * @see Composite#setLayout(Layout)
+     */
     public CompositeBuilder layout(LayoutBuilder<?> layoutBuilder) {
         addProperty(c -> c.setLayout(layoutBuilder.build()));
         return this;

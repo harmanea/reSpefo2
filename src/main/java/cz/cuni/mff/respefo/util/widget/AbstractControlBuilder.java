@@ -24,75 +24,126 @@ public abstract class AbstractControlBuilder<B extends AbstractControlBuilder<?,
         super(widgetCreator);
     }
 
+    /**
+     * @see Control#setBackground(Color)
+     */
     public B background(Color color) {
         addProperty(c -> c.setBackground(color));
         return (B) this;
     }
 
+    /**
+     * @see Control#setBackground(Color)
+     */
     public B background(ColorResource colorResource) {
         return background(ColorManager.getColor(colorResource));
     }
 
+    /**
+     * @see Control#setBackgroundImage(Image)
+     */
     public B backgroundImage(Image image) {
         addProperty(c -> c.setBackgroundImage(image));
         return (B) this;
     }
 
+    /**
+     * @see Control#setBackgroundImage(Image)
+     */
     public B backgroundImage(ImageResource imageResource) {
         return backgroundImage(ImageManager.getImage(imageResource));
     }
 
+    /**
+     * @see Control#setEnabled(boolean)
+     */
     public B enabled(boolean enabled) {
         addProperty(c -> c.setEnabled(enabled));
         return (B) this;
     }
 
+    /**
+     * @see Control#setForeground(Color)
+     */
     public B foreground(Color color) {
         addProperty(c -> c.setForeground(color));
         return (B) this;
     }
 
+    /**
+     * @see Control#setForeground(Color)
+     */
     public B foreground(ColorResource colorResource) {
         return foreground(ColorManager.getColor(colorResource));
     }
 
+    /**
+     * @see Control#setLayoutData(Object)
+     */
     public B layoutData(Supplier<Object> layoutDataSupplier) {
         addProperty(c -> c.setLayoutData(layoutDataSupplier.get()));
         return (B) this;
     }
 
+    /**
+     * @see Control#setLayoutData(Object)
+     */
     public B layoutData(Object layoutData) {
         addProperty(c -> c.setLayoutData(layoutData));
         return (B) this;
     }
 
+    /**
+     * @see Control#setLayoutData(Object)
+     * @see GridData#GridData(int)
+     */
     public B gridLayoutData(int style) {
         return layoutData(() -> new GridData(style));
     }
 
+    /**
+     * @see Control#setLayoutData(Object)
+     * @see GridData#GridData(int, int, boolean, boolean)
+     */
     public B gridLayoutData(int horizontalAlignment, int verticalAlignment, boolean grabHorizontal, boolean grabVertical) {
         return layoutData(() -> new GridData(horizontalAlignment, verticalAlignment, grabHorizontal, grabVertical));
     }
 
+    /**
+     * @see Control#setLayoutData(Object)
+     * @see GridData#GridData(int, int, boolean, boolean, int, int)
+     */
     public B gridLayoutData(int horizontalAlignment, int verticalAlignment, boolean grabHorizontal, boolean grabVertical, int horizontalSpan, int verticalSpan) {
         return layoutData(() -> new GridData(horizontalAlignment, verticalAlignment, grabHorizontal, grabVertical, horizontalSpan, verticalSpan));
     }
 
+    /**
+     * @see Control#setToolTipText(String)
+     */
     public B toolTip(String toolTipText) {
         addProperty(c -> c.setToolTipText(toolTipText));
         return (B) this;
     }
 
+    /**
+     * @see Control#setVisible(boolean)
+     */
     public B visible(boolean visible) {
         addProperty(c -> c.setVisible(visible));
         return (B) this;
     }
 
+    /**
+     * @see Control#setFocus()
+     */
     public B focus() {
         addProperty(Control::setFocus);
         return (B) this;
     }
 
+    /**
+     * @see Control#pack()
+     */
     public B pack() {
         addProperty(Control::pack);
         return (B) this;
