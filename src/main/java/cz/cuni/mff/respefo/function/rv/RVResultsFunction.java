@@ -10,17 +10,16 @@ import cz.cuni.mff.respefo.function.SpectrumFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
+import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
-import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import cz.cuni.mff.respefo.util.utils.MathUtils;
 import cz.cuni.mff.respefo.util.utils.StringUtils;
 import cz.cuni.mff.respefo.util.widget.ButtonBuilder;
+import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
 import cz.cuni.mff.respefo.util.widget.LabelBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -29,7 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -38,7 +37,6 @@ import java.util.stream.Stream;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
@@ -81,96 +79,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
 
         labelBuilder.text("RV correction: " + spectrum.getRvCorrection()).build(composite);
 
-        for (String category : results.getCategories()) {
-            final Group group = new Group(composite, SWT.NONE);
-            group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER));
-            group.setLayout(gridLayout().margins(10).build());
-            group.setText("Results for category " + category);
-
-            final Table table = newTable(SWT.BORDER)
-                    .gridLayoutData(GridData.FILL_BOTH)
-                    .linesVisible(true)
-                    .headerVisible(true)
-                    .unselectable()
-                    .columns("rv", "radius", "lambda", "name", "comment", "")
-                    .build(group);
-
-            final Text meanText = newText(SWT.MULTI | SWT.READ_ONLY)
-                    .gridLayoutData(GridData.FILL_BOTH)
-                    .visible(false)
-                    .build(group);
-
-            DoubleArrayList values = new DoubleArrayList();
-            for (MeasureRVResult result : results.getResultsOfCategory(category)) {
-                final TableItem tableItem = new TableItem(table, SWT.NONE);
-                tableItem.setText(0, format(result.getRv(), 4, 4));
-                tableItem.setText(1, Double.toString(result.getRadius()));
-                tableItem.setText(2, format(result.getL0(), 8, 4));
-                tableItem.setText(3, result.getName());
-                tableItem.setText(4, result.getComment());
-
-                final Button button = newButton(SWT.PUSH).text("Delete").pack().build(table);
-
-                TableEditor editor = new TableEditor(table);
-                editor.horizontalAlignment = SWT.RIGHT;
-                editor.grabVertical = true;
-                editor.minimumWidth = button.getSize().x;
-                editor.setEditor(button, tableItem, 5);
-
-                button.addListener(SWT.Selection, event -> {
-                    results.remove(result);
-
-                    table.remove(table.indexOf(tableItem));
-
-                    editor.dispose();
-                    button.dispose();
-                    tableItem.dispose();
-
-                    if (table.getItemCount() == 0) {
-                        group.dispose();
-                        composite.requestLayout();
-
-                    } else if (table.getItemCount() == 1) {
-                        meanText.dispose();
-                        table.requestLayout();
-
-                    } else {
-                        double mean = results.getRvOfCategory(category);
-                        double[] rvs = Arrays.stream(results.getResultsOfCategory(category)).mapToDouble(MeasureRVResult::getRv).toArray();
-
-                        meanText.setText("mean RV: " + format(mean, 4, 4)
-                                + "\nstd. error: " + format(MathUtils.sem(rvs, mean), 4, 4));
-                        meanText.requestLayout();
-                        table.requestLayout();
-                    }
-
-                    if (results.isEmpty()) {
-                        spectrum.removeFunctionAsset(MeasureRVFunction.SERIALIZE_KEY);
-                        scrolledComposite.dispose();
-                    }
-
-                    try {
-                        spectrum.save();
-                    } catch (SpefoException exception) {
-                        Message.error("Couldn't save changes", exception);
-                    }
-                });
-
-                values.add(result.getRv());
-            }
-
-            if (values.size() > 1) {
-                double mean = results.getRvOfCategory(category);
-
-                meanText.setVisible(true);
-                meanText.setText("mean RV: " + format(mean, 4, 4)
-                        + "\nstd. error: " + format(MathUtils.sem(values.toArray(), mean), 4, 4));
-            }
-
-            for (TableColumn column : table.getColumns()) {
-                column.pack();
-            }
-        }
+        setUpGroups(spectrum, composite, results);
 
         scrolledComposite.setContent(composite);
         scrolledComposite.setExpandHorizontal(true);
@@ -179,6 +88,106 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
 
         ComponentManager.getScene().layout();
         scrolledComposite.redraw();
+    }
+
+    private static void setUpGroups(Spectrum spectrum, Composite parent, MeasureRVResults results) {
+        List<Table> tables = new LinkedList<>();
+        for (String category : results.getCategories()) {
+            final Group group = new Group(parent, SWT.NONE);
+            group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER));
+            group.setLayout(gridLayout().margins(10).build());
+            group.setText("Results for category " + category);
+
+            final Table table = newTable(SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL)
+                    .gridLayoutData(GridData.FILL_BOTH)
+                    .linesVisible(true)
+                    .headerVisible(true)
+                    .columns("rv", "radius", "lambda", "name", "comment", "")
+                    .items(() -> results.getResultsOfCategory(category).iterator(),
+                            result -> new String[]{
+                                    format(result.getRv(), 4, 4),
+                                    Double.toString(result.getRadius()),
+                                    format(result.getL0(), 8, 4),
+                                    result.getName(),
+                                    result.getComment()
+                            },
+                            (result, item) -> item.setData(result))
+                    .onSelection(event -> {
+                        Table thisTable = (Table) event.widget;
+                        for (Table otherTable : tables) {
+                            if (otherTable != thisTable) {
+                                otherTable.deselectAll();
+                            }
+                        }
+                    })
+                    .packColumns()
+                    .build(group);
+            tables.add(table);
+
+            if (table.getItemCount() > 1) {
+                String meanText = "mean RV: " + format(results.getRvOfCategory(category), 4, 4)
+                        + "\nstd. error: " + format(results.getSemOfCategory(category), 4, 4);
+                newText(SWT.MULTI | SWT.READ_ONLY)
+                        .gridLayoutData(GridData.FILL_BOTH)
+                        .text(meanText)
+                        .build(group);
+            }
+
+            final Menu menu = new Menu(ComponentManager.getShell(), SWT.POP_UP);
+            table.setMenu(menu);
+            table.addMenuDetectListener(event -> event.doit = table.getSelectionCount() > 0);
+
+            final MenuItem editMenuItem = new MenuItem(menu, SWT.PUSH);
+            editMenuItem.setText("Edit");
+            editMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+                TableItem tableItem = table.getItem(table.getSelectionIndex());
+                MeasureRVResult result = (MeasureRVResult) tableItem.getData();
+
+                MeasurementInputDialog dialog = new MeasurementInputDialog(result.category, result.comment);
+                if (dialog.openIsOk()) {
+                    result.comment = dialog.getComment();
+                    result.category = dialog.getCategory();
+
+                    Async.exec(() -> trySaveAndRefresh(spectrum, parent, results, tables));
+                }
+            }));
+
+            final MenuItem deleteMenuItem = new MenuItem(menu, SWT.PUSH);
+            deleteMenuItem.setText("Delete");
+            deleteMenuItem.addSelectionListener(new DefaultSelectionListener(event -> {
+                TableItem tableItem = table.getItem(table.getSelectionIndex());
+                MeasureRVResult result = (MeasureRVResult) tableItem.getData();
+
+                results.remove(result);
+
+                if (results.isEmpty()) {
+                    spectrum.removeFunctionAsset(MeasureRVFunction.SERIALIZE_KEY);
+                }
+
+                Async.exec(() -> trySaveAndRefresh(spectrum, parent, results, tables));
+            }));
+        }
+    }
+
+    private static void trySaveAndRefresh(Spectrum spectrum, Composite parent, MeasureRVResults results, List<Table> tables) {
+        try {
+            spectrum.save();
+        } catch (SpefoException exception) {
+            Message.error("Couldn't save changes", exception);
+        }
+
+        if (results.isEmpty()) {
+            ComponentManager.clearScene(true);
+
+        } else {
+            for (Table table : tables) {
+                table.getParent().dispose();
+            }
+
+            setUpGroups(spectrum, parent, results);
+
+            parent.layout();
+        }
     }
 
     @Override
@@ -262,7 +271,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                 if (isNotNaN(result)) {
                     tableItem.setText(2 * i + 2, format(result, 4, 2));
 
-                    if (results.getResultsOfCategory(categories[i]).length > 1) {
+                    if (results.getNumberOfResultsInCategory(categories[i]) > 1) {
                         double sem = results.getSemOfCategory(categories[i]);
                         tableItem.setText(2 * i + 3, format(sem, 5, 2));
                     }
@@ -319,7 +328,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                     if (isNotNaN(result)) {
                         writer.print(" " + formatDouble(result, 4, 2) + " ");
 
-                        if (results.getResultsOfCategory(category).length > 1) {
+                        if (results.getNumberOfResultsInCategory(category) > 1) {
                             double sem = results.getSemOfCategory(category);
                             writer.print(formatDouble(sem, 5, 2, false));
                         } else {
@@ -367,7 +376,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                     if (isNotNaN(result)) {
                         writer.print(" " + formatDouble(result + rvCorr, 4, 2) + " ");
 
-                        if (results.getResultsOfCategory(category).length > 1) {
+                        if (results.getNumberOfResultsInCategory(category) > 1) {
                             double sem = results.getSemOfCategory(category);
                             writer.print(formatDouble(sem, 5, 2, false));
                         } else {

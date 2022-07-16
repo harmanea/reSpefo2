@@ -19,11 +19,15 @@ public class MeasurementInputDialog extends SpefoDialog {
     private String category;
     private String comment;
 
-    public MeasurementInputDialog(boolean isCorrection) {
+    public MeasurementInputDialog(String category, String comment) {
         super("Confirm measurement");
 
-        category = isCorrection ? "corr" : "";
-        comment = "";
+        this.category = category;
+        this.comment = comment;
+    }
+
+    public MeasurementInputDialog(boolean isCorrection) {
+        this(isCorrection ? "corr" : "", "");
     }
 
     public String getCategory() {
@@ -45,9 +49,8 @@ public class MeasurementInputDialog extends SpefoDialog {
         TextBuilder textBuilder = newText(SWT.SINGLE | SWT.BORDER).gridLayoutData(GridData.FILL_HORIZONTAL);
 
         labelBuilder.text("Category:").build(composite);
-        final Text categoryText = textBuilder.build(composite);
+        final Text categoryText = textBuilder.text(category).build(composite);
         if (category.equals("corr")) {
-            categoryText.setText("corr");
             categoryText.setEnabled(false);
         } else {
             categoryText.addListener(SWT.Modify, event -> {
@@ -57,14 +60,14 @@ public class MeasurementInputDialog extends SpefoDialog {
         }
 
         labelBuilder.text("Comment:").build(composite);
-        textBuilder.onModify(event -> comment = ((Text) event.widget).getText()).build(composite);
+        textBuilder.text(comment).onModify(event -> comment = ((Text) event.widget).getText()).build(composite);
     }
 
     @Override
     protected void createButtons(Composite parent) {
         super.createButtons(parent);
 
-        if (!category.equals("corr")) {
+        if (category.equals("")) {
             getButton(SWT.OK).setEnabled(false);
         }
     }

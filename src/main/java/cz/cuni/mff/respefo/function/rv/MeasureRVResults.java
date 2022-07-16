@@ -4,8 +4,8 @@ import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class MeasureRVResults implements FunctionAsset {
     private final List<MeasureRVResult> results;
@@ -38,19 +38,20 @@ public class MeasureRVResults implements FunctionAsset {
                 .toArray(String[]::new);
     }
 
-    public MeasureRVResult[] getResultsOfCategory(String category) {
+    public Stream<MeasureRVResult> getResultsOfCategory(String category) {
         return results.stream()
-                .filter(result -> result.category.equals(category))
-                .toArray(MeasureRVResult[]::new);
+                .filter(result -> result.category.equals(category));
+    }
+
+    public int getNumberOfResultsInCategory(String category) {
+        return (int) getResultsOfCategory(category).count();
     }
 
     public double getRvOfCategory(String category) {
-        MeasureRVResult[] resultsOfCategory = getResultsOfCategory(category);
-
-        if (resultsOfCategory.length < 5) {
-            return Arrays.stream(resultsOfCategory).mapToDouble(MeasureRVResult::getRv).average().orElse(Double.NaN);
+        if (getNumberOfResultsInCategory(category) < 5) {
+            return getResultsOfCategory(category).mapToDouble(MeasureRVResult::getRv).average().orElse(Double.NaN);
         } else {
-            return MathUtils.robustMean(Arrays.stream(resultsOfCategory).mapToDouble(MeasureRVResult::getRv).sorted().toArray());
+            return MathUtils.robustMean(getResultsOfCategory(category).mapToDouble(MeasureRVResult::getRv).sorted().toArray());
         }
     }
 
