@@ -403,6 +403,7 @@ public class RectifyFunction extends SpectrumFunction {
             wavelengthText.setText(String.valueOf(blaze.getCentralWavelength()));
             alphaSpinner.setSelection(blaze.getSpinnerAlpha(digits));
             updateChart(ch, blaze);
+            ch.forceFocus();
         };
 
         final double originalScale = blaze.getScale();
@@ -503,12 +504,13 @@ public class RectifyFunction extends SpectrumFunction {
         alphaSpinner.addModifyListener(event -> {
             blaze.setAlpha(alphaSpinner.getSelection() / Math.pow(10, digits));
             updateChart(chart, blaze);
+            chart.forceFocus();
         });
     }
 
     private static void printParametersToFile(Spectrum spectrum, Blaze blaze) {
         Path path = spectrum.getFile().toPath().resolveSibling(FileUtils.stripFileExtension(spectrum.getFile().getName()) + ".par");
-        String params = blaze.getOrder() + " " + blaze.getK() + " " + blaze.getAlpha();
+        String params = blaze.getOrder() + " " + blaze.getK() + " " + blaze.getAlpha() + System.lineSeparator();
         try {
             Files.write(path, params.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
         } catch (Exception exception) {
