@@ -81,7 +81,7 @@ public abstract class SpefoDialog {
         createButton(parent, SWT.CANCEL, "Cancel", false);
     }
 
-    protected void createButton(Composite parent, int returnCode, String label, boolean defaultButton) {
+    protected final void createButton(Composite parent, int returnCode, String label, boolean defaultButton) {
         ((GridLayout) parent.getLayout()).numColumns++;
 
         final Button button = newButton(SWT.PUSH)
@@ -97,7 +97,7 @@ public abstract class SpefoDialog {
         buttons.put(returnCode, button);
     }
 
-    protected Button getButton(int returnCode) {
+    protected final Button getButton(int returnCode) {
         return buttons.get(returnCode);
     }
 
