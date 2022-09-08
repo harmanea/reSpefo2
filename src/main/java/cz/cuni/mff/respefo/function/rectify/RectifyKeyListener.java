@@ -5,7 +5,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.swtchart.Chart;
-import org.swtchart.IAxis;
 import org.swtchart.Range;
 
 import java.util.function.Consumer;
@@ -69,21 +68,18 @@ public class RectifyKeyListener extends KeyAdapter {
                 updateAllSeries.run();
                 break;
             case 'p':
+                // TODO: Figure out a better way to do this
+
                 double x = asset.getActiveX();
                 Range chartXRange = chart.getAxisSet().getXAxis(0).getRange();
                 Range newXRange = new Range(x - (chartXRange.upper - chartXRange.lower) / 2, x + (chartXRange.upper - chartXRange.lower) / 2);
-
-                for (IAxis axis : chart.getAxisSet().getXAxes()) {
-                    axis.setRange(newXRange);
-                }
+                chart.getAxisSet().getXAxis(0).setRange(newXRange);
 
                 double y = asset.getActiveY();
                 Range chartYRange = chart.getAxisSet().getYAxis(0).getRange();
                 Range newYRange = new Range(y - (chartYRange.upper - chartYRange.lower) / 2, y + (chartYRange.upper - chartYRange.lower) / 2);
-
-                for (IAxis axis : chart.getAxisSet().getYAxes()) {
-                    axis.setRange(newYRange);
-                }
+                chart.getAxisSet().getYAxis(0).setRange(newYRange);
+                chart.getAxisSet().getYAxis(1).setRange(newYRange);
 
                 chart.redraw();
                 break;
