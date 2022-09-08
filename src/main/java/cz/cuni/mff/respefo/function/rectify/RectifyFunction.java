@@ -50,7 +50,6 @@ import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.utils.CollectionUtils.setOf;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
@@ -77,8 +76,8 @@ public class RectifyFunction extends SpectrumFunction {
 
     private static RectifyAsset previousAsset;
 
-    private static Set<Integer> previousExcludedOrders = setOf(5, 10, 29, 35, 39, 43, 47, 51, 58);  // TODO: Make this automatic?
-    private static int previousPolyDegree = 9;
+    private static Set<Integer> previousExcludedOrders;
+    private static int previousPolyDegree;
 
     @Override
     public void execute(Spectrum spectrum) {
@@ -136,25 +135,25 @@ public class RectifyFunction extends SpectrumFunction {
         XYSeries mergedSeries = XYSeries.merge(context.series);
         double[] fitXSeries = ArrayUtils.linspace(mergedSeries.getX(0), mergedSeries.getLastX(), 5_000);
         double[] fitYSeries;
-        if (context.polyDegree > 0) {
+        if (context.blazeAsset.useIntep()) {
+            fitYSeries = MathUtils.intep(context.pointXSeries(), context.pointYSeries(), fitXSeries);
+        } else {
             context.recalculatePolyCoeffs();
             fitYSeries = Arrays.stream(fitXSeries).map(x -> MathUtils.polynomial(x, context.polyCoeffs)).toArray();
-        } else {
-            fitYSeries = MathUtils.intep(context.pointXSeries(), context.pointYSeries(), fitXSeries);
         }
 
         Consumer<Chart> updateCoeffsAndFit = ch -> {
             ISeries fitSeries = ch.getSeriesSet().getSeries("fit");
-            if (context.polyDegree > 0) {
+            if (context.blazeAsset.useIntep()) {
+                fitSeries.setYSeries(
+                        MathUtils.intep(context.pointXSeries(), context.pointYSeries(), fitXSeries)
+                );
+            } else {
                 context.recalculatePolyCoeffs();
                 fitSeries.setYSeries(
                         Arrays.stream(fitXSeries)
                                 .map(x -> MathUtils.polynomial(x, context.polyCoeffs))
                                 .toArray()
-                );
-            } else {
-                fitSeries.setYSeries(
-                        MathUtils.intep(context.pointXSeries(), context.pointYSeries(), fitXSeries)
                 );
             }
             ch.redraw();
@@ -262,21 +261,21 @@ public class RectifyFunction extends SpectrumFunction {
             final int polyDegree = order;
             final MenuItem item = new MenuItem(menu, RADIO);
             item.setText(String.valueOf(order));
-            if (order == context.polyDegree) {
+            if (order == context.blazeAsset.getPolyDegree()) {
                 item.setSelection(true);
             }
             item.addSelectionListener(new DefaultSelectionListener(event -> {
-                context.polyDegree = polyDegree;
+                context.blazeAsset.setPolyDegree(polyDegree);
                 updateCoeffsAndFit.accept(chart);
             }));
         }
         final MenuItem menuItem = new MenuItem(menu, RADIO);
         menuItem.setText("Spline");
-        if (context.polyDegree <= 0) {
+        if (context.blazeAsset.useIntep()) {
             menuItem.setSelection(true);
         }
         menuItem.addSelectionListener(new DefaultSelectionListener(event -> {
-            context.polyDegree = -1;
+            context.blazeAsset.setPolyDegree(-1);
             updateCoeffsAndFit.accept(chart);
         }));
 
@@ -289,16 +288,16 @@ public class RectifyFunction extends SpectrumFunction {
                 .columns("No.", "From", "To")
                 .fixedAspectColumns(1, 2, 2)
                 .items(Arrays.asList(context.columnNames))
-                .decorate((i, item) -> item.setChecked(!context.excludedOrders.contains(i)))
+                .decorate((i, item) -> item.setChecked(!context.blazeAsset.isExcluded(i)))
                 .onSelection(event -> {
                     if (event.detail == SWT.CHECK) {
                         TableItem tableItem = (TableItem) event.item;
                         int index = ((Table) event.widget).indexOf(tableItem);
 
                         if (tableItem.getChecked()) {
-                            context.excludedOrders.remove(index);
+                            context.blazeAsset.removeExcludedOrder(index);
                         } else {
-                            context.excludedOrders.add(index);
+                            context.blazeAsset.addExcludedOrder(index);
                         }
 
                         ISeries pointSeries = chart.getSeriesSet().getSeries(POINTS_SERIES_NAME);
@@ -326,7 +325,7 @@ public class RectifyFunction extends SpectrumFunction {
                 Async.whileLoop(context,
                         (ctx, call) -> rectifySingleEchelleOrder(selectedIndices, ctx, call),
                         ctx -> {
-                            if (ctx.polyDegree > 0) {
+                            if (!ctx.blazeAsset.useIntep()) {
                                 ctx.recalculatePolyCoeffs();
                             }
                             callback.accept(true);
@@ -715,8 +714,8 @@ public class RectifyFunction extends SpectrumFunction {
         } else {
             spectrum.putFunctionAsset(BLAZE_SERIALIZE_KEY, context.blazeAsset);
         }
-        previousPolyDegree = context.polyDegree;
-        previousExcludedOrders = context.excludedOrders;
+        previousPolyDegree = context.blazeAsset.getPolyDegree();
+        previousExcludedOrders = context.blazeAsset.getExcludedOrders();
 
         try {
             spectrum.save();
@@ -741,9 +740,6 @@ public class RectifyFunction extends SpectrumFunction {
         final double[] xCoordinates;
         final double[] yCoordinates;
 
-        final Set<Integer> excludedOrders = new HashSet<>(previousExcludedOrders);
-
-        int polyDegree = previousPolyDegree;  // a value <= 0 means use intep
         double[] polyCoeffs;
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
@@ -757,7 +753,16 @@ public class RectifyFunction extends SpectrumFunction {
                     .ifPresent(asset -> cleanSeries(series, asset));
 
             blazeAsset = spectrum.getFunctionAsset(BLAZE_SERIALIZE_KEY, BlazeAsset.class)
-                    .orElseGet(BlazeAsset::new);
+                    .orElseGet(() -> {
+                        BlazeAsset asset = new BlazeAsset();
+
+                        if (previousExcludedOrders != null) {
+                            asset.setPolyDegree(previousPolyDegree);
+                            asset.addExcludedOrders(previousExcludedOrders);
+                        }
+
+                        return asset;
+                    });
 
             rectifyAssets = new RectifyAsset[series.length];
 
@@ -771,7 +776,7 @@ public class RectifyFunction extends SpectrumFunction {
             double[] xSeries = pointXSeries();
             double[] ySeries = pointYSeries();
 
-            polyCoeffs = MathUtils.fitPolynomial(xSeries, ySeries, polyDegree);
+            polyCoeffs = MathUtils.fitPolynomial(xSeries, ySeries, blazeAsset.getPolyDegree());
         }
 
         private static void cleanSeries(XYSeries[] series, CleanAsset asset) {
@@ -820,23 +825,23 @@ public class RectifyFunction extends SpectrumFunction {
 
         private double[] pointXSeries() {
             return IntStream.range(0, xCoordinates.length)
-                    .filter(index -> !excludedOrders.contains(index))
+                    .filter(index -> !blazeAsset.isExcluded(index))
                     .mapToDouble(index -> xCoordinates[index])
                     .toArray();
         }
 
         private double[] pointYSeries() {
             return IntStream.range(0, yCoordinates.length)
-                    .filter(index -> !excludedOrders.contains(index))
+                    .filter(index -> !blazeAsset.isExcluded(index))
                     .mapToDouble(index -> yCoordinates[index])
                     .toArray();
         }
 
         private DoubleUnaryOperator scaleFunction() {
-            if (polyDegree > 0) {
-                return x -> MathUtils.polynomial(x, polyCoeffs);
-            } else {
+            if (blazeAsset.useIntep()) {
                 return x -> MathUtils.intep(pointXSeries(), pointYSeries(), x);
+            } else {
+                return x -> MathUtils.polynomial(x, polyCoeffs);
             }
         }
     }
