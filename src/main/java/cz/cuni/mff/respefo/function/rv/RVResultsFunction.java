@@ -111,7 +111,13 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                                     result.getName(),
                                     result.getComment()
                             },
-                            (result, item) -> item.setData(result))
+                            (result, item) -> {
+                                item.setData(result);
+                                if (results.isRepeatedMeasurement(result)) {
+                                    item.setBackground(2, ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW));
+                                    item.setBackground(3, ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW));
+                                }
+                            })
                     .onSelection(event -> {
                         Table thisTable = (Table) event.widget;
                         for (Table otherTable : tables) {

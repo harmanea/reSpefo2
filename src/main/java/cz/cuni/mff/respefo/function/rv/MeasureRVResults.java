@@ -47,6 +47,10 @@ public class MeasureRVResults implements FunctionAsset {
         return (int) getResultsOfCategory(category).count();
     }
 
+    public boolean isRepeatedMeasurement(MeasureRVResult result) {
+        return results.stream().anyMatch(result::isRepeated);
+    }
+
     public double getRvOfCategory(String category) {
         if (getNumberOfResultsInCategory(category) < 5) {
             return getResultsOfCategory(category).mapToDouble(MeasureRVResult::getRv).average().orElse(Double.NaN);

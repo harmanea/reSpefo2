@@ -44,6 +44,10 @@ public class MeasureEWResults implements FunctionAsset, Iterable<MeasureEWResult
                 .orElse(null);
     }
 
+    public boolean isRepeatedMeasurement(MeasureEWResult result) {
+        return results.stream().anyMatch(result::isRepeated);
+    }
+
     @Override
     public Iterator<MeasureEWResult> iterator() {
         return results.iterator();

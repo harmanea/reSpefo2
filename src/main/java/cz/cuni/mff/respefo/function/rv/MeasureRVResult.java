@@ -1,5 +1,7 @@
 package cz.cuni.mff.respefo.function.rv;
 
+import cz.cuni.mff.respefo.util.utils.MathUtils;
+
 public class MeasureRVResult {
     double rv;
     double shift;
@@ -49,5 +51,12 @@ public class MeasureRVResult {
 
     public String getComment() {
         return comment;
+    }
+
+    public boolean isRepeated(MeasureRVResult other) {
+        return this != other
+                && this.category.equals(other.category)
+                && MathUtils.doublesEqual(this.l0, other.l0)
+                && this.name.equals(other.name);
     }
 }

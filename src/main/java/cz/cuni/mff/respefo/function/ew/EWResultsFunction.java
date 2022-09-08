@@ -79,6 +79,9 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
             group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER));
             group.setLayout(gridLayout().margins(10).build());
             group.setText("Results for measurement " + result.getName());
+            if (results.isRepeatedMeasurement(result)) {
+                group.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_DISABLED_FOREGROUND));
+            }
 
             labelBuilder.text("EW: " + formatDouble(result.getEW(series), 4, 4)).build(group);
 
@@ -102,6 +105,15 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
                     .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END))
                     .onSelection(event -> {
                         results.remove(result);
+
+                        int i = 0;
+                        for (MeasureEWResult otherResult : results) {
+                            if (result.isRepeated(otherResult) && !results.isRepeatedMeasurement(otherResult)) {
+                                composite.getChildren()[i + 1].setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+                                break;
+                            }
+                            i++;
+                        }
 
                         group.dispose();
                         composite.requestLayout();

@@ -155,4 +155,10 @@ public class MeasureEWResult {
 
         return (v + r) / 2;
     }
+
+    public boolean isRepeated(MeasureEWResult other) {
+        return this != other
+                && MathUtils.doublesEqual(this.l0, other.l0)
+                && this.name.equals(other.name);
+    }
 }
