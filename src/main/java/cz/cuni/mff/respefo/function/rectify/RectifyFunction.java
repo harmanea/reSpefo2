@@ -50,6 +50,8 @@ import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
@@ -750,6 +752,17 @@ public class RectifyFunction extends SpectrumFunction {
             this.spectrum = spectrum;
 
             series = spectrum.getOriginalSeries();
+
+            // Remove rv correction
+            double rvCorrection = spectrum.getRvCorrection();
+            if (isNotNaN(rvCorrection)) {
+                for (int i = 0; i < series.length; i++) {
+                    double[] newXSeries = Arrays.stream(series[i].getXSeries())
+                            .map(value -> value - rvCorrection * (value / SPEED_OF_LIGHT))
+                            .toArray();
+                    series[i] = new XYSeries(newXSeries, series[i].getYSeries());
+                }
+            }
 
             columnNames = columnNames(series);
 

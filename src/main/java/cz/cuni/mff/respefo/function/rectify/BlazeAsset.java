@@ -76,7 +76,7 @@ public class BlazeAsset implements FunctionAsset {
     }
 
     public boolean createCoordinatesIfNull(int length) {
-        if (xCoordinates == null && yCoordinates == null) {
+        if (xCoordinates == null || yCoordinates == null) {
             xCoordinates = new double[length];
             yCoordinates = new double[length];
 

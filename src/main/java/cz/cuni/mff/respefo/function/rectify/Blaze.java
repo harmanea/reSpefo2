@@ -14,7 +14,7 @@ import static java.lang.Math.*;
 import static java.util.Arrays.stream;
 
 public class Blaze {
-    private static final double[] K_COEFFICIENTS = new double[] {5.56243514e+05,  2.72704907e+02, -2.57380895e+00,  8.24940353e-03};
+    private static final double[] K_COEFFICIENTS = new double[] {5.53283427e+05, 3.55298869e+02, -3.35894502e+00, 1.07610824e-02};
 
     private final int order;
     private double centralWavelength;
