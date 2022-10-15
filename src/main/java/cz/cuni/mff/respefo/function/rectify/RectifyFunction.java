@@ -23,10 +23,7 @@ import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
-import cz.cuni.mff.respefo.util.utils.ArrayUtils;
-import cz.cuni.mff.respefo.util.utils.ChartUtils;
-import cz.cuni.mff.respefo.util.utils.FileUtils;
-import cz.cuni.mff.respefo.util.utils.MathUtils;
+import cz.cuni.mff.respefo.util.utils.*;
 import cz.cuni.mff.respefo.util.widget.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
@@ -475,6 +472,7 @@ public class RectifyFunction extends SpectrumFunction {
                         }))
                 .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> update.accept(ch), blaze))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
+                .mouseMoveListener(ch -> event -> ch.setData("position", ChartUtils.getRealValuesFromCoordinates(ch, event.x, event.y)))
                 .verticalLine(originalCentralWavelength, GRAY, LINE_DOT)
                 .horizontalLine(originalScale, GRAY, LINE_DOT)
                 .plotAreaPaintListener(ch -> event -> {
@@ -496,11 +494,18 @@ public class RectifyFunction extends SpectrumFunction {
                     event.gc.drawLine(0, coordinate, event.width, coordinate);
                 })
                 .data("horizontal", false)
+                .data("position", new Point(0, 0))
                 .adjustRange()
                 .accept(RectifyFunction::adjustRectifiedSeriesAxisRange)
                 .accept(ch -> ch.getAxisSet().getXAxis(0).zoomIn())
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene(false));
+
+        chart.addPaintListener(event -> {
+            Point realValues = (Point) chart.getData("position");
+            event.gc.drawText("[" + FormattingUtils.formatDouble(realValues.x, 5, 0) + ", "
+                    + FormattingUtils.formatDouble(realValues.y, 7, 0) + " ]", 1, 1);
+        });
 
         alphaSpinner.addModifyListener(event -> {
             blaze.setAlpha(alphaSpinner.getSelection() / Math.pow(10, digits));
@@ -587,6 +592,16 @@ public class RectifyFunction extends SpectrumFunction {
                         event.gc.setLineStyle(LINE_DOT);
                         event.gc.drawLine(0, coordinate, event.width, coordinate);
                     });
+
+                    builder.mouseMoveListener(ch -> event -> ch.setData("position", ChartUtils.getRealValuesFromCoordinates(ch, event.x, event.y)))
+                            .data("position", new Point(0, 0))
+                            .accept(ch -> {
+                                ch.addPaintListener(event -> {
+                                    Point realValues = (Point) ch.getData("position");
+                                    event.gc.drawText("[" + FormattingUtils.formatDouble(realValues.x, 5, 0) + ", "
+                                            + FormattingUtils.formatDouble(realValues.y, 7, 0) + " ]", 1, 1);
+                                });
+                            });
 
                     return builder;
                 },
