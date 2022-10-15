@@ -145,7 +145,9 @@ public class RectifyFunction extends SpectrumFunction {
 
         Consumer<Chart> updateCoeffsAndFit = ch -> {
             ISeries fitSeries = ch.getSeriesSet().getSeries("fit");
-            if (context.blazeAsset.useIntep()) {
+            if (context.blazeAsset.getExcludedOrders().size() == context.series.length) {
+                fitSeries.setYSeries(ArrayUtils.createArray(fitXSeries.length, i -> context.series[0].getY(0)));
+            } else if (context.blazeAsset.useIntep()) {
                 fitSeries.setYSeries(
                         MathUtils.intep(context.blazeAsset.pointXSeries(), context.blazeAsset.pointYSeries(), fitXSeries)
                 );
@@ -282,7 +284,7 @@ public class RectifyFunction extends SpectrumFunction {
 
         tab.addTopBarMenuButton("Poly Degree", ImageResource.POLY, menu);
 
-        newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+        final Table table = newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .headerVisible(true)
                 .linesVisible(true)
@@ -309,6 +311,32 @@ public class RectifyFunction extends SpectrumFunction {
                     }
                 })
                 .build(tab.getWindow());
+
+        tab.addTopBarButton("(De)select all", ImageResource.SELECT_ALL, () -> {
+            boolean anyChecked = false;
+            for (TableItem item : table.getItems()) {
+                if (item.getChecked()) {
+                    anyChecked = true;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < table.getItemCount(); i++) {
+                if (anyChecked) {
+                    table.getItem(i).setChecked(false);
+                    context.blazeAsset.addExcludedOrder(i);
+                } else {
+                    table.getItem(i).setChecked(true);
+                    context.blazeAsset.removeExcludedOrder(i);
+                }
+            }
+
+            ISeries pointSeries = chart.getSeriesSet().getSeries(POINTS_SERIES_NAME);
+            pointSeries.setXSeries(context.blazeAsset.pointXSeries());
+            pointSeries.setYSeries(context.blazeAsset.pointYSeries());
+
+            updateCoeffsAndFit.accept(chart);
+        });
 
         tab.show();
     }
@@ -852,7 +880,9 @@ public class RectifyFunction extends SpectrumFunction {
         }
 
         private DoubleUnaryOperator scaleFunction() {
-            if (blazeAsset.useIntep()) {
+            if (blazeAsset.getExcludedOrders().size() == series.length) {
+                return x -> series[0].getY(0);
+            } else if (blazeAsset.useIntep()) {
                 return x -> MathUtils.intep(blazeAsset.pointXSeries(), blazeAsset.pointYSeries(), x);
             } else {
                 return x -> MathUtils.polynomial(x, polyCoeffs);

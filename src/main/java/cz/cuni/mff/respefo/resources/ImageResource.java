@@ -45,6 +45,7 @@ public enum ImageResource {
     SCROLL_TO_END("scroll_to_end.png"),
 
     POLY("poly.png"),
+    SELECT_ALL("select_all.png"),
     ;
 
     private final String fileName;
