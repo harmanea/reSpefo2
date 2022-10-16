@@ -27,14 +27,14 @@ public class BlazeKeyListener extends ArrowsChartKeyListener {
 
     @Override
     protected void left() {
-        double diff = ChartUtils.getRelativeHorizontalStep(chart);
+        double diff = ChartUtils.getRelativeHorizontalStep(chart) / 2;
         blaze.updateCentralWavelength(-diff);
         update.run();
     }
 
     @Override
     protected void right() {
-        double diff = ChartUtils.getRelativeHorizontalStep(chart);
+        double diff = ChartUtils.getRelativeHorizontalStep(chart) / 2;
         blaze.updateCentralWavelength(diff);
         update.run();
     }
