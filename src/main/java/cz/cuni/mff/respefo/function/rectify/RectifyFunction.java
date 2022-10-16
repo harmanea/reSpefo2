@@ -617,6 +617,15 @@ public class RectifyFunction extends SpectrumFunction {
                     builder.plotAreaPaintListener(ch -> event -> {
                         int coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(1);
                         event.gc.setForeground(getColor(GOLD));
+                        event.gc.setLineStyle(LINE_SOLID);
+                        event.gc.drawLine(0, coordinate, event.width, coordinate);
+
+                        coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(0.99);
+                        event.gc.setForeground(getColor(GRAY));
+                        event.gc.setLineStyle(LINE_DASH);
+                        event.gc.drawLine(0, coordinate, event.width, coordinate);
+
+                        coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(0.98);
                         event.gc.setLineStyle(LINE_DOT);
                         event.gc.drawLine(0, coordinate, event.width, coordinate);
                     });
