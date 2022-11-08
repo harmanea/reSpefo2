@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.spectrum.asset.FunctionAssetsDeserializer;
@@ -34,7 +34,7 @@ public abstract class Spectrum {
         MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        MAPPER.registerModule(new JSR310Module()); // LocalDateTime support
+        MAPPER.registerModule(new JavaTimeModule()); // LocalDateTime support
 
         SimpleModule doubleArrayListModule = new SimpleModule();
         doubleArrayListModule.addSerializer(DoubleArrayList.class, new DoubleArrayListSerializer());
