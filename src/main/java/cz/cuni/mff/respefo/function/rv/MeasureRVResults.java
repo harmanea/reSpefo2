@@ -1,13 +1,13 @@
 package cz.cuni.mff.respefo.function.rv;
 
-import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
+import cz.cuni.mff.respefo.spectrum.asset.AppendableFunctionAsset;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class MeasureRVResults implements FunctionAsset {
+public class MeasureRVResults implements AppendableFunctionAsset<MeasureRVResults> {
     private final List<MeasureRVResult> results;
 
     public MeasureRVResults() {
@@ -26,6 +26,7 @@ public class MeasureRVResults implements FunctionAsset {
         results.remove(result);
     }
 
+    @Override
     public void append(MeasureRVResults other) {
         results.addAll(other.results);
     }

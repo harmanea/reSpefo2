@@ -1,12 +1,12 @@
 package cz.cuni.mff.respefo.function.ew;
 
-import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
+import cz.cuni.mff.respefo.spectrum.asset.AppendableFunctionAsset;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class MeasureEWResults implements FunctionAsset, Iterable<MeasureEWResult> {
+public class MeasureEWResults implements AppendableFunctionAsset<MeasureEWResults>, Iterable<MeasureEWResult> {
     final List<MeasureEWResult> results;
 
     public MeasureEWResults() {
@@ -25,6 +25,7 @@ public class MeasureEWResults implements FunctionAsset, Iterable<MeasureEWResult
         results.remove(result);
     }
 
+    @Override
     public void append(MeasureEWResults other) {
         results.addAll(other.results);
     }

@@ -212,6 +212,10 @@ public abstract class Spectrum {
         return Optional.ofNullable((T) functionAssets.get(key));
     }
 
+    public Set<Map.Entry<String, FunctionAsset>> getFunctionAssets() {
+        return functionAssets.entrySet();
+    }
+
     public void putFunctionAsset(String key, FunctionAsset asset) {
         functionAssets.put(key, asset);
     }
