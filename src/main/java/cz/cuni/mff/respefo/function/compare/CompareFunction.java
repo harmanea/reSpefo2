@@ -28,7 +28,7 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lin
 
 @Fun(name = "Compare", fileFilter = SpefoFormatFileFilter.class)
 public class CompareFunction implements MultiFileFunction {
-    private static final ColorResource[] COLORS = {GREEN, BLUE, ORANGE, CYAN, WHITE, PURPLE, PINK, GRAY};
+    private static final ColorResource[] COLORS = {GREEN, ORANGE, CYAN, WHITE, PURPLE, PINK, GRAY, BLUE};
 
     @Override
     public void execute(List<File> files) {

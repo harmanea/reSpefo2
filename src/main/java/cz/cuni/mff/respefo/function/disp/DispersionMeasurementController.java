@@ -13,7 +13,7 @@ import org.swtchart.ILineSeries;
 import java.util.Arrays;
 import java.util.function.DoubleConsumer;
 
-import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
+import static cz.cuni.mff.respefo.resources.ColorResource.CYAN;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.PIXELS;
@@ -59,7 +59,7 @@ public class DispersionMeasurementController {
                 .series(lineSeries()
                         .name(MIRRORED_SERIES_NAME)
                         .series(computeSeries(series))
-                        .color(BLUE))
+                        .color(CYAN))
                 .keyListener(ch -> new DispersionKeyListener(ch, MIRRORED_SERIES_NAME, hint,
                         () -> applyShift(ch, -getRelativeHorizontalStep(ch)),
                         () -> applyShift(ch, getRelativeHorizontalStep(ch))))

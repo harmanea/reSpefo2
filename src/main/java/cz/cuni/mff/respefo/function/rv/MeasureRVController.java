@@ -28,7 +28,7 @@ import org.swtchart.ILineSeries;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
+import static cz.cuni.mff.respefo.resources.ColorResource.CYAN;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.round;
@@ -244,7 +244,7 @@ public class MeasureRVController {
                 .series(lineSeries()
                         .name(MIRRORED_SERIES_NAME)
                         .series(computeSeries(measurement))
-                        .color(BLUE))
+                        .color(CYAN))
                 .keyListener(ch -> new MeasureRVKeyListener(ch, MIRRORED_SERIES_NAME, computeMiddle(measurement),
                         () -> updateRelativeStep(ch),
                         () -> applyShift(ch, -rvStep),
