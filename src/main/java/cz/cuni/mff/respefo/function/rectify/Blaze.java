@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.function.DoubleUnaryOperator;
 
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.doublesEqual;
 import static java.lang.Math.*;
 import static java.util.Arrays.stream;
@@ -21,9 +22,10 @@ public class Blaze {
     private double scale;
     private double alpha;
 
-    public Blaze(int index, DoubleUnaryOperator scaleFunction) {
+    public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorr) {
         order = indexToOrder(index);
         centralWavelength = orderToCentralWavelength(order);
+        centralWavelength += rvCorr * (centralWavelength / SPEED_OF_LIGHT);
         scale = scaleFunction.applyAsDouble(centralWavelength);
         alpha = wavelengthToAlpha(centralWavelength);
     }
