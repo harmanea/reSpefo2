@@ -55,7 +55,7 @@ public class ExportFitsFormat extends FitsFormat implements ExportFileFormat {
             if (!spectrum.getDateOfObservation().equals(LocalDateTime.MIN)) {
                 hdu.addValue(Standard.DATE_OBS, spectrum.getDateOfObservation().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             }
-            if (isNotNaN(spectrum.getRvCorrection()) && spectrum.getRvCorrection() != 0) {
+            if (spectrum.getRvCorrection() != 0) {
                 hdu.addValue("VHELIO", spectrum.getRvCorrection(), "RV Correction");
             }
             if (isNotNaN(spectrum.getExpTime())) {

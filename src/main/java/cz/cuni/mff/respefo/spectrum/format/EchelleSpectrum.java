@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.ArrayUtils.divideArrayValues;
-import static java.lang.Double.isNaN;
 
 public class EchelleSpectrum extends Spectrum {
     public static final int FORMAT = 2;
@@ -43,7 +42,7 @@ public class EchelleSpectrum extends Spectrum {
 
     @Override
     public void updateRvCorrection(double newRvCorrection) {
-        double diff = newRvCorrection - (isNaN(rvCorrection) ? 0 : rvCorrection);
+        double diff = newRvCorrection - rvCorrection;
 
         for (XYSeries xySeries : series) {
             double[] updatedXSeries = Arrays.stream(xySeries.getXSeries())
@@ -65,9 +64,14 @@ public class EchelleSpectrum extends Spectrum {
                 XYSeries xySeries = series[i];
                 RectifyAsset asset = rectifyAssets[i];
 
+                // Correct for rv correction before applying rectification
+                double[] rvCorrectedXSeries = Arrays.stream(xySeries.getXSeries())
+                        .map(value -> value - rvCorrection * (value / SPEED_OF_LIGHT))
+                        .toArray();
+
                 rectifiedSeries[i] = new XYSeries(
                         xySeries.getXSeries(),
-                        divideArrayValues(xySeries.getYSeries(), asset.getIntepData(xySeries.getXSeries()))
+                        divideArrayValues(xySeries.getYSeries(), asset.getIntepData(rvCorrectedXSeries))
                 );
             }
 

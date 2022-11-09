@@ -6,7 +6,6 @@ import cz.cuni.mff.respefo.util.collections.XYSeries;
 import java.util.Arrays;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
-import static java.lang.Double.isNaN;
 
 public class SimpleSpectrum extends Spectrum {
     public static final int FORMAT = 1;
@@ -25,7 +24,7 @@ public class SimpleSpectrum extends Spectrum {
 
     @Override
     public void updateRvCorrection(double newRvCorrection)  {
-        double diff = newRvCorrection - (isNaN(rvCorrection) ? 0 : rvCorrection);
+        double diff = newRvCorrection - rvCorrection;
         double[] updatedXSeries = Arrays.stream(series.getXSeries())
                 .map(value -> value + diff * (value / SPEED_OF_LIGHT))
                 .toArray();
