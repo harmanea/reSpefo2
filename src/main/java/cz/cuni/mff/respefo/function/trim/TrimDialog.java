@@ -46,7 +46,7 @@ TrimDialog extends TitleAreaDialog {
 
         final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(7))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(400).heightHint(80).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(400).heightHint(80))
                 .build(parent);
 
         LabelBuilder labelBuilder = newLabel().gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING);

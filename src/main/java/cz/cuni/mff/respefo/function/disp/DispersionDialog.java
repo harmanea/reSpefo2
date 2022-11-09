@@ -45,7 +45,7 @@ public class DispersionDialog extends SpefoDialog {
     protected void createDialogArea(Composite parent) {
         final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500))
                 .build(parent);
 
         LabelBuilder labelBuilder = newLabel()

@@ -33,7 +33,7 @@ public class ErrorDialog extends TitleAreaDialog {
 
         final Composite composite = newComposite()
                 .layout(gridLayout().margins(5))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(600).heightHint(200).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(600).heightHint(200))
                 .build(parent);
 
         final StyledText text = new StyledText(composite, BORDER | READ_ONLY | H_SCROLL | V_SCROLL);

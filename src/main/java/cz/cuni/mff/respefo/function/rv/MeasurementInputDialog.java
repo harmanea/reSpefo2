@@ -42,7 +42,7 @@ public class MeasurementInputDialog extends SpefoDialog {
     protected void createDialogArea(Composite parent) {
         final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).marginBottom(25).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(250).heightHint(80).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(250).heightHint(80))
                 .build(parent);
 
         LabelBuilder labelBuilder = newLabel().gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING);

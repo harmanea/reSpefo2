@@ -38,7 +38,7 @@ public class FileFormatSelectionDialog<T extends FileFormat> extends SpefoDialog
     protected void createDialogArea(Composite parent) {
         final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).spacings(15))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(450).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(450))
                 .build(parent);
 
         newLabel()

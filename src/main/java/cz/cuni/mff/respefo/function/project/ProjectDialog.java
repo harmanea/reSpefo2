@@ -64,7 +64,7 @@ public class ProjectDialog extends TitleAreaDialog {
 
         final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).verticalSpacing(20).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(450).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(450))
                 .build(parent);
 
         newLabel().text("Prefix:").gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);

@@ -33,7 +33,7 @@ public class DoubleNumberDialog extends SpefoDialog {
     protected void createDialogArea(Composite parent) {
         final Composite composite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(250).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(250))
                 .build(parent);
 
         newLabel().text(label).gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);

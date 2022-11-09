@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.UtilityClass;
+import cz.cuni.mff.respefo.util.collections.Tuple;
 
 import java.util.*;
 
@@ -21,6 +22,15 @@ public class CollectionUtils extends UtilityClass {
     public static <T> List<T> listOf(T... values) {
         List<T> list = Arrays.asList(values);
         return Collections.unmodifiableList(list);
+    }
+
+    @SafeVarargs
+    public static <K, V> Map<K, V> mapOf(Tuple.Two<K, V> ... entries) {
+        Map<K, V> map = new HashMap<>();
+        for (Tuple.Two<K, V> entry : entries) {
+            map.put(entry.a, entry.b);
+        }
+        return Collections.unmodifiableMap(map);
     }
 
     protected CollectionUtils() throws IllegalAccessException {

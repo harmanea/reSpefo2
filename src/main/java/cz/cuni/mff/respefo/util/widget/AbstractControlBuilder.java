@@ -4,6 +4,7 @@ import cz.cuni.mff.respefo.resources.ColorManager;
 import cz.cuni.mff.respefo.resources.ColorResource;
 import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.layout.GridDataBuilder;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -83,6 +84,13 @@ public abstract class AbstractControlBuilder<B extends AbstractControlBuilder<?,
     public B layoutData(Supplier<Object> layoutDataSupplier) {
         addProperty(c -> c.setLayoutData(layoutDataSupplier.get()));
         return (B) this;
+    }
+
+    /**
+     * @see Control#setLayoutData(Object)
+     */
+    public B layoutData(GridDataBuilder gridDataBuilder) {
+        return layoutData(gridDataBuilder::build);
     }
 
     /**

@@ -44,7 +44,7 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
 
         final Composite composite = newComposite()
                 .layout(fillLayout().margins(15))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(400).heightHint(400).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(400).heightHint(400))
                 .build(parent);
 
         newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)

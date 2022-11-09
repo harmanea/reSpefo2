@@ -47,7 +47,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
 
         final Composite topComposite = newComposite()
                 .layout(gridLayout(2, false).margins(15).horizontalSpacing(10))
-                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(300).build())
+                .layoutData(gridData(GridData.FILL_BOTH).widthHint(500).heightHint(300))
                 .build(parent);
 
         LabelBuilder labelBuilder = LabelBuilder.newLabel().gridLayoutData(SWT.FILL, SWT.TOP, true, false, 2, 1);
