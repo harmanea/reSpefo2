@@ -69,6 +69,10 @@ public class FileCopy {
     }
 
     private FileVisitResult copyDirectory(Path sourceDirectory, Path targetDirectory, CopyOption... options) throws IOException {
+        if (sourceDirectory.equals(targetDirectory.getParent())) {
+            throw new FileSystemException("Cannot copy a directory into itself");
+        }
+
         Files.walkFileTree(sourceDirectory, EnumSet.noneOf(FileVisitOption.class), 1, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
