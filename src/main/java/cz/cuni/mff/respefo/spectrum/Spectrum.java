@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cz.cuni.mff.respefo.exception.SpefoException;
@@ -24,23 +26,22 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+
 public abstract class Spectrum {
-    public static final ObjectMapper MAPPER = new ObjectMapper();
-    static {
-        MAPPER.disable(MapperFeature.AUTO_DETECT_CREATORS,
-                MapperFeature.AUTO_DETECT_GETTERS,
-                MapperFeature.AUTO_DETECT_IS_GETTERS,
-                MapperFeature.AUTO_DETECT_SETTERS);
-        MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        MAPPER.registerModule(new JavaTimeModule()); // LocalDateTime support
-
-        SimpleModule doubleArrayListModule = new SimpleModule();
-        doubleArrayListModule.addSerializer(DoubleArrayList.class, new DoubleArrayListSerializer());
-        doubleArrayListModule.addDeserializer(DoubleArrayList.class, new DoubleArrayListDeserializer());
-        MAPPER.registerModule(doubleArrayListModule);
-    }
+    public static final ObjectMapper MAPPER = JsonMapper.builder()
+            .disable(MapperFeature.AUTO_DETECT_CREATORS,
+                    MapperFeature.AUTO_DETECT_GETTERS,
+                    MapperFeature.AUTO_DETECT_IS_GETTERS,
+                    MapperFeature.AUTO_DETECT_SETTERS)
+            .visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .addModule(new JavaTimeModule())  // LocalDateTime support
+            .addModule(new SimpleModule("DoubleArrayList module", Version.unknownVersion(),
+                    singletonMap(DoubleArrayList.class, new DoubleArrayListDeserializer()),
+                    singletonList(new DoubleArrayListSerializer(DoubleArrayList.class))))
+            .build();
 
     private static final Map<Integer, Class<? extends Spectrum>> FORMATS = new HashMap<>();
     static {
