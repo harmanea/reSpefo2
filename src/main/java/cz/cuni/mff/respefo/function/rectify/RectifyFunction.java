@@ -345,11 +345,12 @@ public class RectifyFunction extends SpectrumFunction {
     }
 
     private static void selectOrdersAndInteractivelyRectifyThem(EchelleRectificationContext context, Consumer<Boolean> callback) {
-        EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices);
+        EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices, context.printParameters);
         if (dialog.openIsOk()) {
             ComponentManager.clearScene(true);
             Iterator<Integer> selectedIndices = dialog.getSelectedIndices();
             if (selectedIndices.hasNext()) {
+                context.printParameters = dialog.printParameters();
                 Async.whileLoop(context,
                         (ctx, call) -> rectifySingleEchelleOrder(selectedIndices, ctx, call),
                         ctx -> {
@@ -487,7 +488,9 @@ public class RectifyFunction extends SpectrumFunction {
                 .keyListener(ch -> new BlazeKeyListener(ch, blaze,
                         () -> update.accept(ch),
                         () -> {
-                            printParametersToFile(context.spectrum, blaze);
+                            if (context.printParameters) {
+                                printParametersToFile(context.spectrum, blaze);
+                            }
                             if (blaze.isUnchanged(context.blazeAsset)) {
                                 Async.exec(() -> fineTuneRectificationPoints(index, context, callback, context.spectrum.getRectifyAssets()[index]));
                             } else {
@@ -799,6 +802,8 @@ public class RectifyFunction extends SpectrumFunction {
 
         double[] polyCoeffs;
 
+        boolean printParameters;
+
         EchelleRectificationContext(EchelleSpectrum spectrum) {
             this.spectrum = spectrum;
 
@@ -832,6 +837,8 @@ public class RectifyFunction extends SpectrumFunction {
             rectifyAssets = new RectifyAsset[series.length];
 
             rectifiedIndices = new HashSet<>(series.length);
+
+            printParameters = false;
         }
 
         public void recalculatePolyCoeffs() {
