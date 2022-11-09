@@ -82,6 +82,13 @@ public class CleanFunction extends SpectrumFunction {
                                 updateActivePoint(ch, asset, asset.getActiveIndex() + 1);
                             }
                             break;
+                        case 'x':
+                            if (e.stateMask == SWT.CTRL && Message.question("Are you sure you want to remove all cleaned points?")) {
+                                asset.clear();
+                                updateSeries(ch, data, asset);
+                                updateActivePoint(ch, asset, asset.getActiveIndex());
+                            }
+                            break;
                         case SWT.CR:
                             if (asset.isEmpty()) {
                                 spectrum.removeFunctionAsset(SERIALIZE_KEY);

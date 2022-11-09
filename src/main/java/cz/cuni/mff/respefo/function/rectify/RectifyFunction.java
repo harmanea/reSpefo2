@@ -844,7 +844,7 @@ public class RectifyFunction extends SpectrumFunction {
             Map<Integer, List<Integer>> deletedIndices = new HashMap<>();
             int n = series[0].getLength();
             for (int index : asset) {
-                int order = Math.floorDiv(index, n);
+                int order = Math.floorDiv(index, n);  // TODO: will this work for overlapping orders?
                 int indexInOrder = index % n;
                 deletedIndices.putIfAbsent(order, new ArrayList<>());
                 deletedIndices.get(order).add(indexInOrder);

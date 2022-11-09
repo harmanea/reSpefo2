@@ -41,6 +41,10 @@ public class CleanAsset implements FunctionAsset, Iterable<Integer> {
         return deletedIndices.isEmpty();
     }
 
+    public void clear() {
+        deletedIndices.clear();
+    }
+
     public XYSeries mapDeletedIndicesToValues(XYSeries data) {
         double[] xSeries = deletedIndices.stream().mapToDouble(data::getX).toArray();
         double[] ySeries = deletedIndices.stream().mapToDouble(data::getY).toArray();
