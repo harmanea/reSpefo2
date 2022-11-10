@@ -377,9 +377,7 @@ public class RectifyFunction extends SpectrumFunction {
         for (int index = 0; index < context.series.length; index++) {
             if (!context.rectifiedIndices.contains(index)) {
                 Blaze blaze = new Blaze(index, context.scaleFunction());
-                if (context.blazeAsset.hasParameters(blaze.getOrder())) {
-                    context.rectifyAssets[index] = context.spectrum.getRectifyAssets()[index];
-                } else {
+                if (!context.blazeAsset.hasParameters(blaze.getOrder())) {
                     context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
                 }
             }
@@ -835,6 +833,11 @@ public class RectifyFunction extends SpectrumFunction {
                     });
 
             rectifyAssets = new RectifyAsset[series.length];
+            for (int i = 0; i < series.length; i++) {
+                if (blazeAsset.hasParameters(Blaze.indexToOrder(i))) {
+                    rectifyAssets[i] = spectrum.getRectifyAssets()[i];
+                }
+            }
 
             rectifiedIndices = new HashSet<>(series.length);
 
