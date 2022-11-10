@@ -45,7 +45,9 @@ public class FancyLogListener implements LogListener, LogActionListener {
     }
 
     public void copy() {
-        clipboard.setContents(new Object[]{textField.getText()}, new Transfer[]{TextTransfer.getInstance()});
+        if (textField.getText().length() > 0) {
+            clipboard.setContents(new Object[]{textField.getText()}, new Transfer[]{TextTransfer.getInstance()});
+        }
     }
 
     public void setLayoutData(Object layoutData) {
