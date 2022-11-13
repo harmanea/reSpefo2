@@ -12,6 +12,7 @@ import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.NaturalOrderComparator;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.utils.StringUtils;
@@ -257,7 +258,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                 .map(MeasureRVResults::getCategories)
                 .flatMap(Stream::of)
                 .distinct()
-                .sorted()
+                .sorted(NaturalOrderComparator.getInstance())
                 .toArray(String[]::new);
 
         for (String title : categories) {
@@ -323,7 +324,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                     .map(MeasureRVResults::getCategories)
                     .flatMap(Stream::of)
                     .distinct()
-                    .sorted()
+                    .sorted(NaturalOrderComparator.getInstance())
                     .toArray(String[]::new);
             for (String category : categories) {
                 writer.print(" " + StringUtils.trimmedOrPaddedString(category, 8));
@@ -363,7 +364,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                     .flatMap(Stream::of)
                     .distinct()
                     .filter(category -> !category.equals("corr"))
-                    .sorted()
+                    .sorted(NaturalOrderComparator.getInstance())
                     .toArray(String[]::new);
             for (String category : categories) {
                 writer.print(" " + StringUtils.trimmedOrPaddedString(category, 8));

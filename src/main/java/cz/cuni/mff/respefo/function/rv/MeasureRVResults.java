@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.function.rv;
 
 import cz.cuni.mff.respefo.spectrum.asset.AppendableFunctionAsset;
+import cz.cuni.mff.respefo.util.NaturalOrderComparator;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class MeasureRVResults implements AppendableFunctionAsset<MeasureRVResult
         return results.stream()
                 .map(MeasureRVResult::getCategory)
                 .distinct()
-                .sorted()
+                .sorted(NaturalOrderComparator.getInstance())
                 .toArray(String[]::new);
     }
 
