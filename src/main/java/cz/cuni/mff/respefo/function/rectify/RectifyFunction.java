@@ -614,20 +614,31 @@ public class RectifyFunction extends SpectrumFunction {
                         }
                     }
 
+                    builder.data("extra continuum lines", false);
+
+                    builder.keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
+                        if (e.keyCode == TAB) {
+                            ch.setData("extra continuum lines", !(boolean) ch.getData("extra continuum lines"));
+                            ch.redraw();
+                        }
+                    }));
+
                     builder.plotAreaPaintListener(ch -> event -> {
                         int coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(1);
                         event.gc.setForeground(getColor(GOLD));
-                        event.gc.setLineStyle(LINE_SOLID);
+                        event.gc.setLineStyle((boolean) ch.getData("extra continuum lines") ? LINE_SOLID : LINE_DOT);
                         event.gc.drawLine(0, coordinate, event.width, coordinate);
 
-                        coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(0.99);
-                        event.gc.setForeground(getColor(GRAY));
-                        event.gc.setLineStyle(LINE_DASH);
-                        event.gc.drawLine(0, coordinate, event.width, coordinate);
+                        if ((boolean) ch.getData("extra continuum lines")) {
+                            coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(0.99);
+                            event.gc.setForeground(getColor(GRAY));
+                            event.gc.setLineStyle(LINE_DASH);
+                            event.gc.drawLine(0, coordinate, event.width, coordinate);
 
-                        coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(0.98);
-                        event.gc.setLineStyle(LINE_DOT);
-                        event.gc.drawLine(0, coordinate, event.width, coordinate);
+                            coordinate = ch.getAxisSet().getYAxis(ch.getSeriesSet().getSeries("rectified").getYAxisId()).getPixelCoordinate(0.98);
+                            event.gc.setLineStyle(LINE_DOT);
+                            event.gc.drawLine(0, coordinate, event.width, coordinate);
+                        }
                     });
 
                     builder.mouseMoveListener(ch -> event -> ch.setData("position", ChartUtils.getRealValuesFromCoordinates(ch, event.x, event.y)))
