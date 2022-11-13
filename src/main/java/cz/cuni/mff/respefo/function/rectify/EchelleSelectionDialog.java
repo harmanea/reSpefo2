@@ -33,8 +33,8 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
         this.printParameters = printParameters;
     }
 
-    public Iterator<Integer> getSelectedIndices() {
-        return selected.iterator();
+    public ListIterator<Integer> getSelectedIndices() {
+        return new LinkedList<>(selected).listIterator();
     }
 
     public boolean printParameters() {
@@ -50,7 +50,7 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                 .layoutData(gridData(GridData.FILL_BOTH).widthHint(400).heightHint(450))
                 .build(parent);
 
-        newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
+        final Table table = newTable(SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .headerVisible(true)
                 .linesVisible(true)
@@ -80,6 +80,33 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                             tableItem.setGrayed(!tableItem.getGrayed());
                         }
 
+                    }
+                })
+                .build(composite);
+
+        newButton(SWT.PUSH)
+                .gridLayoutData(GridData.FILL_HORIZONTAL)
+                .text("(De)select multiple")
+                .onSelection(event -> {
+                    MultipleOrdersSelectionDialog dialog = new MultipleOrdersSelectionDialog(names.length);
+                    if (dialog.openIsOk()) {
+                        int from = dialog.getFrom();
+                        int to = dialog.getTo();
+                        boolean select = dialog.isSelect();
+
+                        for (int i = Math.min(from, to) - 1; i < Math.max(from, to); i++) {
+                            if (select) {
+                                selected.add(i);
+                            } else {
+                                selected.remove(i);
+                            }
+
+                            if (disabled.contains(i)) {
+                                table.getItem(i).setGrayed(!select);
+                            } else {
+                                table.getItem(i).setChecked(select);
+                            }
+                        }
                     }
                 })
                 .build(composite);
