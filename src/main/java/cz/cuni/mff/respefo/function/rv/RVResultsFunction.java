@@ -291,12 +291,18 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
 
         Composite buttonsComposite = newComposite()
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END)
-                .layout(gridLayout(3, true).margins(10).spacings(10))
+                .layout(gridLayout(4, true).margins(10).spacings(10))
                 .build(composite);
 
+        Button includeErrorsButton = ButtonBuilder.newButton(SWT.CHECK)
+                .gridLayoutData(GridData.VERTICAL_ALIGN_CENTER | GridData.GRAB_VERTICAL | GridData.FILL_HORIZONTAL)
+                .text("Include error columns")
+                .selection(true)
+                .build(buttonsComposite);
+
         ButtonBuilder buttonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);
-        buttonBuilder.text("Print to .rvs file").onSelection(event -> printToRvsFile(spectra)).build(buttonsComposite);
-        buttonBuilder.text("Print to .cor file").onSelection(event -> printToCorFile(spectra)).build(buttonsComposite);
+        buttonBuilder.text("Print to .rvs file").onSelection(event -> printToRvsFile(spectra, includeErrorsButton.getSelection())).build(buttonsComposite);
+        buttonBuilder.text("Print to .cor file").onSelection(event -> printToCorFile(spectra, includeErrorsButton.getSelection())).build(buttonsComposite);
         buttonBuilder.text("Print to .ac file").onSelection(event -> printToAcFile(spectra)).build(buttonsComposite);
 
         scrolledComposite.setContent(composite);
@@ -308,7 +314,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
         scrolledComposite.redraw();
     }
 
-    private static void printToRvsFile(List<Spectrum> spectra) {
+    private static void printToRvsFile(List<Spectrum> spectra, boolean includeErrors) {
         printToRvFile(".rvs", writer -> {
             writer.print("Jul. date  RVCorr");
 
@@ -320,7 +326,10 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                     .sorted()
                     .toArray(String[]::new);
             for (String category : categories) {
-                writer.print(" " + StringUtils.trimmedOrPaddedString(category, 8) + "         ");
+                writer.print(" " + StringUtils.trimmedOrPaddedString(category, 8));
+                if (includeErrors) {
+                    writer.print("         ");
+                }
             }
             writer.println();
 
@@ -331,17 +340,12 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                 MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
                 for (String category : categories) {
                     double result = results.getRvOfCategory(category);
-                    if (isNotNaN(result)) {
-                        writer.print(" " + formatDouble(result, 4, 2) + " ");
+                    String text = isNotNaN(result) ? " " + formatDouble(result, 4, 2) : "  9999.99";
+                    writer.print(text);
 
-                        if (results.getNumberOfResultsInCategory(category) > 1) {
-                            double sem = results.getSemOfCategory(category);
-                            writer.print(formatDouble(sem, 5, 2, false));
-                        } else {
-                            writer.print("    0.00");
-                        }
-                    } else {
-                        writer.print("  9999.99     0.00");
+                    if (includeErrors) {
+                        double sem = results.getNumberOfResultsInCategory(category) > 1 ? results.getSemOfCategory(category) : 0;
+                        writer.print(" " + formatDouble(sem, 5, 2, false));
                     }
                 }
                 writer.println();
@@ -349,7 +353,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
         });
     }
 
-    private static void printToCorFile(List<Spectrum> spectra) {
+    private static void printToCorFile(List<Spectrum> spectra, boolean includeErrors) {
         printToRvFile(".cor", writer -> {
             writer.print("Jul. date ");
 
@@ -362,7 +366,10 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                     .sorted()
                     .toArray(String[]::new);
             for (String category : categories) {
-                writer.print(" " + StringUtils.trimmedOrPaddedString(category, 8) + "         ");
+                writer.print(" " + StringUtils.trimmedOrPaddedString(category, 8));
+                if (includeErrors) {
+                    writer.print("         ");
+                }
             }
             writer.println();
 
@@ -379,17 +386,12 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                 double rvCorr = spectrum.getRvCorrection() - results.getRvOfCategory("corr");
                 for (String category : categories) {
                     double result = results.getRvOfCategory(category);
-                    if (isNotNaN(result)) {
-                        writer.print(" " + formatDouble(result + rvCorr, 4, 2) + " ");
+                    String text = isNotNaN(result) ? " " + formatDouble(result + rvCorr, 4, 2) : "  9999.99";
+                    writer.print(text);
 
-                        if (results.getNumberOfResultsInCategory(category) > 1) {
-                            double sem = results.getSemOfCategory(category);
-                            writer.print(formatDouble(sem, 5, 2, false));
-                        } else {
-                            writer.print("    0.00");
-                        }
-                    } else {
-                        writer.print("  9999.99     0.00");
+                    if (includeErrors) {
+                        double sem = results.getNumberOfResultsInCategory(category) > 1 ? results.getSemOfCategory(category) : 0;
+                        writer.print(" " + formatDouble(sem, 5, 2, false));
                     }
                 }
                 writer.println();
