@@ -70,7 +70,7 @@ public class HerculesFitsFormat extends ImportFitsFormat {
     public String description() {
         return "The Hercules FITS format.\n\n" +
                 "Values are stored in a 2-D array in a non-standard way along with some non-standard header cards.\n\n" +
-                "...";  // TODO: Add some descriprion of HERCULES
+                "This format is used by the University of Canterbury Mount John Observatory (UCMJO) to store data obtained using HERCULES, the vacuum fibre-fed echelle spectrograph used on the McLellan 1-metre telescope.";
     }
 
     @Override
