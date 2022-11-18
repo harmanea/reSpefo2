@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import static cz.cuni.mff.respefo.util.utils.MathUtils.DOUBLE_PRECISION;
 import static org.junit.Assert.assertEquals;
@@ -34,5 +35,12 @@ public class JulianDateTest {
         LocalDateTime dateTime = LocalDateTime.of(2000, 1, 1, 18, 0, 0);
 
         assertEquals(2451545.25, JulianDate.fromDateTime(dateTime).getJD(), DOUBLE_PRECISION);
+    }
+
+    @Test
+    public void timeTest() {
+        LocalDate date = LocalDate.of(2012, 12, 20);
+
+        assertEquals(LocalTime.NOON, JulianDate.fromDate(date).toTime());
     }
 }

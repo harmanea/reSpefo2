@@ -433,7 +433,7 @@ public class ComponentManager extends UtilityClass {
         try {
             Desktop.getDesktop().browse(URI.create("https://astro.troja.mff.cuni.cz/projects/respefo/"));
         } catch (Exception exception) {
-            Message.error("Couldn't open website in default broswer.\n You can also copy and open this link manually:\n\nhttps://astro.troja.mff.cuni.cz/projects/respefo/", exception);
+            Message.error("Couldn't open website in default browser.\n You can also copy and open this link manually:\n\nhttps://astro.troja.mff.cuni.cz/projects/respefo/", exception);
         }
     }
 

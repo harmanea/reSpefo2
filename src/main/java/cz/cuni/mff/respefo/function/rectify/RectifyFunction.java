@@ -643,13 +643,12 @@ public class RectifyFunction extends SpectrumFunction {
 
                     builder.mouseMoveListener(ch -> event -> ch.setData("position", ChartUtils.getRealValuesFromCoordinates(ch, event.x, event.y)))
                             .data("position", new Point(0, 0))
-                            .accept(ch -> {
-                                ch.addPaintListener(event -> {
-                                    Point realValues = (Point) ch.getData("position");
-                                    event.gc.drawText("[" + FormattingUtils.formatDouble(realValues.x, 5, 0) + ", "
-                                            + FormattingUtils.formatDouble(realValues.y, 7, 0) + " ]", 1, 1);
-                                });
-                            });
+                            .accept(ch -> ch.addPaintListener(event -> {
+                                Point realValues = (Point) ch.getData("position");
+                                String text = "[" + FormattingUtils.formatDouble(realValues.x, 5, 0) + ", "
+                                        + FormattingUtils.formatDouble(realValues.y, 7, 0) + " ]";
+                                event.gc.drawText(text, 1, 1);
+                            }));
 
                     return builder;
                 },

@@ -114,7 +114,7 @@ public class DoubleArrayList implements Iterable<Double>, RandomAccess {
     }
 
     /**
-     * Appends all of the elements in the specified list to the end of this list.
+     * Appends all the elements in the specified list to the end of this list.
      *
      * @param other list containing elements to be added to this list
      * @throws NullPointerException if the specified list is null
@@ -128,7 +128,7 @@ public class DoubleArrayList implements Iterable<Double>, RandomAccess {
     }
 
     /**
-     * Removes all of the elements from this list.
+     * Removes all the elements from this list.
      * The list will be empty after this call returns.
      */
     public void clear() {
@@ -214,13 +214,13 @@ public class DoubleArrayList implements Iterable<Double>, RandomAccess {
     }
 
     /**
-     * Returns an array containing all of the elements in this list in proper sequence (from first to last element).
+     * Returns an array containing all the elements in this list in proper sequence (from first to last element).
      *
      * <p>The returned array will be "safe" in that no references to it are maintained by this list.
      * (In other words, this method must allocate a new array).
      * The caller is thus free to modify the returned array.
      *
-     * @return an array containing all of the elements in this list in proper sequence
+     * @return an array containing all the elements in this list in proper sequence
      */
     public double[] toArray() {
         double[] newArray = new double[size];

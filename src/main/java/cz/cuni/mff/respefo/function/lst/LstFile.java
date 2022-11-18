@@ -43,7 +43,12 @@ public class LstFile implements Iterable<LstFile.Row> {
 
     // Make sure the header has exactly 4 lines => it has 3 LF
     private String ensureProperHeaderLength(String header) {
-        int numberOfLineFeeds = (int) header.chars().filter(ch -> ch == '\n').count();
+        int numberOfLineFeeds = 0;
+        for (int i = 0; i < header.length(); i++) {
+            if (header.charAt(i) == '\n') {
+                numberOfLineFeeds++;
+            }
+        }
 
         if (numberOfLineFeeds < 3) {
             header = header + String.join("", nCopies(3 - numberOfLineFeeds, "\n"));
@@ -51,8 +56,7 @@ public class LstFile implements Iterable<LstFile.Row> {
         } else {
             while (numberOfLineFeeds > 3) {
                 int lastIndex = header.lastIndexOf('\n');
-                header = header.substring(0, lastIndex)
-                        + (lastIndex >= header.length() ? "" : header.substring(lastIndex + 1));
+                header = header.substring(0, lastIndex) + header.substring(lastIndex + 1);
                 numberOfLineFeeds--;
             }
         }

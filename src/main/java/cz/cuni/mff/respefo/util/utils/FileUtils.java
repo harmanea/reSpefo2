@@ -55,7 +55,7 @@ public class FileUtils extends UtilityClass {
 
     /**
      * @param fileName whose extension should be stripped
-     * @return the file name with it's extension stripped or the original string if it has none
+     * @return the file name with its extension stripped or the original string if it has none
      */
     public static String stripFileExtension(String fileName) {
         Objects.requireNonNull(fileName);
@@ -71,7 +71,7 @@ public class FileUtils extends UtilityClass {
     /**
      * @param fileName whose extension should be replaced
      * @param newExtension to replace the current extension
-     * @return the file name with it's extension replaced or appended if it has none
+     * @return the file name with its extension replaced or appended if it has none
      */
     public static String replaceFileExtension(String fileName, String newExtension) {
         Objects.requireNonNull(fileName);
@@ -97,7 +97,7 @@ public class FileUtils extends UtilityClass {
 
     /**
      * @param fileName whose parent directory should be stripped
-     * @return the file name with it's parent stripped
+     * @return the file name with its parent stripped
      */
     public static String stripParent(String fileName) {
         Objects.requireNonNull(fileName);

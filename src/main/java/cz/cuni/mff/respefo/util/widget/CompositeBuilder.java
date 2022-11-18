@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Layout;
 // Maybe add a better way of selecting layouts
 public final class CompositeBuilder extends AbstractControlBuilder<CompositeBuilder, Composite> {
 
-    protected CompositeBuilder(int style) {
+    private CompositeBuilder(int style) {
         super((Composite parent) -> new Composite(parent, style));
     }
 

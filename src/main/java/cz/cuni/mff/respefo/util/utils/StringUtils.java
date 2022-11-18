@@ -66,7 +66,7 @@ public class StringUtils extends UtilityClass {
      * <p>
      * Taken from a Stack Overflow answer by aioobe, CC BY-SA 4.0
      * <p>
-     * https://stackoverflow.com/a/3758880
+     * <a href="https://stackoverflow.com/a/3758880">https://stackoverflow.com/a/3758880</a>
      *
      * @param bytes the number of bytes
      * @return a human-readable display value
@@ -92,7 +92,12 @@ public class StringUtils extends UtilityClass {
      */
     public static boolean isBlank(String str) {
         Objects.requireNonNull(str);
-        return str.chars().allMatch(Character::isWhitespace);
+        for (int i = 0; i < str.length(); i++) {
+            if (!Character.isWhitespace(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
