@@ -12,7 +12,9 @@ public enum FileType {
     FITS("All FITS Files", "fits", "fit", "fts"),
     CMP("CMP Files", "cmp"),
     STL("STL Files", "stl"),
-    LST("LST Files", "lst");
+    LST("LST Files", "lst"),
+    AC("AC Files", "ac"),
+    ;
 
     private final String[] filterNames;
     private final String[] filterExtensions;

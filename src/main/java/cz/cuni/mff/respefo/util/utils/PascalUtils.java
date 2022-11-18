@@ -11,7 +11,7 @@ import static java.nio.ByteOrder.LITTLE_ENDIAN;
 public class PascalUtils extends UtilityClass {
 
     /**
-     * Extracts a short from it's byte array representation.
+     * Extracts a short from its byte array representation.
      * @param bytes byte array containing the short number in little endian order
      * @return extracted short value
      */
@@ -21,7 +21,7 @@ public class PascalUtils extends UtilityClass {
     }
 
     /**
-     * Extracts an integer from it's byte array representation.
+     * Extracts an integer from its byte array representation.
      * @param bytes byte array containing the integer number in little endian order
      * @return extracted integer value
      */

@@ -73,7 +73,7 @@ public class ReimportFromLstFunction implements SingleFileFunction, MultiFileFun
     private static boolean updateFile(LstFile lst, File file) {
         try {
             Spectrum spectrum = Spectrum.open(file);
-            ImportFunction.updateSpectrumUsingLstFile(spectrum, lst, ((BaseOrigin) spectrum.getOrigin()).getFileName());
+            ImportFunction.updateSpectrumUsingLstFile(spectrum, lst, ((BaseOrigin) spectrum.getOrigin()).getFileName(), true);
             spectrum.save();
             return true;
 

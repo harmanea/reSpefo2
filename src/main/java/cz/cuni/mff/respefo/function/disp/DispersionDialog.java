@@ -19,6 +19,7 @@ import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
 
 // TODO: Make this more user friendly
+// TODO: Add advanced import functions like ImportDialog
 public class DispersionDialog extends SpefoDialog {
 
     private String labFileNameA;

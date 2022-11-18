@@ -66,7 +66,8 @@ public class LegacySpefoFormat implements ImportFileFormat {
                 spefoFile.setYSeries(ArrayUtils.divideArrayValues(spefoFile.getYSeries(), spefoFile.getMaxInt()));
                 break;
 
-            default: throw new IllegalStateException("Unexpected file extension encountered");
+            default:
+                throw new IllegalStateException("Unexpected file extension encountered");
         }
 
         double[] xSeries = new double[spefoFile.getYSeries().length];

@@ -1,9 +1,12 @@
 package cz.cuni.mff.respefo.function.port;
 
+import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.dialog.TitleAreaDialog;
 import cz.cuni.mff.respefo.spectrum.port.FileFormat;
 import cz.cuni.mff.respefo.spectrum.port.ImportFileFormat;
 import cz.cuni.mff.respefo.util.Async;
+import cz.cuni.mff.respefo.util.FileDialogs;
+import cz.cuni.mff.respefo.util.FileType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
@@ -13,11 +16,14 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
@@ -110,14 +116,14 @@ public class ImportDialog extends TitleAreaDialog {
                 .layout(gridLayout(2, true).margins(10))
                 .build(bar);
 
-        Button nanButton = newButton(SWT.CHECK)
+        final Button nanButton = newButton(SWT.CHECK)
                 .selection(options.nanReplacement.isPresent())
-                .gridLayoutData(GridData.FILL_BOTH)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER)
                 .text("Replace NaN values with:")
                 .build(expandComposite);
 
-        Text nanText = newText(SWT.SINGLE)
-                .gridLayoutData(GridData.FILL_BOTH)
+        final Text nanText = newText(SWT.SINGLE | SWT.BORDER)
+                .layoutData(gridData(GridData.FILL_BOTH))
                 .text(options.nanReplacement.isPresent() ? Double.toString(options.nanReplacement.get()) : "")
                 .onModify(event -> {
                     if (nanButton.getSelection()) {
@@ -136,14 +142,14 @@ public class ImportDialog extends TitleAreaDialog {
             }
         });
 
-        Button rvButton = newButton(SWT.CHECK)
+        final Button rvButton = newButton(SWT.CHECK)
                 .selection(options.nanReplacement.isPresent())
-                .gridLayoutData(GridData.FILL_BOTH)
+                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER)
                 .text("Default RV correction value:")
                 .build(expandComposite);
 
-        Text rvText = newText(SWT.SINGLE)
-                .gridLayoutData(GridData.FILL_BOTH)
+        final Text rvText = newText(SWT.SINGLE | SWT.BORDER)
+                .layoutData(gridData(GridData.FILL_BOTH))
                 .text(options.defaultRvCorrection.isPresent() ? Double.toString(options.defaultRvCorrection.get()) : "")
                 .onModify(event -> {
                     if (nanButton.getSelection()) {
@@ -159,6 +165,113 @@ public class ImportDialog extends TitleAreaDialog {
             } else {
                 rvText.setEnabled(false);
                 options.defaultRvCorrection = Optional.empty();
+            }
+        });
+
+        final Button lstButton = newButton(SWT.CHECK)
+                .selection(true)
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .text("Import data from a .lst file:")
+                .build(expandComposite);
+
+        final Composite innerLstComposite = newComposite()
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .layout(gridLayout(2, false).marginLeft(20))
+                .build(expandComposite);
+
+        final Text lstText = newText(SWT.SINGLE | SWT.BORDER)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text(options.lstFile.orElse(""))
+                .onModify(event -> {
+                    if (lstButton.getSelection()) {
+                        options.lstFile = Optional.of(((Text) event.widget).getText());
+                    }
+                })
+                .build(innerLstComposite);
+
+        newButton(SWT.PUSH)
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER)
+                .text("Browse")
+                .onSelection(event -> {
+                    String fileName = FileDialogs.openFileDialog(FileType.LST);
+                    if (fileName != null) {
+                        lstText.setText(fileName);
+                        options.lstFile = Optional.of(fileName);
+                    }})
+                .build(innerLstComposite);
+
+        newButton(SWT.RADIO)
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .text("Apply rv correction difference")
+                .selection(true)
+                .onSelection(event -> options.applyLstFileRvCorrection = true)
+                .build(innerLstComposite);
+
+        newButton(SWT.RADIO)
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .text("Set rv correction")
+                .onSelection(event -> options.applyLstFileRvCorrection = false)
+                .build(innerLstComposite);
+
+        lstButton.addListener(SWT.Selection, event -> {
+            if (lstButton.getSelection()) {
+                for (Control child : innerLstComposite.getChildren()) {
+                    child.setEnabled(true);
+                }
+                options.lstFile = Optional.of(lstText.getText());
+            } else {
+                for (Control child : innerLstComposite.getChildren()) {
+                    child.setEnabled(false);
+                }
+                options.lstFile = Optional.empty();
+            }
+        });
+
+        final Button acButton = newButton(SWT.CHECK)
+                .selection(false)
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .text("Import data from an .ac file:")
+                .build(expandComposite);
+
+        final Composite innerAcComposite = newComposite()
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .layout(gridLayout(2, false).marginLeft(20))
+                .build(expandComposite);
+
+        final Text acText = newText(SWT.SINGLE | SWT.BORDER)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text(getFile(".ac"))
+                .onModify(event -> {
+                    if (acButton.getSelection()) {
+                        options.acFile = Optional.of(((Text) event.widget).getText());
+                    }
+                })
+                .enabled(false)
+                .build(innerAcComposite);
+
+        newButton(SWT.PUSH)
+                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER)
+                .text("Browse")
+                .onSelection(event -> {
+                    String fileName = FileDialogs.openFileDialog(FileType.AC);
+                    if (fileName != null) {
+                        acText.setText(fileName);
+                        options.acFile = Optional.of(fileName);
+                    }})
+                .enabled(false)
+                .build(innerAcComposite);
+
+        acButton.addListener(SWT.Selection, event -> {
+            if (acButton.getSelection()) {
+                for (Control child : innerAcComposite.getChildren()) {
+                    child.setEnabled(true);
+                }
+                options.acFile = Optional.of(acText.getText());
+            } else {
+                for (Control child : innerAcComposite.getChildren()) {
+                    child.setEnabled(false);
+                }
+                options.acFile = Optional.empty();
             }
         });
 
@@ -178,11 +291,26 @@ public class ImportDialog extends TitleAreaDialog {
         }
     }
 
+    private static String getFile(String suffix) {
+        File[] files = Project.getRootDirectory().listFiles(file -> file.getName().endsWith(suffix));
+        if (files != null && files.length > 0) {
+            return Arrays.stream(files)
+                    .filter(f -> stripFileExtension(f.getName()).equals(Project.getRootDirectory().getName()))
+                    .findFirst()
+                    .orElse(files[0])
+                    .getPath();
+        }
+
+        return null;
+    }
+
     public class Options {
         public ImportFileFormat format;
         public Optional<Double> nanReplacement;
         public Optional<Double> defaultRvCorrection;
-        // TODO: Add options for .lst files
+        public Optional<String> lstFile;
+        public boolean applyLstFileRvCorrection;
+        public Optional<String> acFile;
 
         public Options() {
             format = fileFormats.stream()
@@ -191,6 +319,9 @@ public class ImportDialog extends TitleAreaDialog {
                     .orElse(fileFormats.get(0));
             nanReplacement = Optional.of(0.0);
             defaultRvCorrection = Optional.of(0.0);
+            lstFile = Optional.ofNullable(getFile(".lst"));
+            applyLstFileRvCorrection = true;
+            acFile = Optional.empty();
         }
     }
 }

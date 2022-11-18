@@ -10,6 +10,7 @@ import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.function.lst.LstFile;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
+import cz.cuni.mff.respefo.function.rv.AcFile;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.port.FormatManager;
@@ -46,22 +47,54 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         try {
             List<ImportFileFormat> fileFormats = FormatManager.getImportFileFormats(file.getPath());
 
-            FileFormatSelectionDialog<ImportFileFormat> dialog = new FileFormatSelectionDialog<>(fileFormats, "Import");
-            if (dialog.openIsOk()) {
-                spectrum = dialog.getFileFormat().importFrom(file.getPath());
-            } else {
+            ImportDialog importDialog = new ImportDialog(fileFormats);
+            if (importDialog.openIsNotOk()) {
                 return;
+            }
+            ImportDialog.Options options = importDialog.getOptions();
+            spectrum = options.format.importFrom(file.getPath());
+
+            // Replace NaNs
+            if (options.nanReplacement.isPresent()
+                    && Arrays.stream(spectrum.getSeries().getYSeries()).anyMatch(Double::isNaN)) {
+                spectrum.putFunctionAsset(SERIALIZE_KEY, new PostImportAsset(options.nanReplacement.get()));
+            }
+
+            // Import data from a .lst file
+            if (options.lstFile.isPresent()) {
+                try {
+                    LstFile lstFile = LstFile.open(new File(options.lstFile.get()));
+                    updateSpectrumUsingLstFile(spectrum, lstFile, file.getName(), options.applyLstFileRvCorrection);
+
+                } catch (SpefoException exception) {
+                    Log.error("Couldn't load .lst file", exception);
+                }
+            }
+
+            // Handle missing rv correction
+            if (isNaN(spectrum.getRvCorrection())) {
+                if (options.defaultRvCorrection.isPresent()) {
+                    spectrum.setRvCorrection(options.defaultRvCorrection.get());
+                } else {
+                    RVCorrectionDialog dialog = new RVCorrectionDialog();
+                    spectrum.setRvCorrection(dialog.openIsOk() ? dialog.getRvCorr() : 0);
+                }
+            }
+
+            // Import data from an .ac file
+            if (options.acFile.isPresent()) {
+                try {
+                    AcFile acFile = AcFile.open(new File(options.acFile.get()));
+                    updateSpectrumUsingAcFile(spectrum, acFile, file.getName());
+                } catch (SpefoException exception) {
+                    Log.error("Couldn't load .ac file", exception);
+                }
             }
 
         } catch (SpefoException exception) {
             Message.error("An error occurred while importing file.", exception);
             return;
         }
-
-        // Post-import check, this is a temporary solution
-        checkForNaNs(spectrum);
-        checkForAttributesInLstFile(spectrum, file);
-        checkRVCorrection(spectrum);
 
         String fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
         if (fileName != null) {
@@ -120,20 +153,64 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             }
 
             List<ImportFileFormat> applicableFormatsList = new ArrayList<>(applicableFormats);
-            Progress.DialogAndReturnCode<FileFormatSelectionDialog<ImportFileFormat>> dialogAndReturnCode =
-                    p.syncOpenDialog(() -> new FileFormatSelectionDialog<>(applicableFormatsList, "Import"));
+            Progress.DialogAndReturnCode<ImportDialog> dialogAndReturnCode =
+                    p.syncOpenDialog(() -> new ImportDialog(applicableFormatsList));
             if (dialogAndReturnCode.getReturnValue() != SWT.OK) {
                 return null;
+            }
+            ImportDialog.Options options = dialogAndReturnCode.getDialog().getOptions();
+
+            LstFile lstFile = null;
+            if (options.lstFile.isPresent()) {
+                try {
+                    lstFile = LstFile.open(new File(options.lstFile.get()));
+                } catch (SpefoException exception) {
+                    Log.error("Couldn't load .lst file", exception);
+                }
+            }
+
+            AcFile acFile = null;
+            if (options.acFile.isPresent()) {
+                try {
+                    acFile = AcFile.open(new File(options.acFile.get()));
+                } catch (SpefoException exception) {
+                    Log.error("Couldn't load .ac file", exception);
+                }
             }
 
             int applyToAllAction = 0;
             for (File file : files) {
                 try {
-                    Spectrum spectrum = dialogAndReturnCode.getDialog().getFileFormat().importFrom(file.getPath());
-                    // Post-import check, this is a temporary solution
-                    checkForNaNs(spectrum);
-                    checkForAttributesInLstFile(spectrum, file);
-                    checkRVCorrection(p, spectrum);
+                    Spectrum spectrum = options.format.importFrom(file.getPath());
+
+                    // Replace NaNs
+                    if (options.nanReplacement.isPresent()
+                            && Arrays.stream(spectrum.getSeries().getYSeries()).anyMatch(Double::isNaN)) {
+                        spectrum.putFunctionAsset(SERIALIZE_KEY, new PostImportAsset(options.nanReplacement.get()));
+                    }
+
+                    // Import data from a .lst file
+                    if (options.lstFile.isPresent() && lstFile != null) {
+                        updateSpectrumUsingLstFile(spectrum, lstFile, file.getName(), options.applyLstFileRvCorrection);
+                    }
+
+                    // Handle missing rv correction
+                    if (isNaN(spectrum.getRvCorrection())) {
+                        if (options.defaultRvCorrection.isPresent()) {
+                            spectrum.setRvCorrection(options.defaultRvCorrection.get());
+                        } else {
+                            Progress.DialogAndReturnCode<RVCorrectionDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(RVCorrectionDialog::new);
+                            int response = overwriteDialogAndReturnCode.getReturnValue();
+                            RVCorrectionDialog dialog = overwriteDialogAndReturnCode.getDialog();
+
+                            spectrum.setRvCorrection(response == SWT.OK ? dialog.getRvCorr() : 0);
+                        }
+                    }
+
+                    // Import data from an .ac file
+                    if (options.acFile.isPresent() && acFile != null) {
+                        updateSpectrumUsingAcFile(spectrum, acFile, file.getName());
+                    }
 
                     String fileName = FileUtils.replaceFileExtension(file.getPath(), "spf");
                     int response = saveAs(p, spectrum, new File(fileName), applyToAllAction);
@@ -199,101 +276,28 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         return applyToAllAction;
     }
 
-    public static void checkForNaNs(Spectrum spectrum) {
-        if (Arrays.stream(spectrum.getSeries().getYSeries()).anyMatch(Double::isNaN)) {
-            spectrum.putFunctionAsset(SERIALIZE_KEY, new PostImportAsset(0));
-        }
-    }
-
-    public static void checkRVCorrection(Spectrum spectrum) {
-        if (isNaN(spectrum.getRvCorrection())) {
-            RVCorrectionDialog dialog = new RVCorrectionDialog();
-            spectrum.setRvCorrection(dialog.openIsOk() ? dialog.getRvCorr() : 0);
-        }
-    }
-
-    private static void checkRVCorrection(Progress p, Spectrum spectrum) {
-        if (isNaN(spectrum.getRvCorrection())) {
-            Progress.DialogAndReturnCode<RVCorrectionDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(RVCorrectionDialog::new);
-            int response = overwriteDialogAndReturnCode.getReturnValue();
-            RVCorrectionDialog dialog = overwriteDialogAndReturnCode.getDialog();
-
-            spectrum.setRvCorrection(response == SWT.OK ? dialog.getRvCorr() : 0);
-        }
-    }
-
-    public static void checkForAttributesInLstFile(Spectrum spectrum, File originalFile) {
-        if (isNaN(spectrum.getHjd().getJD())
-                || spectrum.getDateOfObservation().equals(LocalDateTime.MIN)
-                || isNaN(spectrum.getRvCorrection())
-                || isNaN(spectrum.getExpTime())) {
-
-            File[] lstFiles = originalFile.getParentFile().listFiles((dir, name) -> name.endsWith(".lst"));
-            if (lstFiles != null && lstFiles.length > 0) {
-                File file;
-                if (lstFiles.length == 1) {
-                    file = lstFiles[0];
-
-                } else {
-                    // Try matching the lst filename
-                    Optional<File> optionalFile = Arrays.stream(lstFiles)
-                            .filter(f -> matchLstFileName(f, originalFile))
-                            .findFirst();
-
-                    file = optionalFile.orElse(lstFiles[0]);
-                }
-
-                try {
-                    LstFile lstFile = LstFile.open(file);
-                    updateSpectrumUsingLstFile(spectrum, lstFile, originalFile.getName());
-
-                } catch (SpefoException exception) {
-                    Log.error("Couldn't load .lst file", exception);
-                }
-            }
-        }
-    }
-
-    private static boolean matchLstFileName(File file, File originalFile) {
-        String strippedFileName = stripFileExtension(file.getName());
-
-        // Match with original file parent directory name
-        if (strippedFileName.equals(stripFileExtension(originalFile.getParentFile().getName()))) {
-            return true;
-        }
-
-        // Match with original filename prefix
-        String strippedOriginalFileName = stripFileExtension(originalFile.getName());
-        if (strippedOriginalFileName.length() > 5) {
-            String prefix = strippedOriginalFileName.substring(0, strippedOriginalFileName.length() - 5);
-            return prefix.equals(strippedFileName);
-        }
-
-        return false;
-    }
-
-    public static void updateSpectrumUsingLstFile(Spectrum spectrum, LstFile lstFile, String originalFileName) {
+    public static void updateSpectrumUsingLstFile(Spectrum spectrum, LstFile lstFile, String originalFileName, boolean applyRvCorrection) {
         // Try matching filename in the lst file
         Optional<LstFile.Row> optionalRow = lstFile.getRowByFileName(originalFileName);
 
         if (optionalRow.isPresent()) {
-            updateSpectrumUsingLstFileRow(spectrum, optionalRow.get());
+            updateSpectrumUsingLstFileRow(spectrum, optionalRow.get(), applyRvCorrection);
 
         } else {
             // Try using a number in the filename
             String strippedFileName = stripFileExtension(originalFileName);
             try {
                 int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 5));
-                LstFile.Row row = lstFile.getRowByIndex(fileIndex).get();
-                updateSpectrumUsingLstFileRow(spectrum, row);
+                lstFile.getRowByIndex(fileIndex)
+                        .ifPresent(row -> updateSpectrumUsingLstFileRow(spectrum, row, applyRvCorrection));
 
-            } catch (NumberFormatException | IndexOutOfBoundsException | NoSuchElementException e) {
+            } catch (NumberFormatException | IndexOutOfBoundsException e) {
                 // Filename does not conform to the naming convention
             }
         }
     }
 
-    private static void updateSpectrumUsingLstFileRow(Spectrum spectrum, LstFile.Row row) {
+    private static void updateSpectrumUsingLstFileRow(Spectrum spectrum, LstFile.Row row, boolean applyRvCorrection) {
         JulianDate hjd = row.getHjd();
         if (isNaN(spectrum.getHjd().getJD()) && isNotNaN(hjd.getJD())) {
             if (hjd.getJD() < 100_000) {
@@ -309,11 +313,44 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
         double rvCorr = row.getRvCorr();
         if (isNotNaN(rvCorr) && rvCorr != 0) {
-            spectrum.updateRvCorrection(rvCorr);
+            if (applyRvCorrection) {
+                if (isNaN(spectrum.getRvCorrection())) {
+                    spectrum.setRvCorrection(0);
+                }
+                spectrum.updateRvCorrection(rvCorr);
+            } else {
+                spectrum.setRvCorrection(rvCorr);
+            }
         }
 
         if (isNaN(spectrum.getExpTime()) && isNotNaN(row.getExpTime())) {
             spectrum.setExpTime(row.getExpTime());
         }
+    }
+
+    private static void updateSpectrumUsingAcFile(Spectrum spectrum, AcFile acFile, String originalFileName) {
+        // Try matching julian date in the ac file
+        if (spectrum.getHjd() != null) {
+            Optional<AcFile.Row> optionalRow = acFile.getRowByDate(spectrum.getHjd());
+            if (optionalRow.isPresent()) {
+                updateSpectrumUsingAcFileRow(spectrum, optionalRow.get());
+                return;
+            }
+        }
+
+        // Try using a number in the filename
+        String strippedFileName = stripFileExtension(originalFileName);
+        try {
+            int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 5));
+            acFile.getRowByIndex(fileIndex)
+                    .ifPresent(row -> updateSpectrumUsingAcFileRow(spectrum, row));
+
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            // Filename does not conform to the naming convention
+        }
+    }
+
+    private static void updateSpectrumUsingAcFileRow(Spectrum spectrum, AcFile.Row row) {
+        spectrum.updateRvCorrection(spectrum.getRvCorrection() + row.getRvCorrAdjustment());
     }
 }
