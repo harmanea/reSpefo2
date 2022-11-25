@@ -240,7 +240,7 @@ public class ImportDialog extends TitleAreaDialog {
 
         final Text acText = newText(SWT.SINGLE | SWT.BORDER)
                 .gridLayoutData(GridData.FILL_BOTH)
-                .text(getFile(".ac"))
+                .text(getFile(".ac").orElse(""))
                 .onModify(event -> {
                     if (acButton.getSelection()) {
                         options.acFile = Optional.of(((Text) event.widget).getText());
@@ -291,17 +291,18 @@ public class ImportDialog extends TitleAreaDialog {
         }
     }
 
-    private static String getFile(String suffix) {
+    private static Optional<String> getFile(String suffix) {
         File[] files = Project.getRootDirectory().listFiles(file -> file.getName().endsWith(suffix));
         if (files != null && files.length > 0) {
-            return Arrays.stream(files)
+            String path = Arrays.stream(files)
                     .filter(f -> stripFileExtension(f.getName()).equals(Project.getRootDirectory().getName()))
                     .findFirst()
                     .orElse(files[0])
                     .getPath();
+            return Optional.of(path);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public class Options {
@@ -319,7 +320,7 @@ public class ImportDialog extends TitleAreaDialog {
                     .orElse(fileFormats.get(0));
             nanReplacement = Optional.of(0.0);
             defaultRvCorrection = Optional.of(0.0);
-            lstFile = Optional.ofNullable(getFile(".lst"));
+            lstFile = getFile(".lst");
             applyLstFileRvCorrection = true;
             acFile = Optional.empty();
         }
