@@ -14,7 +14,7 @@ public enum FileType {
     STL("STL Files", "stl"),
     LST("LST Files", "lst"),
     AC("AC Files", "ac"),
-    ASCII_FILES("Ascii Files", "", "txt", "asc", "ascii"),
+    ASCII_FILES("Plain Text Files", "txt", "asc", "ascii"),
     ;
 
     private final String[] filterNames;
