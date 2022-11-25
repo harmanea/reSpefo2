@@ -58,7 +58,7 @@ public class AcFile {
     }
 
     private static Row parseLine(String line) {
-        String[] tokens = line.trim().split(" ");
+        String[] tokens = line.trim().replaceAll(" +", " ").split("\\s+");
 
         try {
             double rvCorrAdjustment = Double.parseDouble(tokens[tokens.length > 2 ? 1 : 0]);
