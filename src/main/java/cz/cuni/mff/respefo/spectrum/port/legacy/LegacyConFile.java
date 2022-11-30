@@ -48,7 +48,7 @@ public class LegacyConFile {
             }
 
         } catch (IOException exception) {
-            throw new InvalidFileFormatException("Con file has invalid format");
+            throw new InvalidFileFormatException("Con file has invalid format", exception);
         }
     }
 

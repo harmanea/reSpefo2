@@ -227,54 +227,6 @@ public class ImportDialog extends TitleAreaDialog {
             }
         });
 
-        final Button acButton = newButton(SWT.CHECK)
-                .selection(false)
-                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
-                .text("Import data from an .ac file:")
-                .build(expandComposite);
-
-        final Composite innerAcComposite = newComposite()
-                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
-                .layout(gridLayout(2, false).marginLeft(20))
-                .build(expandComposite);
-
-        final Text acText = newText(SWT.SINGLE | SWT.BORDER)
-                .gridLayoutData(GridData.FILL_BOTH)
-                .text(getFile(".ac").orElse(""))
-                .onModify(event -> {
-                    if (acButton.getSelection()) {
-                        options.acFile = Optional.of(((Text) event.widget).getText());
-                    }
-                })
-                .enabled(false)
-                .build(innerAcComposite);
-
-        newButton(SWT.PUSH)
-                .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER)
-                .text("Browse")
-                .onSelection(event -> {
-                    String fileName = FileDialogs.openFileDialog(FileType.AC);
-                    if (fileName != null) {
-                        acText.setText(fileName);
-                        options.acFile = Optional.of(fileName);
-                    }})
-                .enabled(false)
-                .build(innerAcComposite);
-
-        acButton.addListener(SWT.Selection, event -> {
-            if (acButton.getSelection()) {
-                for (Control child : innerAcComposite.getChildren()) {
-                    child.setEnabled(true);
-                }
-                options.acFile = Optional.of(acText.getText());
-            } else {
-                for (Control child : innerAcComposite.getChildren()) {
-                    child.setEnabled(false);
-                }
-                options.acFile = Optional.empty();
-            }
-        });
-
         ExpandItem expandItem = new ExpandItem(bar, SWT.NONE);
         expandItem.setText("Advanced options");
         expandItem.setHeight(expandComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
@@ -311,7 +263,6 @@ public class ImportDialog extends TitleAreaDialog {
         public Optional<Double> defaultRvCorrection;
         public Optional<String> lstFile;
         public boolean applyLstFileRvCorrection;
-        public Optional<String> acFile;
 
         public Options() {
             format = fileFormats.stream()
@@ -322,7 +273,6 @@ public class ImportDialog extends TitleAreaDialog {
             defaultRvCorrection = Optional.of(0.0);
             lstFile = getFile(".lst");
             applyLstFileRvCorrection = true;
-            acFile = Optional.empty();
         }
     }
 }

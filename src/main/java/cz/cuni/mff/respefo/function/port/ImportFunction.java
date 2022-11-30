@@ -10,7 +10,6 @@ import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.CompatibleFormatFileFilter;
 import cz.cuni.mff.respefo.function.lst.LstFile;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
-import cz.cuni.mff.respefo.function.rv.AcFile;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.port.FormatManager;
@@ -78,16 +77,6 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                 } else {
                     RVCorrectionDialog dialog = new RVCorrectionDialog();
                     spectrum.setRvCorrection(dialog.openIsOk() ? dialog.getRvCorr() : 0);
-                }
-            }
-
-            // Import data from an .ac file
-            if (options.acFile.isPresent()) {
-                try {
-                    AcFile acFile = AcFile.open(new File(options.acFile.get()));
-                    updateSpectrumUsingAcFile(spectrum, acFile, file.getName());
-                } catch (SpefoException exception) {
-                    Log.error("Couldn't load .ac file", exception);
                 }
             }
 
@@ -169,15 +158,6 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                 }
             }
 
-            AcFile acFile = null;
-            if (options.acFile.isPresent()) {
-                try {
-                    acFile = AcFile.open(new File(options.acFile.get()));
-                } catch (SpefoException exception) {
-                    Log.error("Couldn't load .ac file", exception);
-                }
-            }
-
             int applyToAllAction = 0;
             for (File file : files) {
                 try {
@@ -205,11 +185,6 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
                             spectrum.setRvCorrection(response == SWT.OK ? dialog.getRvCorr() : 0);
                         }
-                    }
-
-                    // Import data from an .ac file
-                    if (options.acFile.isPresent() && acFile != null) {
-                        updateSpectrumUsingAcFile(spectrum, acFile, file.getName());
                     }
 
                     String fileName = FileUtils.replaceFileExtension(file.getPath(), "spf");
@@ -326,31 +301,5 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         if (isNaN(spectrum.getExpTime()) && isNotNaN(row.getExpTime())) {
             spectrum.setExpTime(row.getExpTime());
         }
-    }
-
-    private static void updateSpectrumUsingAcFile(Spectrum spectrum, AcFile acFile, String originalFileName) {
-        // Try matching julian date in the ac file
-        if (spectrum.getHjd() != null) {
-            Optional<AcFile.Row> optionalRow = acFile.getRowByDate(spectrum.getHjd());
-            if (optionalRow.isPresent()) {
-                updateSpectrumUsingAcFileRow(spectrum, optionalRow.get());
-                return;
-            }
-        }
-
-        // Try using a number in the filename
-        String strippedFileName = stripFileExtension(originalFileName);
-        try {
-            int fileIndex = Integer.parseInt(strippedFileName.substring(strippedFileName.length() - 5));
-            acFile.getRowByIndex(fileIndex)
-                    .ifPresent(row -> updateSpectrumUsingAcFileRow(spectrum, row));
-
-        } catch (NumberFormatException | IndexOutOfBoundsException e) {
-            // Filename does not conform to the naming convention
-        }
-    }
-
-    private static void updateSpectrumUsingAcFileRow(Spectrum spectrum, AcFile.Row row) {
-        spectrum.updateRvCorrection(spectrum.getRvCorrection() + row.getRvCorrAdjustment());
     }
 }
