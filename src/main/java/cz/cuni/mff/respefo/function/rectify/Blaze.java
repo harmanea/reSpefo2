@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.function.DoubleUnaryOperator;
 
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.doublesEqual;
 import static java.lang.Math.*;
 import static java.util.Arrays.stream;
@@ -17,15 +18,18 @@ public class Blaze {
     private static final double[] K_COEFFICIENTS = new double[] {5.53283427e+05, 3.55298869e+02, -3.35894502e+00, 1.07610824e-02};
 
     private final int order;
-    private double centralWavelength;
+    private double centralWavelength;  // shifted by the rv correction
     private double scale;
     private double alpha;
+    private final double rvCorrection;
 
-    public Blaze(int index, DoubleUnaryOperator scaleFunction) {
+    public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorrection) {
         order = indexToOrder(index);
         centralWavelength = orderToCentralWavelength(order);
+        centralWavelength += rvCorrection * (centralWavelength / SPEED_OF_LIGHT);
         scale = scaleFunction.applyAsDouble(centralWavelength);
         alpha = wavelengthToAlpha(centralWavelength);
+        this.rvCorrection = rvCorrection;
     }
 
 
@@ -108,8 +112,11 @@ public class Blaze {
 
 
     public double[] ySeries(double[] xSeries) {
+        double correctedCentralWavelength = centralWavelength - rvCorrection * (centralWavelength / SPEED_OF_LIGHT);
+
         return stream(xSeries)
-                .map(x -> scale * r(x, order, centralWavelength, alpha))
+                .map(x -> x - rvCorrection * (x / SPEED_OF_LIGHT))
+                .map(x -> scale * r(x, order, correctedCentralWavelength, alpha))
                 .toArray();
     }
 

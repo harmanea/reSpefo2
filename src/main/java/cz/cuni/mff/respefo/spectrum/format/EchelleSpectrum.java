@@ -64,14 +64,9 @@ public class EchelleSpectrum extends Spectrum {
                 XYSeries xySeries = series[i];
                 RectifyAsset asset = rectifyAssets[i];
 
-                // Correct for rv correction before applying rectification
-                double[] rvCorrectedXSeries = Arrays.stream(xySeries.getXSeries())
-                        .map(value -> value - rvCorrection * (value / SPEED_OF_LIGHT))
-                        .toArray();
-
                 rectifiedSeries[i] = new XYSeries(
                         xySeries.getXSeries(),
-                        divideArrayValues(xySeries.getYSeries(), asset.getIntepData(rvCorrectedXSeries))
+                        divideArrayValues(xySeries.getYSeries(), asset.getIntepData(xySeries.getXSeries()))
                 );
             }
 

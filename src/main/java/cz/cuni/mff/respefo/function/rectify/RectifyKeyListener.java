@@ -84,6 +84,7 @@ public class RectifyKeyListener extends KeyAdapter {
                 chart.redraw();
                 break;
             case SWT.CR:
+            case SWT.END:
                 finish.run();
                 break;
         }

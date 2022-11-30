@@ -76,6 +76,7 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
     }
 
     private static void applyZeroPointRvCorrection(Spectrum spectrum) {
+        // TODO: do this as the last step (maybe a function asset?)
         spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class)
                 .ifPresent(results -> {
                     double measuredRvCorrection = results.getRvOfCategory("corr");

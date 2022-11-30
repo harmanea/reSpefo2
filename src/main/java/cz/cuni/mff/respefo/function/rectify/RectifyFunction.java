@@ -47,7 +47,6 @@ import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
@@ -376,7 +375,7 @@ public class RectifyFunction extends SpectrumFunction {
     private static void rectifyRemainingEchelleOrders(EchelleRectificationContext context, Runnable callback) {
         for (int index = 0; index < context.series.length; index++) {
             if (!context.rectifiedIndices.contains(index)) {
-                Blaze blaze = new Blaze(index, context.scaleFunction());
+                Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection());
                 if (!context.blazeAsset.hasParameters(blaze.getOrder())) {
                     context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
                 }
@@ -388,7 +387,7 @@ public class RectifyFunction extends SpectrumFunction {
 
     private static void fineTuneBlazeParameters(int index, EchelleRectificationContext context, Runnable callback) {
         XYSeries currentSeries = context.series[index];
-        Blaze blaze = new Blaze(index, context.scaleFunction());
+        Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection());
 
         final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "Parameters", "Parameter Calibration", ImageResource.RULER_LARGE);
@@ -470,7 +469,7 @@ public class RectifyFunction extends SpectrumFunction {
                             if (context.rectifyAssets[i] != null) {
                                 asset = context.rectifyAssets[i];
                             } else {
-                                asset = new Blaze(i, context.scaleFunction()).toRectifyAsset(series);
+                                asset = new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection()).toRectifyAsset(series);
                             }
 
                             builder.series(lineSeries()
@@ -602,7 +601,7 @@ public class RectifyFunction extends SpectrumFunction {
                             if (context.rectifyAssets[i] != null) {
                                 rectifyAsset = context.rectifyAssets[i];
                             } else {
-                                rectifyAsset = new Blaze(i, context.scaleFunction()).toRectifyAsset(context.series[i]);
+                                rectifyAsset = new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection()).toRectifyAsset(context.series[i]);
                             }
 
                             builder.series(lineSeries()
@@ -816,14 +815,6 @@ public class RectifyFunction extends SpectrumFunction {
             this.spectrum = spectrum;
 
             series = spectrum.getOriginalSeries();
-
-            // Correct for rv correction
-            for (int i = 0; i < series.length; i++) {
-                double[] newXSeries = Arrays.stream(series[i].getXSeries())
-                        .map(value -> value - spectrum.getRvCorrection() * (value / SPEED_OF_LIGHT))
-                        .toArray();
-                series[i] = new XYSeries(newXSeries, series[i].getYSeries());
-            }
 
             columnNames = columnNames(series);
 
