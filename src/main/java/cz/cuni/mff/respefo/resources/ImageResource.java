@@ -47,9 +47,6 @@ public enum ImageResource {
 
     POLY("poly.png"),
     SELECT_ALL("select_all.png"),
-
-    ARRAY("array.png"),
-    OBJECT("object.png"),
     ;
 
     private final String fileName;
