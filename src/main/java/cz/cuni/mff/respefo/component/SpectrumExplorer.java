@@ -5,7 +5,11 @@ import cz.cuni.mff.respefo.function.FunctionInfo;
 import cz.cuni.mff.respefo.function.FunctionManager;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
+import cz.cuni.mff.respefo.function.clean.CleanFunction;
+import cz.cuni.mff.respefo.function.ew.MeasureEWFunction;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
+import cz.cuni.mff.respefo.function.rectify.RectifyFunction;
+import cz.cuni.mff.respefo.function.rv.MeasureRVFunction;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
@@ -43,7 +47,7 @@ public class SpectrumExplorer {
     }
 
     public SpectrumExplorer(Composite parent) {
-        this.table = newTable(MULTI | V_SCROLL | VIRTUAL).columns(4).build(parent);
+        this.table = newTable(MULTI | V_SCROLL | VIRTUAL).columns(5).build(parent);
 
         addDoubleClickListener();
 
@@ -87,17 +91,21 @@ public class SpectrumExplorer {
                 item.setText(0, FileUtils.stripParent(spectrum.getFile().getName()));
                 item.setImage(0, ImageManager.getImage(ImageResource.SPECTRUM_FILE));
 
-                if (spectrum.containsFunctionAsset("rectify")
+                if (spectrum.containsFunctionAsset(RectifyFunction.RECTIFY_SERIALIZE_KEY)
                         || (spectrum.getFormat() == EchelleSpectrum.FORMAT && ((EchelleSpectrum) spectrum).isRectified())) {
                     item.setImage(1, ImageManager.getImage(ImageResource.RECTIFY));
                 }
 
-                if (spectrum.containsFunctionAsset("rv")) {
-                    item.setImage(2, ImageManager.getImage(ImageResource.RV));
+                if (spectrum.containsFunctionAsset(CleanFunction.SERIALIZE_KEY)) {
+                    item.setImage(2, ImageManager.getImage(ImageResource.CLEAN));
                 }
 
-                if (spectrum.containsFunctionAsset("ew")) {
-                    item.setImage(3, ImageManager.getImage(ImageResource.EW));
+                if (spectrum.containsFunctionAsset(MeasureRVFunction.SERIALIZE_KEY)) {
+                    item.setImage(3, ImageManager.getImage(ImageResource.RV));
+                }
+
+                if (spectrum.containsFunctionAsset(MeasureEWFunction.SERIALIZE_KEY)) {
+                    item.setImage(4, ImageManager.getImage(ImageResource.EW));
                 }
             }
 

@@ -38,6 +38,7 @@ public enum ImageResource {
     NUMBERED_LIST_LARGE("numbered_list_large.png"),
 
     RECTIFY("rectify.png"),
+    CLEAN("clean.png"),
     RV("rv.png"),
     EW("ew.png"),
 
@@ -46,6 +47,9 @@ public enum ImageResource {
 
     POLY("poly.png"),
     SELECT_ALL("select_all.png"),
+
+    ARRAY("array.png"),
+    OBJECT("object.png"),
     ;
 
     private final String fileName;
