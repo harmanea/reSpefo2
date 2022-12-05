@@ -16,21 +16,39 @@ import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
+import static java.util.Collections.emptySortedSet;
+import static java.util.Collections.unmodifiableSet;
 
 public class EchelleSelectionDialog extends TitleAreaDialog {
 
+    private static SortedSet<Integer> previousSelected = emptySortedSet();
+
     private final String[][] names;
     private final SortedSet<Integer> selected;  // zero based
-    private final Set<Integer> disabled;
+    private final Set<Integer> grayed;
     private boolean printParameters;
 
-    public EchelleSelectionDialog(String[][] names, Set<Integer> disabled, boolean printParameters) {
+    public EchelleSelectionDialog(String[][] names, Set<Integer> grayed, boolean printParameters) {
         super("Select echelle orders");
 
         this.names = names;
-        this.selected = new TreeSet<>();
-        this.disabled = disabled;
+        this.selected = new TreeSet<>(previousSelected);
+        this.grayed = unmodifiableSet(grayed);
         this.printParameters = printParameters;
+
+        this.selected.removeAll(grayed);
+    }
+
+    @Override
+    protected void buttonPressed(int returnCode) {
+        if (returnCode == SWT.OK) {
+            synchronized (this) {
+                previousSelected = new TreeSet<>(selected);
+                previousSelected.addAll(grayed);
+            }
+        }
+
+        super.buttonPressed(returnCode);
     }
 
     public ListIterator<Integer> getSelectedIndices() {
@@ -58,10 +76,12 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                 .columnWidths(75, 150, 150)
                 .items(Arrays.asList(names))
                 .decorate((i, item) -> {
-                    if (disabled.contains(i)) {
+                    if (grayed.contains(i)) {
                         item.setChecked(true);
                         item.setGrayed(true);
                         item.setForeground(ComponentManager.getDisplay().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+                    } else if (selected.contains(i)) {
+                        item.setChecked(true);
                     }
                 })
                 .onSelection(event -> {
@@ -75,7 +95,7 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                             selected.remove(index);
                         }
 
-                        if (disabled.contains(index)) {
+                        if (grayed.contains(index)) {
                             tableItem.setChecked(true);
                             tableItem.setGrayed(!tableItem.getGrayed());
                         }
@@ -101,7 +121,7 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                                 selected.remove(i);
                             }
 
-                            if (disabled.contains(i)) {
+                            if (grayed.contains(i)) {
                                 table.getItem(i).setGrayed(!select);
                             } else {
                                 table.getItem(i).setChecked(select);
