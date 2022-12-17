@@ -19,6 +19,13 @@ public class Point implements Comparable<Point> {
         return Math.hypot(x - o.x, y - o.y);
     }
 
+    public double squaredDistanceTo(Point o) {
+        double dx = x - o.x;
+        double dy = y - o.y;
+
+        return dx * dx + dy * dy;
+    }
+
     @Override
     public int compareTo(Point o) {
         int xComparison = Double.compare(x, o.x);

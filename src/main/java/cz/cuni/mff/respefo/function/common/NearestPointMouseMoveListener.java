@@ -31,7 +31,7 @@ public class NearestPointMouseMoveListener implements MouseMoveListener {
         Point mouse = new Point(event.x, event.y);
 
         int index = ArrayUtils.indexOfMin(xSeries.length,
-                i -> mouse.distanceTo(ChartUtils.getCoordinatesFromRealValues(chart, xSeries[i], ySeries[i])),
+                i -> mouse.squaredDistanceTo(ChartUtils.getCoordinatesFromRealValues(chart, xSeries[i], ySeries[i])),
                 i -> ChartUtils.isRealValueVisible(chart, xSeries[i], ySeries[i])
         );
 

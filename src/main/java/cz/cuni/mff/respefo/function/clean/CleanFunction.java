@@ -59,7 +59,7 @@ public class CleanFunction extends SpectrumFunction {
                         .color(asset.isActiveIndexDeleted() ? ColorResource.ORANGE : ColorResource.RED)
                         .symbolSize(3)
                         .series(asset.mapActiveIndexToValues(data)))
-                .keyListener(ChartKeyListener::new)
+                .keyListener(ch -> new ChartKeyListener.CenterAroundSeries(ch, POINTS_SERIES_NAME))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {
                         case SWT.DEL:
@@ -114,7 +114,7 @@ public class CleanFunction extends SpectrumFunction {
                     }
                 }))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
-                .adjustRange()
+                .centerAroundSeries(POINTS_SERIES_NAME)
                 .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
     }

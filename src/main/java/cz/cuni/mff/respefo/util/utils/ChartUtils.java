@@ -60,8 +60,13 @@ public class ChartUtils extends UtilityClass {
     }
 
     public static Range rangeWithMargin(double lower, double upper) {
-        double length = upper - lower;
-        double margin = length / 100;
+        double margin;
+        if (upper == lower) {
+            margin = lower == 0.0 ? 1.0 : Math.abs(lower / 2.0);
+
+        } else {
+            margin = (upper - lower) / 100;
+        }
 
         return new Range(lower - margin, upper + margin);
     }
