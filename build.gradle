@@ -51,7 +51,7 @@ tasks.withType(JavaExec).configureEach {
 }
 
 // https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Jar.html
-tasks.register('fatJar') {
+task fatJar(type: Jar) {
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
 
     manifest {
