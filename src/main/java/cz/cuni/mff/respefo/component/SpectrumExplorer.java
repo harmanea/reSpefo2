@@ -55,9 +55,15 @@ public class SpectrumExplorer {
     }
 
     public void setRootDirectory(File file) {
-        for (TableItem item : table.getItems()) {
-            item.dispose();
-        }
+        setRootDirectory(file, false);
+    }
+
+    public void setRootDirectory(File file, boolean keepSelection) {
+        int selectionIndex =  table.getSelectionIndex();
+        int topIndex = table.getTopIndex();
+
+        clearTable();
+        table.setEnabled(false);
 
         Progress.withProgressTracking(p -> {
             File[] lst = file.listFiles(new SpefoFormatFileFilter());
@@ -78,7 +84,6 @@ public class SpectrumExplorer {
                 } finally {
                     p.step();
                 }
-
             }
 
             spectra.sort(Spectrum.hjdComparator());
@@ -112,7 +117,20 @@ public class SpectrumExplorer {
             for (TableColumn column : table.getColumns()) {
                 column.pack();
             }
+
+            if (keepSelection) {
+                table.setSelection(selectionIndex);
+                table.setTopIndex(topIndex);
+            }
+
+            table.setEnabled(true);
         });
+    }
+
+    private void clearTable() {
+        for (TableItem item : table.getItems()) {
+            item.dispose();
+        }
     }
 
     public void setLayoutData(Object layoutData) {
@@ -120,7 +138,7 @@ public class SpectrumExplorer {
     }
 
     public void refresh() {
-        setRootDirectory(Project.getRootDirectory()); // TODO: optimize this
+        setRootDirectory(Project.getRootDirectory(), true); // TODO: optimize this
     }
 
     private void addDoubleClickListener() {
