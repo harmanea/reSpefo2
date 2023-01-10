@@ -168,6 +168,7 @@ public class DoubleArrayListTest {
         assertArrayEquals(emptyArray(), list.toArray(), DOUBLE_PRECISION);
     }
 
+    @SuppressWarnings("AssertBetweenInconvertibleTypes")
     @Test
     public void testEquals() {
         DoubleArrayList list = new DoubleArrayList();

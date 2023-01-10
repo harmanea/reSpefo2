@@ -26,7 +26,7 @@ repositories {
     maven { url 'https://buchen.github.io/maven-repo' } // for swtchart
 }
 
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.name.contains('${osgi.platform}')) {
             details.useTarget(details.requested.group + ':' + details.requested.name.replace('${osgi.platform}', "$swtPlatform") + ':' + details.requested.version)
@@ -46,17 +46,17 @@ dependencies {
     implementation 'org.slf4j:slf4j-nop:2.0.3'
 }
 
-tasks.withType(JavaExec) {
+tasks.withType(JavaExec).configureEach {
     systemProperty 'respefo.version', version
 }
 
 // https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Jar.html
-task fatJar(type: Jar) {
-    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+tasks.register('fatJar') {
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
 
     manifest {
         attributes('Main-Class': 'cz.cuni.mff.respefo.ReSpefo',
-                   'Implementation-Version': project.version)
+                'Implementation-Version': project.version)
 
     }
 

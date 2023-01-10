@@ -18,7 +18,7 @@ public class MathUtils extends UtilityClass {
      * @param y      Dependent values
      * @param xinter Values at which to interpolate the tabulated data given by 'x' and 'y'
      * @return Interpolated values at the locations specified by 'xinter',
-     *  values outside of given bounds are replaced with the last value within the bounds
+     * values outside of given bounds are replaced with the last value within the bounds
      */
     public static double[] intep(double[] x, double[] y, double[] xinter) {
         Objects.requireNonNull(x);
@@ -59,11 +59,11 @@ public class MathUtils extends UtilityClass {
      * The INTEP interpolation algorithm is described by Hill 1982, PDAO 16, 67 ("Intep - an Effective Interpolation Subroutine").
      * This implementation is based on the FORTRAN code stated therein.
      *
-     * @param x      Independent values sorted in ascending order
-     * @param y      Dependent values
-     * @param xp     Value at which to interpolate the tabulated data given by 'x' and 'y'
+     * @param x  Independent values sorted in ascending order
+     * @param y  Dependent values
+     * @param xp Value at which to interpolate the tabulated data given by 'x' and 'y'
      * @return Interpolated value at the location specified by 'xp',
-     *  values outside of given bounds are replaced with the last value within the bounds
+     * values outside of given bounds are replaced with the last value within the bounds
      */
     public static double intep(double[] x, double[] y, double xp) {
         Objects.requireNonNull(x);
@@ -87,7 +87,7 @@ public class MathUtils extends UtilityClass {
         double lp1 = 1 / (x[j] - x[j + 1]);
         double lp2 = -lp1;
 
-        double fp1 = j <= 0
+        double fp1 = j == 0
                 ? (y[1] - y[0]) / (x[1] - x[0]) // first point
                 : (y[j + 1] - y[j - 1]) / (x[j + 1] - x[j - 1]);
 
@@ -113,7 +113,7 @@ public class MathUtils extends UtilityClass {
      * @param y0 y coordinate of the first point
      * @param x1 x coordinate of the second point
      * @param y1 y coordinate of the second point
-     * @param x x coordinate of the point for which the y coordinate is calculated
+     * @param x  x coordinate of the point for which the y coordinate is calculated
      * @return y coordinate
      */
     public static double linearInterpolation(double x0, double y0, double x1, double y1, double x) {
@@ -126,6 +126,7 @@ public class MathUtils extends UtilityClass {
 
     /**
      * Returns false if the specified number is a Not-a-Number (NaN) value, true otherwise.
+     *
      * @param value to be tested
      * @return false if the value of the argument is NaN; true otherwise.
      */
@@ -136,7 +137,7 @@ public class MathUtils extends UtilityClass {
     /**
      * Checks whether the difference between two numbers is smaller than the required precision.
      *
-     * @param first number to be compared
+     * @param first  number to be compared
      * @param second number to be compared
      * @return true if their difference is sufficiently small, false otherwise
      * @see MathUtils#DOUBLE_PRECISION
@@ -170,8 +171,8 @@ public class MathUtils extends UtilityClass {
      * <p>
      * Based on the implementation from <a href="https://www.bragitoff.com/2017/04/polynomial-fitting-java-codeprogram-works-android-well/">Bragitoff.com</a>
      *
-     * @param x independent variables
-     * @param y dependent variables
+     * @param x      independent variables
+     * @param y      dependent variables
      * @param degree of the polynomial
      * @return coefficients of the polynomial
      */
@@ -269,7 +270,7 @@ public class MathUtils extends UtilityClass {
      * Calculate standard error of the mean.
      *
      * @param observations values
-     * @param mean    value
+     * @param mean         value
      * @return root mean square error
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")  // We check for array size before the statement
@@ -359,6 +360,7 @@ public class MathUtils extends UtilityClass {
 
     /**
      * Calculate the median of the given sorted values.
+     *
      * @param values whose median should be computed
      * @return the median
      */

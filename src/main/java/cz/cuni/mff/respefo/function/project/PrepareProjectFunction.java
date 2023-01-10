@@ -63,7 +63,7 @@ public class PrepareProjectFunction implements ProjectFunction {
                 /* Use existing lst file */
                 try {
                     Path lstFile = Paths.get(dialog.getLstFileName());
-                    Files.move(lstFile, lstFile.resolveSibling(prefix + ".lst")).toFile();
+                    Files.move(lstFile, lstFile.resolveSibling(prefix + ".lst"));
                 } catch (IOException exception) {
                     Message.error("Couldn't rename .lst file", exception);
                 }
