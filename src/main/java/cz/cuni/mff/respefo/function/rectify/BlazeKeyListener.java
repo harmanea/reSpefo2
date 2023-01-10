@@ -9,13 +9,15 @@ import org.swtchart.Chart;
 public class BlazeKeyListener extends ArrowsChartKeyListener {
     private final Blaze blaze;
     private final Runnable update;
-    private final Runnable finishAction;
+    private final Runnable next;
+    private final Runnable previous;
 
-    protected BlazeKeyListener(Chart chart, Blaze blaze, Runnable update, Runnable finishAction) {
+    protected BlazeKeyListener(Chart chart, Blaze blaze, Runnable update, Runnable next, Runnable previous) {
         super(chart);
         this.blaze = blaze;
         this.update = update;
-        this.finishAction = finishAction;
+        this.next = next;
+        this.previous = previous;
     }
 
     @Override
@@ -48,10 +50,16 @@ public class BlazeKeyListener extends ArrowsChartKeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.keyCode == SWT.CR || e.keyCode == SWT.END) {
-            finishAction.run();
-        } else {
-            super.keyPressed(e);
+        switch (e.keyCode) {
+            case SWT.CR:
+            case SWT.END:
+                next.run();
+                break;
+            case SWT.BS:
+                previous.run();
+                break;
+            default:
+                super.keyPressed(e);
         }
     }
 }

@@ -98,7 +98,7 @@ public class RectifyFunction extends SpectrumFunction {
 
         XYSeries series = spectrum.getProcessedSeriesWithout(asset);
 
-        rectify(spectrum.getFile().getName(), series, asset, identity(), ChartUtils::adjustRange, ch -> {}, a -> finishSimpleSpectrum(spectrum, a));
+        rectify(spectrum.getFile().getName(), series, asset, identity(), ChartUtils::adjustRange, ch -> {}, () -> finishSimpleSpectrum(spectrum, asset));
     }
 
     private static void rectifyEchelleSpectrum(EchelleSpectrum spectrum) {
@@ -347,28 +347,19 @@ public class RectifyFunction extends SpectrumFunction {
         EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices, context.printParameters);
         if (dialog.openIsOk()) {
             ComponentManager.clearScene(true);
-            Iterator<Integer> selectedIndices = dialog.getSelectedIndices();
-            if (selectedIndices.hasNext()) {
+            List<Integer> selectedIndices = dialog.getSelectedIndices();
+            if (selectedIndices.isEmpty()) {
+                callback.accept(false);
+
+            } else {
                 context.printParameters = dialog.printParameters();
-                Async.whileLoop(context,
-                        (ctx, call) -> rectifySingleEchelleOrder(selectedIndices, ctx, call),
+                Async.listIteratorLoop(context, selectedIndices,
+                        RectifyFunction::fineTuneBlazeParameters,
                         ctx -> {
                             ctx.recalculatePolyCoeffs();
                             callback.accept(true);
                         });
-            } else {
-                callback.accept(false);
             }
-        }
-    }
-
-    private static void rectifySingleEchelleOrder(Iterator<Integer> selectedIndices, EchelleRectificationContext context, Consumer<Boolean> callback) {
-        if (selectedIndices.hasNext()) {
-            int index = selectedIndices.next();
-            context.rectifiedIndices.add(index);
-            fineTuneBlazeParameters(index, context, () -> callback.accept(true));
-        } else {
-            callback.accept(false);
         }
     }
 
@@ -385,7 +376,9 @@ public class RectifyFunction extends SpectrumFunction {
         callback.run();
     }
 
-    private static void fineTuneBlazeParameters(int index, EchelleRectificationContext context, Runnable callback) {
+    private static void fineTuneBlazeParameters(int index, EchelleRectificationContext context, Runnable nextCallback, Runnable previousCallback) {
+        context.rectifiedIndices.add(index);
+
         XYSeries currentSeries = context.series[index];
         Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection());
 
@@ -488,14 +481,23 @@ public class RectifyFunction extends SpectrumFunction {
                             if (context.printParameters) {
                                 printParametersToFile(context.spectrum, blaze);
                             }
+                            RectifyAsset asset;
                             if (blaze.isUnchanged(context.blazeAsset)) {
-                                Async.exec(() -> fineTuneRectificationPoints(index, context, callback, context.spectrum.getRectifyAssets()[index]));
+                                asset = context.rectifyAssets[index];
+
                             } else {
-                                context.blazeAsset.setXCoordinate(index, blaze.getCentralWavelength());
-                                context.blazeAsset.setYCoordinate(index, blaze.getScale());
                                 blaze.saveToAsset(context.blazeAsset);
-                                Async.exec(() -> fineTuneRectificationPoints(index, context, callback, blaze.toRectifyAsset(currentSeries)));
+                                asset = blaze.toRectifyAsset(currentSeries);
                             }
+                            Async.exec(() -> fineTuneRectificationPoints(index, context, nextCallback,
+                                    () -> fineTuneBlazeParameters(index, context, nextCallback, previousCallback), // TODO: Make this async?
+                                    asset));
+                        },
+                        () -> {
+                            if (!blaze.isUnchanged(context.blazeAsset)) {
+                                blaze.saveToAsset(context.blazeAsset);
+                            }
+                            previousCallback.run();
                         }))
                 .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> update.accept(ch), blaze))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
@@ -572,7 +574,8 @@ public class RectifyFunction extends SpectrumFunction {
         chart.getAxisSet().getYAxis(series.getYAxisId()).setRange(range);
     }
 
-    private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable callback, RectifyAsset asset) {
+    private static void fineTuneRectificationPoints(int index, EchelleRectificationContext context, Runnable nextCallback, Runnable previousCallback, RectifyAsset asset) {
+        context.rectifyAssets[index] = asset;
         XYSeries currentSeries = context.series[index];
         rectify("#" + (index + 1),
                 currentSeries,
@@ -597,12 +600,9 @@ public class RectifyFunction extends SpectrumFunction {
                         if (i != index) {
                             XYSeries series = context.series[i];
 
-                            RectifyAsset rectifyAsset;
-                            if (context.rectifyAssets[i] != null) {
-                                rectifyAsset = context.rectifyAssets[i];
-                            } else {
-                                rectifyAsset = new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection()).toRectifyAsset(context.series[i]);
-                            }
+                            RectifyAsset rectifyAsset = context.rectifyAssets[i] != null
+                                    ? context.rectifyAssets[i]
+                                    : new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection()).toRectifyAsset(context.series[i]);
 
                             builder.series(lineSeries()
                                     .color(YELLOW)
@@ -619,6 +619,8 @@ public class RectifyFunction extends SpectrumFunction {
                         if (e.keyCode == TAB) {
                             ch.setData("extra continuum lines", !(boolean) ch.getData("extra continuum lines"));
                             ch.redraw();
+                        } else if (e.keyCode == BS) {
+                            previousCallback.run();
                         }
                     }));
 
@@ -662,17 +664,14 @@ public class RectifyFunction extends SpectrumFunction {
 
                     rectifiedSeries.setYSeries(ArrayUtils.divideArrayValues(originalSeries.getYSeries(), continuumSeries.getYSeries()));
                 },
-                newAsset -> {
-                    context.rectifyAssets[index] = newAsset;
-                    callback.run();
-                });
+                nextCallback);
     }
 
     private static void rectify(String title, XYSeries series, RectifyAsset asset,
                                 UnaryOperator<ChartBuilder> operator,
                                 Consumer<Chart> rangeAdjuster,
                                 Consumer<Chart> updater,
-                                Consumer<RectifyAsset> finish) {
+                                Runnable finish) {
         newChart()
                 .title(title)
                 .xAxisLabel(WAVELENGTH)
@@ -702,7 +701,7 @@ public class RectifyFunction extends SpectrumFunction {
                 .keyListener(ch -> new RectifyKeyListener(ch, asset,
                         () -> updateAllSeries(ch, asset, series, updater),
                         newIndex -> updateActivePoint(ch, asset, newIndex),
-                        () -> finish.accept(asset)))
+                        finish))
                 .mouseAndMouseMoveListener(ch -> new RectifyMouseListener(ch,
                         POINTS_SERIES_NAME,
                         index -> {

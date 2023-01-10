@@ -1,11 +1,12 @@
 package cz.cuni.mff.respefo.util;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
-import org.eclipse.swt.widgets.Display;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class Async extends UtilityClass {
+
     public static void exec(Runnable runnable) {
         ComponentManager.getDisplay().asyncExec(runnable);
     }
@@ -16,9 +17,9 @@ public class Async extends UtilityClass {
 
     private static <C> void loopInternal(int index, int count, C context, LoopAction<C> action, Consumer<C> finish) {
         if (index < count) {
-            asyncExec(() -> action.accept(index, context, () -> loopInternal(index + 1, count, context, action, finish)));
+            exec(() -> action.accept(index, context, () -> loopInternal(index + 1, count, context, action, finish)));
         } else {
-            asyncExec(() -> finish.accept(context));
+            exec(() -> finish.accept(context));
         }
     }
 
@@ -35,7 +36,7 @@ public class Async extends UtilityClass {
     @SafeVarargs
     private static <C> void sequenceInternal(int index, C context, SequenceAction<C>... actions) {
         if (index < actions.length) {
-            asyncExec(() -> actions[index].accept(context, () -> sequenceInternal(index + 1, context, actions)));
+            exec(() -> actions[index].accept(context, () -> sequenceInternal(index + 1, context, actions)));
         }
     }
 
@@ -50,9 +51,9 @@ public class Async extends UtilityClass {
 
     private static <C> void whileLoopInternal(boolean shouldContinue, C context, WhileLoopAction<C> action, Consumer<C> finish) {
         if (shouldContinue) {
-            asyncExec(() -> action.accept(context, shouldStillContinue -> whileLoopInternal(shouldStillContinue, context, action, finish)));
+            exec(() -> action.accept(context, shouldStillContinue -> whileLoopInternal(shouldStillContinue, context, action, finish)));
         } else {
-            asyncExec(() -> finish.accept(context));
+            exec(() -> finish.accept(context));
         }
     }
 
@@ -61,8 +62,25 @@ public class Async extends UtilityClass {
         void accept(C context, Consumer<Boolean> callback);
     }
 
-    private static void asyncExec(Runnable runnable) {
-        Display.getCurrent().asyncExec(runnable);
+    public static <C, I> void listIteratorLoop(C context, List<I> items, IteratorLoopAction<C, I> action, Consumer<C> finish) {
+        listIteratorLoopInternal(0, context, items, action, finish);
+    }
+
+    private static <C, I> void listIteratorLoopInternal(int index, C context, List<I> items, IteratorLoopAction<C, I> action, Consumer<C> finish) {
+        if (index >= items.size()) {
+            exec(() -> finish.accept(context));
+
+        } else if (index >= 0) {
+            exec(() -> action.accept(items.get(index), context,
+                    () -> listIteratorLoopInternal(index + 1, context, items, action, finish),
+                    () -> listIteratorLoopInternal(index - 1, context, items, action, finish)
+            ));
+        }
+    }
+
+    @FunctionalInterface
+    public interface IteratorLoopAction<C, I> {
+        void accept(I item, C context, Runnable nextCallback, Runnable previousCallback);
     }
 
     protected Async() throws IllegalAccessException {

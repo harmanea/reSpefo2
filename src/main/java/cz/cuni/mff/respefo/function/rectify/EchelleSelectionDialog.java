@@ -51,8 +51,8 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
         super.buttonPressed(returnCode);
     }
 
-    public ListIterator<Integer> getSelectedIndices() {
-        return new LinkedList<>(selected).listIterator();
+    public List<Integer> getSelectedIndices() {
+        return new ArrayList<>(selected);
     }
 
     public boolean printParameters() {

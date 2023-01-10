@@ -49,6 +49,9 @@ public class Blaze {
         return 125 - index;
     }
 
+    public static int orderToIndex(int order) {
+        return 125 - order;
+    }
 
     public int getOrder() {
         return order;
@@ -93,6 +96,9 @@ public class Blaze {
     }
 
     public void saveToAsset(BlazeAsset asset) {
+        int index = orderToIndex(order);
+        asset.setXCoordinate(index, centralWavelength);
+        asset.setYCoordinate(index, scale);
         asset.setParameters(order, centralWavelength, scale);
     }
 
