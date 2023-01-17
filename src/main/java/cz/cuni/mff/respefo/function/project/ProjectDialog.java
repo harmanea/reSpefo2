@@ -14,7 +14,8 @@ import org.eclipse.swt.widgets.Text;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newRadioButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
@@ -72,8 +73,7 @@ public class ProjectDialog extends TitleAreaDialog {
         newText(SWT.SINGLE | SWT.BORDER)
                 .text(prefix)
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .onModify(event -> {
-                    prefix = ((Text) event.widget).getText();
+                .onModifiedValue(prefix -> {
                     if (prefix.length() == 0) {
                         setMessage("The prefix cannot be blank", SWT.ICON_WARNING);
                         getButton(SWT.OK).setEnabled(false);
@@ -94,7 +94,7 @@ public class ProjectDialog extends TitleAreaDialog {
         group.setLayout(gridLayout().verticalSpacing(10).build());
         group.setText("Mode");
 
-        newButton(SWT.RADIO)
+        newRadioButton()
                 .text("Generate hec2 input data")
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
                 .selection(status == HEC2)
@@ -102,14 +102,14 @@ public class ProjectDialog extends TitleAreaDialog {
                 .build(group);
 
         if (prepare) {
-            newButton(SWT.RADIO)
+            newRadioButton()
                     .text("Generate .lst file")
                     .gridLayoutData(GridData.FILL_HORIZONTAL)
                     .onSelection(event -> status = NEW_LST)
                     .build(group);
         }
 
-        final Button thirdButton = newButton(SWT.RADIO)
+        final Button thirdButton = newRadioButton()
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
                 .selection(status == USE_LST)
                 .onSelection(event -> status = USE_LST)
@@ -126,10 +126,10 @@ public class ProjectDialog extends TitleAreaDialog {
                 .text(lstFileName)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .enabled(status == USE_LST)
-                .onModify(event -> lstFileName = ((Text) event.widget).getText())
+                .onModifiedValue(value -> lstFileName = value)
                 .build(lstFileComposite);
 
-        final Button lstButton = newButton(SWT.PUSH)
+        final Button lstButton = newPushButton()
                 .image(ImageResource.FOLDER)
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END)
                 .enabled(status == USE_LST)

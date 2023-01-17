@@ -6,6 +6,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import java.util.function.Consumer;
+
 // The following properties were not included: doubleClickEnabled, echoChar, selection, tabs, textChars, textLimit, topIndex
 public final class TextBuilder extends AbstractControlBuilder<TextBuilder, Text> {
 
@@ -72,5 +74,12 @@ public final class TextBuilder extends AbstractControlBuilder<TextBuilder, Text>
      */
     public TextBuilder onModify(Listener listener) {
         return listener(SWT.Modify, listener);
+    }
+
+    /**
+     * @see Text#addModifyListener(ModifyListener)
+     */
+    public TextBuilder onModifiedValue(Consumer<String> valueConsumer) {
+        return onModify(event -> valueConsumer.accept(((Text) event.widget).getText()));
     }
 }

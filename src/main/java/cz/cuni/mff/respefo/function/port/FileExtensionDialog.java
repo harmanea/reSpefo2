@@ -4,7 +4,6 @@ import cz.cuni.mff.respefo.dialog.SpefoDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
 
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
@@ -37,7 +36,7 @@ public class FileExtensionDialog extends SpefoDialog {
         newLabel().text("File extension:").gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);
         newText(SWT.SINGLE | SWT.BORDER)
                 .gridLayoutData(GridData.FILL_BOTH)
-                .onModify(event -> fileExtension = ((Text) event.widget).getText())
+                .onModifiedValue(value -> fileExtension = value)
                 .focus()
                 .build(composite);
     }

@@ -5,7 +5,6 @@ import cz.cuni.mff.respefo.dialog.TitleAreaDialog;
 import cz.cuni.mff.respefo.spectrum.port.FileFormat;
 import cz.cuni.mff.respefo.spectrum.port.ImportFileFormat;
 import cz.cuni.mff.respefo.util.Async;
-import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -24,7 +23,7 @@ import java.util.Optional;
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.*;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
@@ -116,7 +115,7 @@ public class ImportDialog extends TitleAreaDialog {
                 .layout(gridLayout(2, true).margins(10))
                 .build(bar);
 
-        final Button nanButton = newButton(SWT.CHECK)
+        final Button nanButton = newCheckButton()
                 .selection(options.nanReplacement.isPresent())
                 .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER)
                 .text("Replace NaN values with:")
@@ -142,7 +141,7 @@ public class ImportDialog extends TitleAreaDialog {
             }
         });
 
-        final Button rvButton = newButton(SWT.CHECK)
+        final Button rvButton = newCheckButton()
                 .selection(options.nanReplacement.isPresent())
                 .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER)
                 .text("Default RV correction value:")
@@ -168,7 +167,7 @@ public class ImportDialog extends TitleAreaDialog {
             }
         });
 
-        final Button lstButton = newButton(SWT.CHECK)
+        final Button lstButton = newCheckButton()
                 .selection(true)
                 .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
                 .text("Import data from a .lst file:")
@@ -189,25 +188,18 @@ public class ImportDialog extends TitleAreaDialog {
                 })
                 .build(innerLstComposite);
 
-        newButton(SWT.PUSH)
+        newBrowseButton(FileType.LST, fileName -> { lstText.setText(fileName); options.lstFile = Optional.of(fileName);})
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER)
-                .text("Browse")
-                .onSelection(event -> {
-                    String fileName = FileDialogs.openFileDialog(FileType.LST);
-                    if (fileName != null) {
-                        lstText.setText(fileName);
-                        options.lstFile = Optional.of(fileName);
-                    }})
                 .build(innerLstComposite);
 
-        newButton(SWT.RADIO)
+        newRadioButton()
                 .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
                 .text("Apply rv correction difference")
                 .selection(true)
                 .onSelection(event -> options.applyLstFileRvCorrection = true)
                 .build(innerLstComposite);
 
-        newButton(SWT.RADIO)
+        newRadioButton()
                 .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
                 .text("Set rv correction")
                 .onSelection(event -> options.applyLstFileRvCorrection = false)

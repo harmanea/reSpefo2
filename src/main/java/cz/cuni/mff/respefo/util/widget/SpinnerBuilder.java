@@ -6,6 +6,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Spinner;
 
+import java.util.function.Consumer;
+
 public final class SpinnerBuilder extends AbstractControlBuilder<SpinnerBuilder, Spinner> {
 
     private SpinnerBuilder(int style) {
@@ -19,6 +21,8 @@ public final class SpinnerBuilder extends AbstractControlBuilder<SpinnerBuilder,
     public static SpinnerBuilder newSpinner(int style) {
         return new SpinnerBuilder(style);
     }
+
+    public static SpinnerBuilder newSpinner() { return new SpinnerBuilder(SWT.NONE); }
 
     /**
      * @see Spinner#setDigits(int)
@@ -81,5 +85,12 @@ public final class SpinnerBuilder extends AbstractControlBuilder<SpinnerBuilder,
      */
     public SpinnerBuilder onModify(Listener listener) {
         return listener(SWT.Modify, listener);
+    }
+
+    /**
+     * @see Spinner#addModifyListener(ModifyListener)
+     */
+    public SpinnerBuilder onModifiedValue(Consumer<Integer> valueConsumer) {
+        return onModify(event -> valueConsumer.accept(((Spinner) event.widget).getSelection()));
     }
 }

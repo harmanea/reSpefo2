@@ -8,7 +8,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Spinner;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
@@ -55,7 +54,7 @@ public class MultipleOrdersSelectionDialog extends SpefoDialog {
                 .build(parent);
 
         LabelBuilder labelBuilder = newLabel().gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-        SpinnerBuilder spinnerBuilder = newSpinner(SWT.NONE)
+        SpinnerBuilder spinnerBuilder = newSpinner()
                 .gridLayoutData(GridData.FILL_BOTH)
                 .bounds(1, maximum)
                 .digits(0)
@@ -65,13 +64,13 @@ public class MultipleOrdersSelectionDialog extends SpefoDialog {
 
         labelBuilder.text("From:").build(composite);
         spinnerBuilder.selection(1)
-                .onModify(event -> from = ((Spinner) event.widget).getSelection())
+                .onModifiedValue(value -> from = value)
                 .focus()
                 .build(composite);
 
         labelBuilder.text("To:").build(composite);
         spinnerBuilder.selection(maximum)
-                .onModify(event -> to = ((Spinner) event.widget).getSelection())
+                .onModifiedValue(value -> to = value)
                 .build(composite);
 
         final Composite buttonsComposite = newComposite()
@@ -82,20 +81,18 @@ public class MultipleOrdersSelectionDialog extends SpefoDialog {
         final Button[] buttons = new Button[2];
 
         buttons[0] = buttonBuilder.text("Deselect").selection(false)
-                .onSelection(event -> {
-                    select = !((Button) event.widget).getSelection();
-                    buttons[1].setSelection(select);
-                    buttons[1].setEnabled(!select);
-                    buttons[0].setEnabled(select);
+                .onSelectedValue(value -> {
+                    buttons[1].setSelection(!value);
+                    buttons[1].setEnabled(value);
+                    buttons[0].setEnabled(!value);
                 })
                 .build(buttonsComposite);
 
         buttons[1] = buttonBuilder.text("Select").selection(true).enabled(false)
-                .onSelection(event -> {
-                    select = ((Button) event.widget).getSelection();
-                    buttons[0].setSelection(!select);
-                    buttons[0].setEnabled(select);
-                    buttons[1].setEnabled(!select);
+                .onSelectedValue(value -> {
+                    buttons[0].setSelection(!value);
+                    buttons[0].setEnabled(value);
+                    buttons[1].setEnabled(!value);
                 })
                 .build(buttonsComposite);
     }

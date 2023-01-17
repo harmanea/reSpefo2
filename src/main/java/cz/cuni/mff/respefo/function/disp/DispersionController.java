@@ -27,7 +27,7 @@ import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.PIXELS;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
@@ -302,7 +302,7 @@ public class DispersionController {
                 .layout(gridLayout(3, true).margins(10).spacings(10))
                 .build(tableComposite);
 
-        ButtonBuilder buttonBuilder = newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);
+        ButtonBuilder buttonBuilder = newPushButton().gridLayoutData(GridData.FILL_BOTH);
 
         buttonBuilder
                 .text("Poly degree")

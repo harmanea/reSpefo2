@@ -62,7 +62,7 @@ public class MeasureEWDialog extends TitleAreaDialog {
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING)
                 .build(topComposite);
 
-        ButtonBuilder buttonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);
+        ButtonBuilder buttonBuilder = ButtonBuilder.newPushButton().gridLayoutData(GridData.FILL_BOTH);
 
         buttonBuilder.text("Add").onSelection(event -> addStlFile(list)).build(buttonsComposite);
         buttonBuilder.text("Remove").onSelection(event -> removeStlFile(list)).build(buttonsComposite);

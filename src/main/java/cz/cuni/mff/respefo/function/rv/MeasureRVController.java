@@ -32,7 +32,7 @@ import static cz.cuni.mff.respefo.resources.ColorResource.CYAN;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.round;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newRadioButton;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.RELATIVE_FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
@@ -85,7 +85,7 @@ public class MeasureRVController {
         CompositeBuilder stepCompositeBuilder = newComposite()
                 .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING)
                 .layout(gridLayout(2, false).marginWidth(3).marginHeight(5).horizontalSpacing(5));
-        ButtonBuilder stepButtonBuilder = newButton(SWT.RADIO)
+        ButtonBuilder stepButtonBuilder = newRadioButton()
                 .gridLayoutData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1);
         LabelBuilder stepUnitsLabelBuilder = newLabel(SWT.CENTER)
                 .text("km/s")

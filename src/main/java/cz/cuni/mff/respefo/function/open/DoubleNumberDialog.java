@@ -5,7 +5,6 @@ import cz.cuni.mff.respefo.dialog.SpefoDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
@@ -41,9 +40,9 @@ public class DoubleNumberDialog extends SpefoDialog {
         newText(SWT.SINGLE | SWT.BORDER)
                 .text(Double.toString(value))
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .onModify(event -> {
+                .onModifiedValue(text -> {
                     try {
-                        value = Double.parseDouble(((Text) event.widget).getText());
+                        value = Double.parseDouble(text);
                         if (Double.isNaN(value) || Double.isInfinite(value)) {
                             throw new NumberFormatException();
                         }

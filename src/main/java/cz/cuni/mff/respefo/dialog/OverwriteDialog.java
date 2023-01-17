@@ -17,7 +17,8 @@ import java.util.Date;
 import static cz.cuni.mff.respefo.resources.ImageManager.getIconForFile;
 import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newCheckButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
@@ -177,7 +178,7 @@ public class OverwriteDialog extends TitleAreaDialog {
                 .text(originalFile.getName())
                 .build(expandComposite);
 
-        newButton(SWT.PUSH)
+        newPushButton()
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_FILL)
                 .text("Reset")
                 .onSelection(event -> {
@@ -192,7 +193,7 @@ public class OverwriteDialog extends TitleAreaDialog {
         expandItem.setHeight(expandComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
         expandItem.setControl(expandComposite);
 
-        final Button applyToAllButton = newButton(SWT.CHECK)
+        final Button applyToAllButton = newCheckButton()
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_END)
                 .text("Apply this action to all files and folders")
                 .build(topComposite);

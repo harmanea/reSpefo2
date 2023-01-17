@@ -55,8 +55,8 @@ public class MeasureRVDialog extends TitleAreaDialog {
         CompositeBuilder buttonsCompositeBuilder = CompositeBuilder.newComposite()
                 .layout(gridLayout().margins(0))
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
-        ButtonBuilder addButtonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH).text("Add");
-        ButtonBuilder removeButtonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH).text("Remove");
+        ButtonBuilder addButtonBuilder = ButtonBuilder.newPushButton().gridLayoutData(GridData.FILL_BOTH).text("Add");
+        ButtonBuilder removeButtonBuilder = ButtonBuilder.newPushButton().gridLayoutData(GridData.FILL_BOTH).text("Remove");
 
         // Measurements
 

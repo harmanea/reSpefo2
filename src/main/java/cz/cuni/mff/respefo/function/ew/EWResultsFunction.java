@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
@@ -100,7 +100,7 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
                         .build(group);
             }
 
-            newButton(SWT.PUSH)
+            newPushButton()
                     .text("Delete")
                     .layoutData(new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END))
                     .onSelection(event -> {
@@ -254,7 +254,7 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
                 .layout(gridLayout().margins(10).spacings(10))
                 .build(composite);
 
-        newButton(SWT.PUSH)
+        newPushButton()
                 .gridLayoutData(GridData.FILL_BOTH)
                 .text("Print to file")
                 .onSelection(event -> printToFile(spectra))

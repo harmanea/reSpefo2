@@ -2,6 +2,8 @@ package cz.cuni.mff.respefo.util.widget;
 
 import cz.cuni.mff.respefo.resources.ImageManager;
 import cz.cuni.mff.respefo.resources.ImageResource;
+import cz.cuni.mff.respefo.util.FileDialogs;
+import cz.cuni.mff.respefo.util.FileType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
@@ -9,8 +11,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
+import java.util.function.Consumer;
+
 // The following properties were not included: alignment
-// Maybe add defaults for push (and other type) buttons
 public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, Button> {
 
     private ButtonBuilder(int style) {
@@ -32,6 +35,29 @@ public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, B
      */
     public static ButtonBuilder newButton(int style) {
         return new ButtonBuilder(style);
+    }
+
+    public static ButtonBuilder newPushButton() {
+        return new ButtonBuilder(SWT.PUSH);
+    }
+
+    public static ButtonBuilder newCheckButton() {
+        return new ButtonBuilder(SWT.CHECK);
+    }
+
+    public static ButtonBuilder newRadioButton() {
+        return new ButtonBuilder(SWT.RADIO);
+    }
+
+    public static ButtonBuilder newBrowseButton(FileType fileType, Consumer<String> fileNameConsumer) {
+        return newPushButton()
+                .text("Browse")
+                .onSelection(event -> {
+                    String fileName = FileDialogs.openFileDialog(fileType);
+                    if (fileName != null) {
+                        fileNameConsumer.accept(fileName);
+                    }
+                });
     }
 
     /**
@@ -78,5 +104,12 @@ public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, B
      */
     public ButtonBuilder onSelection(Listener listener) {
         return listener(SWT.Selection, listener).listener(SWT.DefaultSelection, listener);
+    }
+
+    /**
+     * @see Button#addSelectionListener(SelectionListener)
+     */
+    public ButtonBuilder onSelectedValue(Consumer<Boolean> valueConsumer) {
+        return onSelection(event -> valueConsumer.accept(((Button) event.widget).getSelection()));
     }
 }

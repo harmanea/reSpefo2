@@ -11,13 +11,16 @@ import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.ExpandListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 
 import java.util.List;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newCheckButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 
@@ -101,11 +104,11 @@ public class ExportDialog extends TitleAreaDialog {
                 .layout(gridLayout().margins(10))
                 .build(bar);
 
-        newButton(SWT.CHECK)
+        newCheckButton()
                 .selection(options.applyZeroPointRvCorrection)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .text("Apply zero point RV correction from measured RV of telluric lines")
-                .onSelection(event -> options.applyZeroPointRvCorrection = ((Button) event.widget).getSelection())
+                .onSelectedValue(value -> options.applyZeroPointRvCorrection = value)
                 .build(expandComposite);
 
         ExpandItem expandItem = new ExpandItem(bar, SWT.NONE);

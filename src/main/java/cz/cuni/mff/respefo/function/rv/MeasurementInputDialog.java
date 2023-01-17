@@ -60,7 +60,7 @@ public class MeasurementInputDialog extends SpefoDialog {
         }
 
         labelBuilder.text("Comment:").build(composite);
-        textBuilder.text(comment).onModify(event -> comment = ((Text) event.widget).getText()).build(composite);
+        textBuilder.text(comment).onModifiedValue(value -> comment = value).build(composite);
     }
 
     @Override

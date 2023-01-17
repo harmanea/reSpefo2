@@ -1,10 +1,8 @@
 package cz.cuni.mff.respefo.function.disp;
 
 import cz.cuni.mff.respefo.dialog.SpefoDialog;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Spinner;
 
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
@@ -37,13 +35,13 @@ public class NumberDialog extends SpefoDialog {
                 .build(parent);
 
         newLabel().text(labelText).gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);
-        newSpinner(SWT.NONE)
+        newSpinner()
                 .gridLayoutData(GridData.FILL_BOTH)
                 .selection(1)
                 .bounds(1, maximum)
                 .digits(0)
                 .increment(1, 1)
-                .onModify(event -> number = ((Spinner) event.widget).getSelection())
+                .onModifiedValue(value -> number = value)
                 .focus()
                 .build(composite);
     }

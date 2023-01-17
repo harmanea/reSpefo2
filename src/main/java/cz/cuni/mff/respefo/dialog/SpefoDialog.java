@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 
 public abstract class SpefoDialog {
@@ -84,7 +84,7 @@ public abstract class SpefoDialog {
     protected final void createButton(Composite parent, int returnCode, String label, boolean defaultButton) {
         ((GridLayout) parent.getLayout()).numColumns++;
 
-        final Button button = newButton(SWT.PUSH)
+        final Button button = newPushButton()
                 .text(label)
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_FILL)
                 .onSelection(event -> buttonPressed(returnCode))

@@ -4,7 +4,6 @@ import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.dialog.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -13,7 +12,8 @@ import java.util.*;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newCheckButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.util.Collections.emptySortedSet;
@@ -104,7 +104,7 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                 })
                 .build(composite);
 
-        newButton(SWT.PUSH)
+        newPushButton()
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
                 .text("(De)select multiple")
                 .onSelection(event -> {
@@ -131,11 +131,11 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                 })
                 .build(composite);
 
-        newButton(SWT.CHECK)
+        newCheckButton()
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
                 .text("Print parameters to file")
                 .selection(printParameters)
-                .onSelection(event -> printParameters = ((Button) event.widget).getSelection())
+                .onSelectedValue(value -> printParameters = value)
                 .build(composite);
     }
 }

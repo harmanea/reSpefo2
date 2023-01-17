@@ -406,7 +406,7 @@ public class RectifyFunction extends SpectrumFunction {
         final int digits = 3;
         composite = compositeBuilder.build(tab.getWindow());
         labelBuilder.text("Alpha:").build(composite);
-        final Spinner alphaSpinner = SpinnerBuilder.newSpinner(NONE)
+        final Spinner alphaSpinner = SpinnerBuilder.newSpinner()
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
                 .digits(digits)
                 .bounds(1, 2000)

@@ -295,13 +295,13 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
                 .layout(gridLayout(4, true).margins(10).spacings(10))
                 .build(composite);
 
-        Button includeErrorsButton = ButtonBuilder.newButton(SWT.CHECK)
+        Button includeErrorsButton = ButtonBuilder.newCheckButton()
                 .gridLayoutData(GridData.VERTICAL_ALIGN_CENTER | GridData.GRAB_VERTICAL | GridData.FILL_HORIZONTAL)
                 .text("Include error columns")
                 .selection(true)
                 .build(buttonsComposite);
 
-        ButtonBuilder buttonBuilder = ButtonBuilder.newButton(SWT.PUSH).gridLayoutData(GridData.FILL_BOTH);
+        ButtonBuilder buttonBuilder = ButtonBuilder.newPushButton().gridLayoutData(GridData.FILL_BOTH);
         buttonBuilder.text("Print to .rvs file").onSelection(event -> printToRvsFile(spectra, includeErrorsButton.getSelection())).build(buttonsComposite);
         buttonBuilder.text("Print to .cor file").onSelection(event -> printToCorFile(spectra, includeErrorsButton.getSelection())).build(buttonsComposite);
         buttonBuilder.text("Print to .ac file").onSelection(event -> printToAcFile(spectra)).build(buttonsComposite);
