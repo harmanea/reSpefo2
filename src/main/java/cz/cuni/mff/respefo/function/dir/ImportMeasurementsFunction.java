@@ -24,12 +24,12 @@ public class ImportMeasurementsFunction implements ProjectFunction {
 
     @Override
     public void execute(List<File> files) {
-        String importFromDirectory = FileDialogs.directoryDialog(false);
-        if (importFromDirectory == null) {
+        Optional<String> importFromDirectory = FileDialogs.directoryDialog(false);
+        if (!importFromDirectory.isPresent()) {
             return;
         }
 
-        List<File> importFiles = listSpectrumFiles(importFromDirectory);
+        List<File> importFiles = listSpectrumFiles(importFromDirectory.get());
         if (importFiles == null) {
             Message.warning("Couldn't read import files");
             return;

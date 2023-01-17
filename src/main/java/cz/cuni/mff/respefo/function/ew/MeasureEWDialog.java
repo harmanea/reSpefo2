@@ -76,17 +76,16 @@ public class MeasureEWDialog extends TitleAreaDialog {
     }
 
     private void addStlFile(List list) {
-        String fileName = FileDialogs.openFileDialog(FileType.STL, false);
-        if (fileName != null) {
-            list.add(fileName);
+        FileDialogs.openFileDialog(FileType.STL, false)
+                .ifPresent(fileName -> {
+                    list.add(fileName);
 
-            fileNames = list.getItems();
-
-            if (fileNames.length == 1) {
-                setMessage("Measure equivalent width and other spectrophotometric quantities", SWT.ICON_INFORMATION);
-                getButton(SWT.OK).setEnabled(true);
-            }
-        }
+                    fileNames = list.getItems();
+                    if (fileNames.length == 1) {
+                        setMessage("Measure equivalent width and other spectrophotometric quantities", SWT.ICON_INFORMATION);
+                        getButton(SWT.OK).setEnabled(true);
+                    }
+                });
     }
 
     private void removeStlFile(List list) {

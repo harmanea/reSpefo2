@@ -343,12 +343,7 @@ public class ComponentManager extends UtilityClass {
     }
 
     private static Runnable function(SingleFileFunction function) {
-        return () -> {
-            String fileName = FileDialogs.openFileDialog(FileType.SPECTRUM);
-            if (fileName != null) {
-                function.execute(new File(fileName));
-            }
-        };
+        return () -> FileDialogs.openFileDialog(FileType.SPECTRUM).ifPresent(fileName -> function.execute(new File(fileName)));
     }
 
     private static <T extends SingleFileFunction & MultiFileFunction> Runnable multipleFilesFunction(FileType fileType, T function) {

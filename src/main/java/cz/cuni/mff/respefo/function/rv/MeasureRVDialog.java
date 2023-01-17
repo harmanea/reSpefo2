@@ -113,13 +113,12 @@ public class MeasureRVDialog extends TitleAreaDialog {
     }
 
     private void addStlFile(List list, Consumer<String[]> itemsConsumer) {
-        String fileName = FileDialogs.openFileDialog(FileType.STL, false);
-        if (fileName != null) {
-            list.add(fileName);
-
-            itemsConsumer.accept(list.getItems());
-            verify();
-        }
+        FileDialogs.openFileDialog(FileType.STL, false)
+                .ifPresent(fileName -> {
+                    list.add(fileName);
+                    itemsConsumer.accept(list.getItems());
+                    verify();
+                });
     }
 
     private void removeStlFile(List list, Consumer<String[]> itemsConsumer) {

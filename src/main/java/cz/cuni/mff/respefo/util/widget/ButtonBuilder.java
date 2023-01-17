@@ -52,12 +52,7 @@ public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, B
     public static ButtonBuilder newBrowseButton(FileType fileType, Consumer<String> fileNameConsumer) {
         return newPushButton()
                 .text("Browse")
-                .onSelection(event -> {
-                    String fileName = FileDialogs.openFileDialog(fileType);
-                    if (fileName != null) {
-                        fileNameConsumer.accept(fileName);
-                    }
-                });
+                .onSelection(event -> FileDialogs.openFileDialog(fileType).ifPresent(fileNameConsumer::accept));
     }
 
     /**

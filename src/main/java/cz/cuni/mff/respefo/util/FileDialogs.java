@@ -6,10 +6,12 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cz.cuni.mff.respefo.util.utils.FileUtils.getParentDirectory;
@@ -44,7 +46,7 @@ public class FileDialogs extends UtilityClass {
      * @return path to the selected file or null if the dialog was cancelled
      * @see FileDialogs#setFilterPath(String)
      */
-    public static String openFileDialog(FileType fileType) {
+    public static Optional<String> openFileDialog(FileType fileType) {
         return openFileDialog(fileType, true);
     }
 
@@ -56,7 +58,7 @@ public class FileDialogs extends UtilityClass {
      * @return path to the selected file or null if the dialog was cancelled
      * @see FileDialogs#setFilterPath(String)
      */
-    public static String openFileDialog(FileType fileType, boolean saveFilterPath) {
+    public static Optional<String> openFileDialog(FileType fileType, boolean saveFilterPath) {
         return fileDialog(fileType, saveFilterPath, SWT.OPEN, null);
     }
 
@@ -70,7 +72,7 @@ public class FileDialogs extends UtilityClass {
      * @return path to the selected file or null if the dialog was cancelled
      * @see FileDialogs#setFilterPath(String)
      */
-    public static String saveFileDialog(FileType fileType, String fileName) {
+    public static Optional<String> saveFileDialog(FileType fileType, String fileName) {
         return saveFileDialog(fileType, fileName, true);
     }
 
@@ -83,11 +85,11 @@ public class FileDialogs extends UtilityClass {
      * @return path to the selected file or null if the dialog was cancelled
      * @see FileDialogs#setFilterPath(String)
      */
-    public static String saveFileDialog(FileType fileType, String fileName, boolean saveFilterPath) {
+    public static Optional<String> saveFileDialog(FileType fileType, String fileName, boolean saveFilterPath) {
         return fileDialog(fileType, saveFilterPath, SWT.SAVE, fileName);
     }
 
-    private static String fileDialog(FileType fileType, boolean saveFilterPath, int style, String fileName) {
+    private static Optional<String> fileDialog(FileType fileType, boolean saveFilterPath, int style, String fileName) {
         Objects.requireNonNull(fileType);
 
         FileDialog dialog = new FileDialog(ComponentManager.getShell(), style);
@@ -105,11 +107,14 @@ public class FileDialogs extends UtilityClass {
 
         String filePath = dialog.open();
 
-        if (saveFilterPath && filePath != null && Paths.get(filePath).getParent() != null) {
-            setFilterPath(Paths.get(filePath).getParent().toString());
+        if (saveFilterPath && filePath != null) {
+            Path path = Paths.get(filePath);
+            if (path.getParent() != null) {
+                setFilterPath(path.getParent().toString());
+            }
         }
 
-        return filePath;
+        return Optional.ofNullable(filePath);
     }
 
     /**
@@ -120,7 +125,7 @@ public class FileDialogs extends UtilityClass {
      * @return path to the selected directory or null if the dialog was cancelled
      * @see FileDialogs#setFilterPath(String)
      */
-    public static String directoryDialog() {
+    public static Optional<String> directoryDialog() {
         return directoryDialog(true);
     }
 
@@ -131,7 +136,7 @@ public class FileDialogs extends UtilityClass {
      * @return path to the selected directory or null if the dialog was cancelled
      * @see FileDialogs#setFilterPath(String)
      */
-    public static String directoryDialog(boolean saveFilterPath) {
+    public static Optional<String> directoryDialog(boolean saveFilterPath) {
         DirectoryDialog dialog = new DirectoryDialog(ComponentManager.getShell());
 
         dialog.setText("Select directory");
@@ -143,7 +148,7 @@ public class FileDialogs extends UtilityClass {
             setFilterPath(Paths.get(directoryPath).toString());
         }
 
-        return directoryPath;
+        return Optional.ofNullable(directoryPath);
     }
 
     /**

@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static cz.cuni.mff.respefo.dialog.OverwriteDialog.*;
 import static cz.cuni.mff.respefo.util.FileType.COMPATIBLE_SPECTRUM_FILES;
@@ -37,10 +38,10 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
 
     @Override
     public void execute(Spectrum spectrum) {
-        String fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrum.getFile().getPath()));
-        if (fileName != null) {
+        Optional<String> fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrum.getFile().getPath()));
+        if (fileName.isPresent()) {
             try {
-                if (exportTo(spectrum, fileName)) {
+                if (exportTo(spectrum, fileName.get())) {
                     Message.info("File exported successfully.");
                     FileExplorer.getDefault().refresh();
                 }

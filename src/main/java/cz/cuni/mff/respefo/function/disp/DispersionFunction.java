@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
@@ -108,12 +109,12 @@ public class DispersionFunction implements SingleFileFunction {
             }
             spectrum.getSeries().updateXSeries(xSeries);
 
-            String newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(originalFile.getPath(), "spf"));
-            if (newFileName == null) {
+            Optional<String> newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(originalFile.getPath(), "spf"));
+            if (!newFileName.isPresent()) {
                 return;
             }
 
-            spectrum.saveAs(new File(newFileName));
+            spectrum.saveAs(new File(newFileName.get()));
             Project.refresh();
             OpenFunction.displaySpectrum(spectrum);
             Message.info("File imported successfully.");

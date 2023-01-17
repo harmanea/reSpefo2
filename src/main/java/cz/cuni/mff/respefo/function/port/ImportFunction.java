@@ -85,10 +85,10 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             return;
         }
 
-        String fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
-        if (fileName != null) {
+        Optional<String> fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
+        if (fileName.isPresent()) {
             try {
-                if (saveAs(spectrum, new File(fileName))) {
+                if (saveAs(spectrum, new File(fileName.get()))) {
                     Project.refresh();
                     OpenFunction.displaySpectrum(spectrum);
                     Message.info("File imported successfully.");

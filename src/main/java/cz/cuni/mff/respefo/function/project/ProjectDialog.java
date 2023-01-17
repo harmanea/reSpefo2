@@ -133,12 +133,7 @@ public class ProjectDialog extends TitleAreaDialog {
                 .image(ImageResource.FOLDER)
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END)
                 .enabled(status == USE_LST)
-                .onSelection(event -> {
-                    String fileName = FileDialogs.openFileDialog(FileType.LST);
-                    if (fileName != null) {
-                        lstFileNameText.setText(fileName);
-                    }
-                })
+                .onSelection(event -> FileDialogs.openFileDialog(FileType.LST).ifPresent(lstFileNameText::setText))
                 .build(lstFileComposite);
 
         thirdButton.addSelectionListener(new DefaultSelectionListener(event -> {
