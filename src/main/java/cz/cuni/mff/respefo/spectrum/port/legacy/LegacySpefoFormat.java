@@ -19,7 +19,6 @@ import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -119,15 +118,15 @@ public class LegacySpefoFormat implements ImportFileFormat {
                 br.lines().forEach(line -> {
                     try {
                         results.add(parseRvLine(line, coefficients, deltaRV));
-                    } catch (NumberFormatException numberFormatException) {
-                        Log.error("Couldn't load measurement", numberFormatException);
+                    } catch (NumberFormatException | IndexOutOfBoundsException parsingException) {
+                        Log.error("Couldn't load measurement", parsingException);
                     }
 
                 });
 
                 spectrum.putFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, results);
 
-            } catch (IOException exception) {
+            } catch (Exception exception) {
                 throw new InvalidFileFormatException("Rv file has invalid format", exception);
             }
         }
