@@ -73,7 +73,8 @@ public class ProjectDialog extends TitleAreaDialog {
         newText(SWT.SINGLE | SWT.BORDER)
                 .text(prefix)
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .onModifiedValue(prefix -> {
+                .onModifiedValue(value -> {
+                    prefix = value;
                     if (prefix.length() == 0) {
                         setMessage("The prefix cannot be blank", SWT.ICON_WARNING);
                         getButton(SWT.OK).setEnabled(false);

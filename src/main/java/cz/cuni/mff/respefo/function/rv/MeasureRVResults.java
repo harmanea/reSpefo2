@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
+
 public class MeasureRVResults implements AppendableFunctionAsset<MeasureRVResults> {
     private final List<MeasureRVResult> results;
 
@@ -54,11 +56,14 @@ public class MeasureRVResults implements AppendableFunctionAsset<MeasureRVResult
     }
 
     public double getRvOfCategory(String category) {
-        if (getNumberOfResultsInCategory(category) < 5) {
-            return getResultsOfCategory(category).mapToDouble(MeasureRVResult::getRv).average().orElse(Double.NaN);
-        } else {
-            return MathUtils.robustMean(getResultsOfCategory(category).mapToDouble(MeasureRVResult::getRv).sorted().toArray());
+        if (getNumberOfResultsInCategory(category) >= 5) {
+            double robustMean = MathUtils.robustMean(getResultsOfCategory(category).mapToDouble(MeasureRVResult::getRv).sorted().toArray());
+            if (isNotNaN(robustMean)) {
+                return robustMean;
+            }
         }
+
+        return getResultsOfCategory(category).mapToDouble(MeasureRVResult::getRv).average().orElse(Double.NaN);
     }
 
     public double getSemOfCategory(String category) {
