@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 
 import static cz.cuni.mff.respefo.function.lst.LstFile.DATE_TIME_FORMATTER;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.hasExtension;
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.stream.Collectors.toList;
 
 @Fun(name = "Add Files")
@@ -90,8 +92,8 @@ public class AddToProjectFunction extends PrepareProjectFunction {
             break;
             case ProjectDialog.HEC2: {
                 /* Generate input file for hec2 */
-                File hec2File = Project.getRootDirectory().toPath().resolve("hec2." + prefix).toFile();
-                try (PrintWriter writer = new PrintWriter(hec2File)) {
+                Path hec2File = Project.getRootDirectory().toPath().resolve("hec2." + prefix);
+                try (PrintWriter writer = new PrintWriter(Files.newOutputStream(hec2File, APPEND, CREATE))) {
                     for (int i = 0; i < fitsFiles.size(); i++) {
                         FitsFile fits = fitsFiles.get(i);
                         writer.println(String.join(" ",
