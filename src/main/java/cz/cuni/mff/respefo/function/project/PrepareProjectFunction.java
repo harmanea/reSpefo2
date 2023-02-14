@@ -30,6 +30,7 @@ import java.util.Objects;
 
 import static cz.cuni.mff.respefo.function.lst.LstFile.DATE_TIME_FORMATTER;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.hasExtension;
+import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.stream.Collectors.toList;
 
 @Fun(name = "Prepare")
@@ -71,8 +72,8 @@ public class PrepareProjectFunction implements ProjectFunction {
             break;
             case ProjectDialog.HEC2: {
                 /* Generate input file for hec2 */
-                File hec2File = Project.getRootDirectory().toPath().resolve("hec2." + prefix).toFile();
-                try (PrintWriter writer = new PrintWriter(hec2File)) {
+                Path hec2File = Project.getRootDirectory().toPath().resolve("hec2." + prefix);
+                try (PrintWriter writer = new PrintWriter(Files.newOutputStream(hec2File, CREATE))) {
                     for (int i = 0; i < fitsFiles.size(); i++) {
                         FitsFile fits = fitsFiles.get(i);
 
@@ -113,10 +114,10 @@ public class PrepareProjectFunction implements ProjectFunction {
             Path path = fitsFiles.get(i).getFile().toPath();
 
             try {
-                String newFileName = prefix + String.format("%05d", i + 1) + "." + FileUtils.getFileExtension(path.toFile());
+                String newFileName = prefix + String.format("%05d", i + 1) + "." + FileUtils.getFileExtension(path);
                 Files.move(path, path.resolveSibling(newFileName));
             } catch (IOException exception) {
-                Log.error("Couldn't rename file [" + path.toFile().getName() + "]", exception);
+                Log.error("Couldn't rename file [" + path.getFileName().toString() + "]", exception);
             }
         }
 

@@ -10,9 +10,13 @@ import org.eclipse.swt.events.ExpandListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.stream.Stream;
 
 import static cz.cuni.mff.respefo.resources.ImageManager.getIconForFile;
 import static cz.cuni.mff.respefo.util.layout.FillLayoutBuilder.fillLayout;
@@ -31,10 +35,10 @@ public class OverwriteDialog extends TitleAreaDialog {
     public static final int RENAME = -4;
     public static final int SKIP = -5;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm");
 
-    private final File originalFile;
-    private final File replaceWith;
+    private final Path original;
+    private final Path replaceWith;
 
     private final boolean originalFileIsDirectory;
     private final boolean replaceWithIsDirectory;
@@ -42,24 +46,24 @@ public class OverwriteDialog extends TitleAreaDialog {
     private String newName = null;
     private boolean applyToAll;
 
-    public OverwriteDialog(File file) {
-        super("Replace file  \"" + file.getName() + "\"?");
+    public OverwriteDialog(Path path) {
+        super("Replace file  \"" + path.getFileName().toString() + "\"?");
 
-        this.originalFile = file;
+        this.original = path;
         this.replaceWith = null;
 
-        originalFileIsDirectory = file.isDirectory();
+        originalFileIsDirectory = Files.isDirectory(path);
         replaceWithIsDirectory = false;
     }
 
-    public OverwriteDialog(File originalFile, File replaceWith) {
-        super((originalFile.isDirectory() && replaceWith.isDirectory() ? "Merge folder" : "Replace file") + " \"" + originalFile.getName() + "\"?");
+    public OverwriteDialog(Path original, Path replaceWith) {
+        super((Files.isDirectory(original) && Files.isDirectory(replaceWith) ? "Merge folder" : "Replace file") + " \"" + original.getFileName().toString() + "\"?");
 
-        this.originalFile = originalFile;
+        this.original = original;
         this.replaceWith = replaceWith;
 
-        originalFileIsDirectory = originalFile.isDirectory();
-        replaceWithIsDirectory = replaceWith.isDirectory();
+        originalFileIsDirectory = Files.isDirectory(original);
+        replaceWithIsDirectory = Files.isDirectory(replaceWith);
     }
 
     public String getNewName() {
@@ -133,7 +137,7 @@ public class OverwriteDialog extends TitleAreaDialog {
         LabelBuilder fileLabel = newLabel().bold();
 
 
-        iconLabelBuilder.image(getIconForFile(originalFile)).build(fileDetailsComposite);
+        iconLabelBuilder.image(getIconForFile(original)).build(fileDetailsComposite);
 
         final Composite originalFileComposite = fileCompositeBuilder.build(fileDetailsComposite);
 
@@ -141,10 +145,10 @@ public class OverwriteDialog extends TitleAreaDialog {
 
         newLabel().text(
                 originalFileIsDirectory
-                        ? "Contents: " + directoryContents(originalFile) + " items"
-                        : "Size: " + StringUtils.humanReadableByteCountSI(originalFile.length()))
+                        ? "Contents: " + directoryContents(original) + " items"
+                        : "Size: " + fileSize(original))
                 .build(originalFileComposite);
-        newLabel().text("Last modified: " + dateFormat.format(new Date(originalFile.lastModified())))
+        newLabel().text("Last modified: " + lastModified(original))
                 .build(originalFileComposite);
 
         if (replaceWith != null) {
@@ -157,9 +161,9 @@ public class OverwriteDialog extends TitleAreaDialog {
 
             newLabel().text(replaceWithIsDirectory
                     ? "Contents: " + directoryContents(replaceWith) + " items"
-                    : "Size: " + StringUtils.humanReadableByteCountSI(replaceWith.length()))
+                    : "Size: " + fileSize(replaceWith))
             .build(replaceWithComposite);
-            newLabel().text("Last modified: " + dateFormat.format(new Date(replaceWith.lastModified()))).build(replaceWithComposite);
+            newLabel().text("Last modified: " + lastModified(replaceWith)).build(replaceWithComposite);
         }
 
         final Composite expandBarComposite = newComposite()
@@ -175,15 +179,15 @@ public class OverwriteDialog extends TitleAreaDialog {
 
         final Text newNameText = newText(SWT.SINGLE)
                 .gridLayoutData(GridData.FILL_BOTH)
-                .text(originalFile.getName())
+                .text(original.getFileName().toString())
                 .build(expandComposite);
 
         newPushButton()
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_FILL)
                 .text("Reset")
                 .onSelection(event -> {
-                    newNameText.setText(originalFile.getName());
-                    newNameText.setSelection(0, originalFile.getName().lastIndexOf('.'));
+                    newNameText.setText(original.getFileName().toString());
+                    newNameText.setSelection(0, original.getFileName().toString().lastIndexOf('.'));
                     newNameText.forceFocus();
                 })
         .build(expandComposite);
@@ -216,7 +220,7 @@ public class OverwriteDialog extends TitleAreaDialog {
 
         newNameText.addListener(SWT.Modify, event -> {
             Button defaultButton = getButton(DEFAULT);
-            if (newNameText.getText().equals(originalFile.getName())) {
+            if (newNameText.getText().equals(original.getFileName().toString())) {
                 defaultButton.setText(originalFileIsDirectory && replaceWithIsDirectory ? "Merge" : "Replace");
                 newName = null;
                 applyToAllButton.setEnabled(true);
@@ -234,12 +238,32 @@ public class OverwriteDialog extends TitleAreaDialog {
         });
     }
 
-    private String directoryContents(File file) {
-        String[] lst = file.list();
-        if (lst == null) {
+    private static String directoryContents(Path path) {
+        try (Stream<Path> lst = Files.list(path)) {
+           return Long.toString(lst.count());
+
+        } catch (IOException e) {
             return "?";
-        } else {
-            return Integer.toString(lst.length);
+        }
+    }
+
+    private static String fileSize(Path path) {
+        try {
+            long bytes = Files.size(path);
+            return StringUtils.humanReadableByteCountSI(bytes);
+
+        } catch (IOException e) {
+            return "?";
+        }
+    }
+
+    private static String lastModified(Path path) {
+        try {
+            FileTime lastModified = Files.getLastModifiedTime(path);
+            return DATE_FORMAT.format(Date.from(lastModified.toInstant()));
+
+        } catch (IOException e) {
+            return "?";
         }
     }
 }

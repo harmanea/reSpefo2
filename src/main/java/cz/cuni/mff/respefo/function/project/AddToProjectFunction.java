@@ -114,10 +114,10 @@ public class AddToProjectFunction extends PrepareProjectFunction {
             Path path = fitsFiles.get(i).getFile().toPath();
 
             try {
-                String newFileName = prefix + String.format("%05d", lastFileIndex + i + 1) + "." + FileUtils.getFileExtension(path.toFile());
+                String newFileName = prefix + String.format("%05d", lastFileIndex + i + 1) + "." + FileUtils.getFileExtension(path);
                 Files.move(path, path.resolveSibling(newFileName));
             } catch (IOException exception) {
-                Log.error("Couldn't rename file [" + path.toFile().getName() + "]", exception);
+                Log.error("Couldn't rename file [" + path.getFileName().toString() + "]", exception);
             }
         }
 

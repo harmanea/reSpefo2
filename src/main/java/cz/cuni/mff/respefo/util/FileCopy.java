@@ -91,7 +91,7 @@ public class FileCopy {
                         }
                     }
 
-                    OverwriteDialog dialog = new OverwriteDialog(targetDirectory.toFile(), sourceDirectory.toFile());
+                    OverwriteDialog dialog = new OverwriteDialog(targetDirectory, sourceDirectory);
                     int result = dialog.open();
                     if (result == MERGE) {
                         if (dialog.applyToAll()) {
@@ -130,11 +130,11 @@ public class FileCopy {
             }
 
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if (Files.isDirectory(file)) {
-                    return copyDirectory(file, targetDirectory.resolve(sourceDirectory.relativize(file)), options);
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                if (Files.isDirectory(path)) {
+                    return copyDirectory(path, targetDirectory.resolve(sourceDirectory.relativize(path)), options);
                 } else {
-                    return copyFile(file, targetDirectory.resolve(sourceDirectory.relativize(file)), options);
+                    return copyFile(path, targetDirectory.resolve(sourceDirectory.relativize(path)), options);
                 }
             }
         });
@@ -146,31 +146,31 @@ public class FileCopy {
         }
     }
 
-    private FileVisitResult copyFile(Path sourceFile, Path targetFile, CopyOption ... options) throws IOException {
+    private FileVisitResult copyFile(Path source, Path target, CopyOption ... options) throws IOException {
         try {
-            Files.copy(sourceFile, targetFile, options);
+            Files.copy(source, target, options);
             return FileVisitResult.CONTINUE;
 
         } catch (FileAlreadyExistsException alreadyExistsException) {
             if (applyToAll) {
                 if (replaceAll) {
-                    return copyWithReplace(sourceFile, targetFile, options);
+                    return copyWithReplace(source, target, options);
                 } else if (skipAll) {
                     return FileVisitResult.CONTINUE;
                 }
             }
 
-            OverwriteDialog dialog = new OverwriteDialog(targetFile.toFile(), sourceFile.toFile());
+            OverwriteDialog dialog = new OverwriteDialog(target, source);
             int result = dialog.open();
             if (result == REPLACE) {
                 if (dialog.applyToAll()) {
                     applyToAll = true;
                     replaceAll = true;
                 }
-                return copyWithReplace(sourceFile, targetFile, options);
+                return copyWithReplace(source, target, options);
 
             } else if (result == RENAME) {
-                return copyFile(sourceFile, targetFile.resolveSibling(dialog.getNewName()), options);
+                return copyFile(source, target.resolveSibling(dialog.getNewName()), options);
 
             } else if (result == CANCEL) {
                 cancel = true;

@@ -40,6 +40,15 @@ public class FileUtils extends UtilityClass {
     }
 
     /**
+     * @param path whose extension should be extracted
+     * @return the file extension or an empty string if it has none
+     */
+    public static String getFileExtension(Path path) {
+        Objects.requireNonNull(path);
+        return getFileExtension(path.getFileName().toString());
+    }
+
+    /**
      * @param fileName of the file whose extension should be extracted
      * @return the file extension or an empty string if it has none
      */

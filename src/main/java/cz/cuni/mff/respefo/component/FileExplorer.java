@@ -422,9 +422,9 @@ public class FileExplorer {
         text.addListener(Traverse, event -> {
             if (event.detail == TRAVERSE_RETURN || event.detail == TRAVERSE_ESCAPE) {
                 if (event.detail == TRAVERSE_RETURN) {
-                    Path file = ((File) item.getData()).toPath();
+                    Path path = ((File) item.getData()).toPath();
                     try {
-                        Files.move(file, file.resolveSibling(text.getText()));
+                        Files.move(path, path.resolveSibling(text.getText()));
                         item.setText(text.getText());
                         refresh();
 

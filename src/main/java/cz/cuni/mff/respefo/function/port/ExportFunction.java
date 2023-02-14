@@ -21,6 +21,7 @@ import cz.cuni.mff.respefo.util.utils.FileUtils;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,11 +53,12 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
     }
 
     private static boolean exportTo(Spectrum spectrum, String fileName) throws SpefoException {
-        if (Files.exists(Paths.get(fileName))) {
-            OverwriteDialog dialog = new OverwriteDialog(new File(fileName));
+        Path path = Paths.get(fileName);
+        if (Files.exists(path)) {
+            OverwriteDialog dialog = new OverwriteDialog(path);
             int response = dialog.open();
             if (response == RENAME) {
-                return exportTo(spectrum, Paths.get(fileName).resolveSibling(dialog.getNewName()).toString());
+                return exportTo(spectrum, path.resolveSibling(dialog.getNewName()).toString());
             } else if (response == CANCEL || response == SKIP) {
                 return false;
             } /* else response == REPLACE */
@@ -162,7 +164,8 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
     }
 
     private static int exportTo(Progress p, Spectrum spectrum, String fileName, ExportFileFormat exportFormat, int applyToAllAction) throws SpefoException {
-        if (Files.exists(Paths.get(fileName))) {
+        Path path = Paths.get(fileName);
+        if (Files.exists(path)) {
             if (applyToAllAction < 0) {
                 if (applyToAllAction == REPLACE) {
                     exportFormat.exportTo(spectrum, fileName);
@@ -170,7 +173,7 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
                 return applyToAllAction;
             }
 
-            Progress.DialogAndReturnCode<OverwriteDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(() -> new OverwriteDialog(new File(fileName)));
+            Progress.DialogAndReturnCode<OverwriteDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(() -> new OverwriteDialog(path));
             int response = overwriteDialogAndReturnCode.getReturnValue();
             OverwriteDialog dialog = overwriteDialogAndReturnCode.getDialog();
 
@@ -180,7 +183,7 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
                     return REPLACE;
                 }
             } else if (response == RENAME) {
-                return exportTo(p, spectrum, Paths.get(fileName).resolveSibling(dialog.getNewName()).toString(), exportFormat, applyToAllAction);
+                return exportTo(p, spectrum, path.resolveSibling(dialog.getNewName()).toString(), exportFormat, applyToAllAction);
 
             } else if (response == SKIP) {
                 if (overwriteDialogAndReturnCode.getDialog().applyToAll()) {

@@ -24,6 +24,9 @@ import cz.cuni.mff.respefo.util.utils.FileUtils;
 import org.eclipse.swt.SWT;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -88,7 +91,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         Optional<String> fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
         if (fileName.isPresent()) {
             try {
-                if (saveAs(spectrum, new File(fileName.get()))) {
+                if (saveAs(spectrum, Paths.get(fileName.get()))) {
                     Project.refresh();
                     OpenFunction.displaySpectrum(spectrum);
                     Message.info("File imported successfully.");
@@ -99,18 +102,18 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
         }
     }
 
-    private boolean saveAs(Spectrum spectrum, File file) throws SpefoException {
-        if (file.exists()) {
-            OverwriteDialog dialog = new OverwriteDialog(file);
+    private boolean saveAs(Spectrum spectrum, Path path) throws SpefoException {
+        if (Files.exists(path)) {
+            OverwriteDialog dialog = new OverwriteDialog(path);
             int response = dialog.open();
             if (response == RENAME) {
-                return saveAs(spectrum, file.toPath().resolveSibling(dialog.getNewName()).toFile());
+                return saveAs(spectrum, path.resolveSibling(dialog.getNewName()));
             } else if (response == CANCEL || response == SKIP) {
                 return false;
             } /* else response == REPLACE */
         }
 
-        spectrum.saveAs(file);
+        spectrum.saveAs(path.toFile());
         return true;
     }
 
@@ -224,7 +227,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                 return applyToAllAction;
             }
 
-            Progress.DialogAndReturnCode<OverwriteDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(() -> new OverwriteDialog(file));
+            Progress.DialogAndReturnCode<OverwriteDialog> overwriteDialogAndReturnCode = p.syncOpenDialog(() -> new OverwriteDialog(file.toPath()));
             int response = overwriteDialogAndReturnCode.getReturnValue();
             OverwriteDialog dialog = overwriteDialogAndReturnCode.getDialog();
 

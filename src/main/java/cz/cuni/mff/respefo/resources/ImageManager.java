@@ -6,6 +6,8 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.EnumMap;
 
 import static cz.cuni.mff.respefo.resources.ImageResource.*;
@@ -44,10 +46,14 @@ public class ImageManager extends UtilityClass {
     }
 
     public static Image getIconForFile(File file) {
-        if (file.isDirectory()) {
+        return getIconForFile(file.toPath());
+    }
+
+    public static Image getIconForFile(Path path) {
+        if (Files.isDirectory(path)) {
             return getImage(FOLDER);
         } else {
-            String fileExtension = getFileExtension(file);
+            String fileExtension = getFileExtension(path);
 
             if (fileExtension.equals("spf")) {
                 return getImage(SPECTRUM_FILE);
