@@ -371,7 +371,7 @@ public class FileExplorer {
         for (File file : files) {
             if (file.exists()) {
                 try {
-                    FileUtils.deleteFile(file);
+                    FileUtils.deleteFile(file.toPath());
                 } catch (IOException exception) {
                     failedFiles.add(file);
                     Log.error("An error occurred while deleting file", exception);

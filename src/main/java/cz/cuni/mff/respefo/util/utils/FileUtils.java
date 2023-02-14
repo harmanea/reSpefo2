@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
+// TODO: Move away from File, use Path instead
 public class FileUtils extends UtilityClass {
     private static final File USER_DIRECTORY;
     static {
@@ -125,13 +126,13 @@ public class FileUtils extends UtilityClass {
     /**
      * Deletes a file.
      * If it is a directory, it's contents will be recursively deleted first.
-     * @param file to be deleted
+     * @param path to be deleted
      * @throws IOException if an I/O error occurs
      */
-    public static void deleteFile(File file) throws IOException {
-        Objects.requireNonNull(file);
-        if (file.isDirectory()) {
-            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
+    public static void deleteFile(Path path) throws IOException {
+        Objects.requireNonNull(path);
+        if (Files.isDirectory(path)) {
+            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     Files.delete(file);
@@ -146,7 +147,7 @@ public class FileUtils extends UtilityClass {
             });
 
         } else {
-            Files.delete(file.toPath());
+            Files.delete(path);
         }
     }
 

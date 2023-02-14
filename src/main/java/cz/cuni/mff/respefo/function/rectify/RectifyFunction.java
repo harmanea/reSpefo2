@@ -37,7 +37,6 @@ import org.swtchart.Range;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
@@ -55,6 +54,8 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.Arrays.copyOfRange;
 import static java.util.function.UnaryOperator.identity;
 import static org.eclipse.swt.SWT.*;
@@ -547,7 +548,7 @@ public class RectifyFunction extends SpectrumFunction {
         Path path = spectrum.getFile().toPath().resolveSibling(FileUtils.stripFileExtension(spectrum.getFile().getName()) + ".par");
         String params = blaze.getOrder() + " " + blaze.getK() + " " + blaze.getAlpha() + System.lineSeparator();
         try {
-            Files.write(path, params.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+            Files.write(path, params.getBytes(), APPEND, CREATE);
         } catch (Exception exception) {
             Message.error("Couldn't save parameters to a file", exception);
         }

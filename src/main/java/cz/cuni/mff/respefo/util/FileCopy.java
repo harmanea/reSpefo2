@@ -76,14 +76,14 @@ public class FileCopy {
         Files.walkFileTree(sourceDirectory, EnumSet.noneOf(FileVisitOption.class), 1, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                if (targetDirectory.toFile().exists()) {
+                if (Files.exists(targetDirectory)) {
                     if (applyToAll) {
-                        if (!targetDirectory.toFile().isDirectory() && replaceAll) {
-                            FileUtils.deleteFile(targetDirectory.toFile());
+                        if (!Files.isDirectory(targetDirectory) && replaceAll) {
+                            FileUtils.deleteFile(targetDirectory);
                             Files.copy(dir, targetDirectory, options);
                             return FileVisitResult.CONTINUE;
 
-                        } else if (targetDirectory.toFile().isDirectory() && mergeAll) {
+                        } else if (Files.isDirectory(targetDirectory) && mergeAll) {
                             return FileVisitResult.CONTINUE;
 
                         } else if (skipAll) {
@@ -105,7 +105,7 @@ public class FileCopy {
                             applyToAll = true;
                             replaceAll = true;
                         }
-                        FileUtils.deleteFile(targetDirectory.toFile());
+                        FileUtils.deleteFile(targetDirectory);
 
                     } else if (result == RENAME) {
                         copyDirectory(sourceDirectory, targetDirectory.resolveSibling(dialog.getNewName()), options);
@@ -131,7 +131,7 @@ public class FileCopy {
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if (file.toFile().isDirectory()) {
+                if (Files.isDirectory(file)) {
                     return copyDirectory(file, targetDirectory.resolve(sourceDirectory.relativize(file)), options);
                 } else {
                     return copyFile(file, targetDirectory.resolve(sourceDirectory.relativize(file)), options);
@@ -187,8 +187,8 @@ public class FileCopy {
     }
 
     private FileVisitResult copyWithReplace(Path source, Path target, CopyOption ... options) throws IOException {
-        if (target.toFile().isDirectory()) {
-            FileUtils.deleteFile(target.toFile());
+        if (Files.isDirectory(target)) {
+            FileUtils.deleteFile(target);
             return copyFile(source, target, options);
         }
 
