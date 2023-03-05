@@ -11,12 +11,14 @@ import cz.cuni.mff.respefo.function.rv.MeasureRVFunction;
 import cz.cuni.mff.respefo.function.rv.MeasureRVResults;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
+import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.spectrum.port.ExportFileFormat;
 import cz.cuni.mff.respefo.spectrum.port.FormatManager;
 import cz.cuni.mff.respefo.spectrum.port.UnknownFileFormatException;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.Progress;
+import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 
 import java.io.File;
@@ -24,10 +26,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static cz.cuni.mff.respefo.dialog.OverwriteDialog.*;
+import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.FileType.COMPATIBLE_SPECTRUM_FILES;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
@@ -79,15 +83,32 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
     }
 
     private static void applyZeroPointRvCorrection(Spectrum spectrum) {
-        // TODO: do this as the last step (maybe a function asset?)
         spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class)
                 .ifPresent(results -> {
                     double measuredRvCorrection = results.getRvOfCategory("corr");
                     if (isNotNaN(measuredRvCorrection)) {
-                        double headerRvCorrection = spectrum.getRvCorrection();
-                        spectrum.updateRvCorrection(2 * headerRvCorrection - measuredRvCorrection);
+                        addZeroPointCorrectionAsset(spectrum, measuredRvCorrection);
                     }
                 });
+    }
+
+    private static void addZeroPointCorrectionAsset(Spectrum spectrum, double measuredRvCorrection) {
+        double headerRvCorrection = spectrum.getRvCorrection();
+        double diff = headerRvCorrection - measuredRvCorrection;
+
+        spectrum.setRvCorrection(headerRvCorrection + diff);
+
+        spectrum.putFunctionAsset("", new FunctionAsset() {  // No need for a key as it never gets saved
+            @Override
+            public XYSeries process(XYSeries series) {
+                double[] updatedXSeries = Arrays.stream(series.getXSeries())
+                        .map(value -> value + diff * (value / SPEED_OF_LIGHT))
+                        .toArray();
+                series.updateXSeries(updatedXSeries);
+
+                return series;
+            }
+        });
     }
 
     @Override
