@@ -23,21 +23,24 @@ import cz.cuni.mff.respefo.util.Async;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.Point;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
-import cz.cuni.mff.respefo.util.utils.*;
-import cz.cuni.mff.respefo.util.widget.*;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
+import cz.cuni.mff.respefo.util.utils.ChartUtils;
+import cz.cuni.mff.respefo.util.utils.FormattingUtils;
+import cz.cuni.mff.respefo.util.utils.MathUtils;
+import cz.cuni.mff.respefo.util.widget.ChartBuilder;
+import cz.cuni.mff.respefo.util.widget.DefaultSelectionListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.swtchart.Chart;
 import org.swtchart.ILineSeries;
 import org.swtchart.ISeries;
 import org.swtchart.Range;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
@@ -54,8 +57,6 @@ import static cz.cuni.mff.respefo.util.widget.ChartBuilder.newChart;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.Arrays.copyOfRange;
 import static java.util.function.UnaryOperator.identity;
 import static org.eclipse.swt.SWT.*;
@@ -345,7 +346,7 @@ public class RectifyFunction extends SpectrumFunction {
     }
 
     private static void selectOrdersAndInteractivelyRectifyThem(EchelleRectificationContext context, Consumer<Boolean> callback) {
-        EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices, context.printParameters);
+        EchelleSelectionDialog dialog = new EchelleSelectionDialog(context.columnNames, context.rectifiedIndices);
         if (dialog.openIsOk()) {
             ComponentManager.clearScene(true);
             List<Integer> selectedIndices = dialog.getSelectedIndices();
@@ -353,7 +354,6 @@ public class RectifyFunction extends SpectrumFunction {
                 callback.accept(false);
 
             } else {
-                context.printParameters = dialog.printParameters();
                 Async.listIteratorLoop(context, selectedIndices,
                         RectifyFunction::fineTuneBlazeParameters,
                         ctx -> {
@@ -382,46 +382,6 @@ public class RectifyFunction extends SpectrumFunction {
 
         XYSeries currentSeries = context.series[index];
         Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection());
-
-        final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
-                "Parameters", "Parameter Calibration", ImageResource.RULER_LARGE);
-
-        CompositeBuilder compositeBuilder = CompositeBuilder.newComposite()
-                .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING)
-                .layout(new GridLayout());
-        LabelBuilder labelBuilder = LabelBuilder.newLabel(SWT.LEFT).bold();
-        TextBuilder textBuilder = TextBuilder.newText(SWT.SINGLE)
-                .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .editable(false);
-
-        Composite composite = compositeBuilder.build(tab.getWindow());
-        labelBuilder.text("K:").build(composite);
-        final Text kText = textBuilder.text(String.valueOf(blaze.getK())).build(composite);
-        labelBuilder.text("Central wavelength:").build(composite);
-        final Text wavelengthText = textBuilder.text(String.valueOf(blaze.getCentralWavelength())).build(composite);
-
-        LabelBuilder.newLabel(SWT.SEPARATOR | SWT.HORIZONTAL)
-                .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .build(tab.getWindow());
-
-        final int digits = 3;
-        composite = compositeBuilder.build(tab.getWindow());
-        labelBuilder.text("Alpha:").build(composite);
-        final Spinner alphaSpinner = SpinnerBuilder.newSpinner()
-                .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .digits(digits)
-                .bounds(1, 2000)
-                .increment(1, 100)
-                .selection(blaze.getSpinnerAlpha(digits))
-                .build(composite);
-
-        Consumer<Chart> update = ch -> {
-            kText.setText(String.valueOf(blaze.getK()));
-            wavelengthText.setText(String.valueOf(blaze.getCentralWavelength()));
-            alphaSpinner.setSelection(blaze.getSpinnerAlpha(digits));
-            updateChart(ch, blaze);
-            ch.forceFocus();
-        };
 
         final double originalScale = blaze.getScale();
         final double originalCentralWavelength = blaze.getCentralWavelength();
@@ -477,11 +437,8 @@ public class RectifyFunction extends SpectrumFunction {
                     return builder;
                 })
                 .keyListener(ch -> new BlazeKeyListener(ch, blaze,
-                        () -> update.accept(ch),
+                        () -> updateChart(ch, blaze),
                         () -> {
-                            if (context.printParameters) {
-                                printParametersToFile(context.spectrum, blaze);
-                            }
                             RectifyAsset asset;
                             if (blaze.isUnchanged(context.blazeAsset)) {
                                 asset = context.rectifyAssets[index];
@@ -500,7 +457,7 @@ public class RectifyFunction extends SpectrumFunction {
                             }
                             previousCallback.run();
                         }))
-                .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> update.accept(ch), blaze))
+                .mouseAndMouseMoveListener(ch -> new BlazeMouseListener(ch, () -> updateChart(ch, blaze), blaze))
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .mouseMoveListener(ch -> event -> ch.setData("position", ChartUtils.getRealValuesFromCoordinates(ch, event.x, event.y)))
                 .verticalLine(originalCentralWavelength, GRAY, LINE_DOT)
@@ -536,22 +493,6 @@ public class RectifyFunction extends SpectrumFunction {
             event.gc.drawText("[" + FormattingUtils.formatDouble(realValues.x, 5, 0) + ", "
                     + FormattingUtils.formatDouble(realValues.y, 7, 0) + " ]", 1, 1);
         });
-
-        alphaSpinner.addModifyListener(event -> {
-            blaze.setAlpha(alphaSpinner.getSelection() / Math.pow(10, digits));
-            updateChart(chart, blaze);
-            chart.forceFocus();
-        });
-    }
-
-    private static void printParametersToFile(Spectrum spectrum, Blaze blaze) {
-        Path path = spectrum.getFile().toPath().resolveSibling(FileUtils.stripFileExtension(spectrum.getFile().getName()) + ".par");
-        String params = blaze.getOrder() + " " + blaze.getK() + " " + blaze.getAlpha() + System.lineSeparator();
-        try {
-            Files.write(path, params.getBytes(), APPEND, CREATE);
-        } catch (Exception exception) {
-            Message.error("Couldn't save parameters to a file", exception);
-        }
     }
 
     private static void updateChart(Chart chart, Blaze blaze) {
@@ -809,8 +750,6 @@ public class RectifyFunction extends SpectrumFunction {
 
         double[] polyCoeffs;
 
-        boolean printParameters;
-
         EchelleRectificationContext(EchelleSpectrum spectrum) {
             this.spectrum = spectrum;
 
@@ -841,8 +780,6 @@ public class RectifyFunction extends SpectrumFunction {
             }
 
             rectifiedIndices = new HashSet<>(series.length);
-
-            printParameters = false;
         }
 
         public void recalculatePolyCoeffs() {

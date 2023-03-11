@@ -12,7 +12,6 @@ import java.util.*;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
-import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newCheckButton;
 import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.TableBuilder.newTable;
@@ -26,15 +25,13 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
     private final String[][] names;
     private final SortedSet<Integer> selected;  // zero based
     private final Set<Integer> grayed;
-    private boolean printParameters;
 
-    public EchelleSelectionDialog(String[][] names, Set<Integer> grayed, boolean printParameters) {
+    public EchelleSelectionDialog(String[][] names, Set<Integer> grayed) {
         super("Select echelle orders");
 
         this.names = names;
         this.selected = new TreeSet<>(previousSelected);
         this.grayed = unmodifiableSet(grayed);
-        this.printParameters = printParameters;
 
         this.selected.removeAll(grayed);
     }
@@ -53,10 +50,6 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
 
     public List<Integer> getSelectedIndices() {
         return new ArrayList<>(selected);
-    }
-
-    public boolean printParameters() {
-        return printParameters;
     }
 
     @Override
@@ -129,13 +122,6 @@ public class EchelleSelectionDialog extends TitleAreaDialog {
                         }
                     }
                 })
-                .build(composite);
-
-        newCheckButton()
-                .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .text("Print parameters to file")
-                .selection(printParameters)
-                .onSelectedValue(value -> printParameters = value)
                 .build(composite);
     }
 }
