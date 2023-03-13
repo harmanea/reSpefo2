@@ -63,9 +63,9 @@ public class Blaze {
     public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorrection) {
         order = indexToOrder(index);
 
-        A = scaleFunction.applyAsDouble(lambdaC);
         lambdaC = orderToCentralWavelength(order);
         lambdaC += rvCorrection * (lambdaC / SPEED_OF_LIGHT);
+        A = scaleFunction.applyAsDouble(lambdaC);
 
         this.rvCorrection = rvCorrection;
 
@@ -144,7 +144,7 @@ public class Blaze {
     }
 
     private static double r(double A, double lambda, double lambdaC, double alpha, double delta, double epsilon, int order) {
-        double beta = -delta * 10e-6 * (lambdaC - epsilon - lambda) * (lambdaC - epsilon - lambda) + alpha;
+        double beta = -delta * 1e-6 * (lambdaC - epsilon - lambda) * (lambdaC - epsilon - lambda) + alpha;
         double X = order * (1 - lambdaC / lambda);
 
         double argument = PI * beta * X;
