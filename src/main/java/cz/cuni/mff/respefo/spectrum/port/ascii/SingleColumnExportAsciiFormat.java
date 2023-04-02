@@ -22,10 +22,10 @@ public class SingleColumnExportAsciiFormat extends ExportAsciiFormat {
 
         try (PrintWriter writer = new PrintWriter(fileName)) {
             double xDiff = x[1] - x[0];
-            writer.println(FORMAT.format(x[0]) + " " + FORMAT.format(xDiff));
+            writer.println(String.format("%01.04f  %01.04f", x[0], xDiff));
 
             for (int i = 0; i < x.length; i++) {
-                writer.println(FORMAT.format(y[i]));
+                writer.println(String.format("%01.04f", y[i]));
             }
 
             if (writer.checkError()) {

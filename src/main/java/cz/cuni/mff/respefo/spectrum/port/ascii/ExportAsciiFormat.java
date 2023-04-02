@@ -7,18 +7,12 @@ import cz.cuni.mff.respefo.util.collections.XYSeries;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
 
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripParent;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 
 public class ExportAsciiFormat extends AsciiFormat implements ExportFileFormat {
-
-    protected static final DecimalFormat FORMAT = new DecimalFormat("0.0000", new DecimalFormatSymbols(Locale.US));
-
     @Override
     public void exportTo(Spectrum spectrum, String fileName) throws SpefoException {
         XYSeries series = spectrum.getProcessedSeries();
@@ -39,10 +33,14 @@ public class ExportAsciiFormat extends AsciiFormat implements ExportFileFormat {
             }
             writer.println(" | RV correction: " + formatDouble(spectrum.getRvCorrection(), 2, 2, true));
 
+            String previousLine = null;
             for (int i = 0; i < x.length; i++) {
-                writer.print(FORMAT.format(x[i]));
-                writer.print("  ");
-                writer.println(FORMAT.format(y[i]));
+                String line = String.format("%01.04f  %01.04f", x[i], y[i]);
+
+                if (!line.equals(previousLine)) {
+                    writer.println(line);
+                    previousLine = line;
+                }
             }
 
             if (writer.checkError()) {
