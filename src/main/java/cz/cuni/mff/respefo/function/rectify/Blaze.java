@@ -6,7 +6,6 @@ import cz.cuni.mff.respefo.util.collections.Tuple;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,9 +20,8 @@ import static java.lang.Math.sin;
 import static java.util.Arrays.stream;
 
 public class Blaze {
-    private static final double[] K_COEFFICIENTS = new double[] {5.53283427e+05, 3.55298869e+02, -3.35894502e+00, 1.07610824e-02};
 
-    private static final Map<Integer, Tuple.Three<Double, Double, Double>> parameters;
+    private static final Map<Integer, Tuple.Five<Double, Double, Double, Double, Double>> parameters;
     static {
         parameters = new HashMap<>(62);
 
@@ -41,8 +39,10 @@ public class Blaze {
                 double alpha = Double.parseDouble(tokens[1]);
                 double delta = Double.parseDouble(tokens[2]);
                 double epsilon = Double.parseDouble(tokens[3]);
+                double theta = Double.parseDouble(tokens[4]);
+                double lambdaC = Double.parseDouble(tokens[5]);
 
-                parameters.put(indexToOrder(index), Tuple.of(alpha, delta, epsilon));
+                parameters.put(indexToOrder(index), Tuple.of(alpha, delta, epsilon, theta, lambdaC));
             }
 
         } catch (Exception exception) {
@@ -55,28 +55,26 @@ public class Blaze {
     private final double alpha;
     private final double delta;
     private final double epsilon;
-    private final double rvCorrection;
-
-    private double A;
+    private final double theta;
     private double lambdaC;
+    private double A;
+    private final double rvCorrection;
 
     public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorrection) {
         order = indexToOrder(index);
 
-        lambdaC = orderToCentralWavelength(order);
-        lambdaC += rvCorrection * (lambdaC / SPEED_OF_LIGHT);
-        A = scaleFunction.applyAsDouble(lambdaC);
-
-        this.rvCorrection = rvCorrection;
-
-        Tuple.Three<Double, Double, Double> params = parameters.get(order);
+        Tuple.Five<Double, Double, Double, Double, Double> params = parameters.get(order);
         alpha = params.a;
         delta = params.b;
         epsilon = params.c;
-    }
+        theta = params.d;
 
-    public static double orderToCentralWavelength(int order) {
-        return MathUtils.polynomial(order, K_COEFFICIENTS) / order;
+        lambdaC = params.e;
+        lambdaC += rvCorrection * (lambdaC / SPEED_OF_LIGHT);
+
+        A = scaleFunction.applyAsDouble(lambdaC);
+
+        this.rvCorrection = rvCorrection;
     }
 
     public static int indexToOrder(int index) {
@@ -85,6 +83,10 @@ public class Blaze {
 
     public static int orderToIndex(int order) {
         return 125 - order;
+    }
+
+    public static double orderToCentralWavelength(int order) {
+        return parameters.get(order).e;
     }
 
     public int getOrder() {
@@ -139,12 +141,13 @@ public class Blaze {
 
         return stream(xSeries)
                 .map(x -> x - rvCorrection * (x / SPEED_OF_LIGHT))
-                .map(x -> r(A, x, correctedLambdaC, alpha, delta, epsilon, order))
+                .map(x -> r(A, x, correctedLambdaC, alpha, delta, epsilon, theta, order))
                 .toArray();
     }
 
-    private static double r(double A, double lambda, double lambdaC, double alpha, double delta, double epsilon, int order) {
-        double beta = -delta * 1e-6 * (lambdaC - epsilon - lambda) * (lambdaC - epsilon - lambda) + alpha;
+    private static double r(double A, double lambda, double lambdaC, double alpha, double delta, double epsilon, double theta, int order) {
+        double l = lambdaC - epsilon - lambda;
+        double beta = theta * 1e-8 * l * l * l - delta * 1e-6 * l * l + alpha;
         double X = order * (1 - lambdaC / lambda);
 
         double argument = PI * beta * X;
