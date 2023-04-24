@@ -81,18 +81,20 @@ public class MultipleOrdersSelectionDialog extends SpefoDialog {
         final Button[] buttons = new Button[2];
 
         buttons[0] = buttonBuilder.text("Deselect").selection(false)
-                .onSelectedValue(value -> {
-                    buttons[1].setSelection(!value);
-                    buttons[1].setEnabled(value);
-                    buttons[0].setEnabled(!value);
+                .onSelection(() -> {
+                    select = false;
+                    buttons[1].setSelection(false);
+                    buttons[1].setEnabled(true);
+                    buttons[0].setEnabled(false);
                 })
                 .build(buttonsComposite);
 
         buttons[1] = buttonBuilder.text("Select").selection(true).enabled(false)
-                .onSelectedValue(value -> {
-                    buttons[0].setSelection(!value);
-                    buttons[0].setEnabled(value);
-                    buttons[1].setEnabled(!value);
+                .onSelection(() -> {
+                    select = true;
+                    buttons[0].setSelection(false);
+                    buttons[0].setEnabled(true);
+                    buttons[1].setEnabled(false);
                 })
                 .build(buttonsComposite);
     }

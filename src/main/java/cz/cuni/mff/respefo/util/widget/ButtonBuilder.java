@@ -97,6 +97,13 @@ public final class ButtonBuilder extends AbstractControlBuilder<ButtonBuilder, B
     /**
      * @see Button#addSelectionListener(SelectionListener)
      */
+    public ButtonBuilder onSelection(Runnable callback) {
+        return onSelection(event -> callback.run());
+    }
+
+    /**
+     * @see Button#addSelectionListener(SelectionListener)
+     */
     public ButtonBuilder onSelection(Listener listener) {
         return listener(SWT.Selection, listener).listener(SWT.DefaultSelection, listener);
     }
