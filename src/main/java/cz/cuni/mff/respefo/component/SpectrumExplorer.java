@@ -138,7 +138,9 @@ public class SpectrumExplorer {
     }
 
     public void refresh() {
-        setRootDirectory(Project.getRootDirectory(), true); // TODO: optimize this
+        if (table.isEnabled()) {
+            setRootDirectory(Project.getRootDirectory(), true); // TODO: optimize this
+        }
     }
 
     private void addDoubleClickListener() {
