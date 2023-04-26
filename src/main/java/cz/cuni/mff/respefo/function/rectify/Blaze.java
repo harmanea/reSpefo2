@@ -2,8 +2,9 @@ package cz.cuni.mff.respefo.function.rectify;
 
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
-import cz.cuni.mff.respefo.util.collections.Tuple;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.collections.tuple.Quintet;
+import cz.cuni.mff.respefo.util.collections.tuple.Tuple;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 
@@ -21,7 +22,7 @@ import static java.util.Arrays.stream;
 
 public class Blaze {
 
-    private static final Map<Integer, Tuple.Five<Double, Double, Double, Double, Double>> parameters;
+    private static final Map<Integer, Quintet<Double, Double, Double, Double, Double>> parameters;
     static {
         parameters = new HashMap<>(62);
 
@@ -63,7 +64,7 @@ public class Blaze {
     public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorrection) {
         order = indexToOrder(index);
 
-        Tuple.Five<Double, Double, Double, Double, Double> params = parameters.get(order);
+        Quintet<Double, Double, Double, Double, Double> params = parameters.get(order);
         alpha = params.a;
         delta = params.b;
         epsilon = params.c;

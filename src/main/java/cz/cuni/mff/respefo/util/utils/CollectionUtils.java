@@ -1,7 +1,7 @@
 package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.UtilityClass;
-import cz.cuni.mff.respefo.util.collections.Tuple;
+import cz.cuni.mff.respefo.util.collections.tuple.Pair;
 
 import java.util.*;
 
@@ -25,9 +25,9 @@ public class CollectionUtils extends UtilityClass {
     }
 
     @SafeVarargs
-    public static <K, V> Map<K, V> mapOf(Tuple.Two<K, V> ... entries) {
+    public static <K, V> Map<K, V> mapOf(Pair<K, V>... entries) {
         Map<K, V> map = new HashMap<>();
-        for (Tuple.Two<K, V> entry : entries) {
+        for (Pair<K, V> entry : entries) {
             map.put(entry.a, entry.b);
         }
         return Collections.unmodifiableMap(map);
