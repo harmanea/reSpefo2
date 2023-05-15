@@ -7,11 +7,15 @@ import cz.cuni.mff.respefo.util.collections.tuple.Quintet;
 import cz.cuni.mff.respefo.util.collections.tuple.Tuple;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
+import cz.cuni.mff.respefo.util.utils.MathUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
@@ -21,10 +25,11 @@ import static java.lang.Math.sin;
 import static java.util.Arrays.stream;
 
 public class Blaze {
+    private static final double[] K_COEFFICIENTS = new double[] {5.53283427e+05, 3.55298869e+02, -3.35894502e+00, 1.07610824e-02};
 
-    private static final Map<Integer, Quintet<Double, Double, Double, Double, Double>> parameters;
+    private static final Map<Integer, Quintet<Double, Double, Double, Double, Double>> PARAMETERS;
     static {
-        parameters = new HashMap<>(62);
+        PARAMETERS = new HashMap<>(62);
 
         try {
             String csvText = FileUtils.getResourceFileAsString("blaze.csv");
@@ -43,7 +48,7 @@ public class Blaze {
                 double theta = Double.parseDouble(tokens[4]);
                 double lambdaC = Double.parseDouble(tokens[5]);
 
-                parameters.put(indexToOrder(index), Tuple.of(alpha, delta, epsilon, theta, lambdaC));
+                PARAMETERS.put(indexToOrder(index), Tuple.of(alpha, delta, epsilon, theta, lambdaC));
             }
 
         } catch (Exception exception) {
@@ -53,29 +58,59 @@ public class Blaze {
 
 
     private final int order;
-    private final double alpha;
+    private double alpha;
     private final double delta;
     private final double epsilon;
     private final double theta;
     private double lambdaC;
     private double A;
     private final double rvCorrection;
+    private Mode mode;
 
-    public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorrection) {
+    public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorrection, Mode mode) {
         order = indexToOrder(index);
 
-        Quintet<Double, Double, Double, Double, Double> params = parameters.get(order);
-        alpha = params.a;
+        Quintet<Double, Double, Double, Double, Double> params = PARAMETERS.get(order);
         delta = params.b;
         epsilon = params.c;
         theta = params.d;
 
-        lambdaC = params.e;
+        switch (mode) {
+            case ALPHA:
+                lambdaC = orderToCentralWavelength(order, Mode.ALPHA);
+                alpha = wavelengthToAlpha(lambdaC);
+                break;
+            case BETA:
+            case PARABOLA:
+                alpha = params.a;
+                lambdaC = params.e;
+                break;
+        }
+
         lambdaC += rvCorrection * (lambdaC / SPEED_OF_LIGHT);
 
         A = scaleFunction.applyAsDouble(lambdaC);
 
         this.rvCorrection = rvCorrection;
+        this.mode = mode;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(Mode mode) {
+        switch (mode) {
+            case ALPHA:
+                alpha = wavelengthToAlpha(lambdaC);
+                break;
+            case BETA:
+            case PARABOLA:
+                alpha = PARAMETERS.get(order).a;
+                break;
+        }
+
+        this.mode = mode;
     }
 
     public static int indexToOrder(int index) {
@@ -86,8 +121,24 @@ public class Blaze {
         return 125 - order;
     }
 
-    public static double orderToCentralWavelength(int order) {
-        return parameters.get(order).e;
+    public static double orderToCentralWavelength(int order, Mode mode) {
+        switch (mode) {
+            case BETA:
+            case PARABOLA:
+                return PARAMETERS.get(order).e;
+            case ALPHA:
+                return MathUtils.polynomial(order, K_COEFFICIENTS) / order;
+            default:
+                throw new IllegalArgumentException("Unknown mode");
+        }
+    }
+
+    public static double wavelengthToAlpha(double wavelength) {
+        if (wavelength > 5.82178076e+03) {
+            return 9.61192285e-01 + (wavelength - 5.82178076e+03) * 2.56317390e-05;
+        } else {
+            return 9.61192285e-01 - (wavelength - 5.82178076e+03) * -2.38535971e-06;
+        }
     }
 
     public int getOrder() {
@@ -108,6 +159,23 @@ public class Blaze {
 
     public void updateCentralWavelength(double diff) {
         lambdaC += diff;
+    }
+
+    public double getK() {
+        return order * lambdaC;
+    }
+
+    public double getAlpha() {
+        return alpha;
+    }
+
+    public void setAlpha(double newValue) {
+        alpha = newValue;
+    }
+
+    public int getSpinnerAlpha(int digits) {
+        BigDecimal bd = new BigDecimal(alpha * Math.pow(10, digits)).setScale(0, RoundingMode.HALF_EVEN);
+        return bd.intValue();
     }
 
     public void updateFromAsset(BlazeAsset asset) {
@@ -140,13 +208,30 @@ public class Blaze {
     public double[] ySeries(double[] xSeries) {
         double correctedLambdaC = lambdaC - rvCorrection * (lambdaC / SPEED_OF_LIGHT);
 
+        BiFunction<Double, Double, Double> valueFunction;
+        if (mode == Mode.ALPHA) {
+            valueFunction = this::alphaValue;
+        } else if (mode == Mode.BETA) {
+            valueFunction = this::betaValue;
+        } else {
+            valueFunction = this::parabolaValue;
+        }
+
         return stream(xSeries)
                 .map(x -> x - rvCorrection * (x / SPEED_OF_LIGHT))
-                .map(x -> r(A, x, correctedLambdaC, alpha, delta, epsilon, theta, order))
+                .map(x -> valueFunction.apply(x, correctedLambdaC))
                 .toArray();
     }
 
-    private static double r(double A, double lambda, double lambdaC, double alpha, double delta, double epsilon, double theta, int order) {
+    private double alphaValue(double lambda, double lambdaC) {
+        double X = order * (1 - lambdaC / lambda);
+        double argument = PI * alpha * X;
+        double fraction = sin(argument) / argument;
+
+        return A * fraction * fraction;
+    }
+
+    private double betaValue(double lambda, double lambdaC) {
         double l = lambdaC - epsilon - lambda;
         double beta = theta * 1e-8 * l * l * l - delta * 1e-6 * l * l + alpha;
         double X = order * (1 - lambdaC / lambda);
@@ -155,5 +240,20 @@ public class Blaze {
         double fraction = sin(argument) / argument;
 
         return A * fraction * fraction;
+    }
+
+    private double parabolaValue(double lambda, double lambdaC) {
+        double l = lambdaC - epsilon - lambda;
+        double beta = -delta * 1e-6 * l * l + alpha;
+        double X = order * (1 - lambdaC / lambda);
+
+        double argument = PI * beta * X;
+        double fraction = sin(argument) / argument;
+
+        return A * fraction * fraction;
+    }
+
+    enum Mode {
+        ALPHA, BETA, PARABOLA
     }
 }
