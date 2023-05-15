@@ -1,13 +1,13 @@
 package cz.cuni.mff.respefo.function.clean;
 
 import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
+import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.stream.IntStream;
 
 public class CleanAsset implements FunctionAsset, Iterable<Integer> {
     private final SortedSet<Integer> deletedIndices;
@@ -65,17 +65,43 @@ public class CleanAsset implements FunctionAsset, Iterable<Integer> {
             return series;
         }
 
-        double[] remainingXSeries = IntStream.range(0, series.getLength())
-                .filter(index -> !deletedIndices.contains(index))
-                .mapToDouble(series::getX)
-                .toArray();
 
-        double[] remainingYSeries = IntStream.range(0, series.getLength())
-                .filter(index -> !deletedIndices.contains(index))
-                .mapToDouble(series::getY)
-                .toArray();
+        int n = series.getLength();
 
-        double[] newYSeries = MathUtils.intep(remainingXSeries, remainingYSeries, series.getXSeries());
+        DoubleArrayList remainingX = new DoubleArrayList(n - deletedIndices.size());
+        DoubleArrayList remainingY = new DoubleArrayList(n - deletedIndices.size());
+        DoubleArrayList deletedX = new DoubleArrayList(deletedIndices.size());
+
+        Iterator<Integer> deletedIterator = deletedIndices.iterator();
+        int nextDeletedIndex = deletedIterator.next();
+        for (int i = 0; i < n; i++) {
+            if (i < nextDeletedIndex) {
+                remainingX.add(series.getX(i));
+                remainingY.add(series.getY(i));
+            } else {
+                deletedX.add(series.getX(i));
+                nextDeletedIndex = deletedIterator.hasNext() ? deletedIterator.next() : n;
+            }
+        }
+
+        double[] deletedYSeries = MathUtils.intep(remainingX.elements(), remainingY.elements(), deletedX.elements());
+
+
+        double[] newYSeries = new double[n];
+
+        deletedIterator = deletedIndices.iterator();
+        nextDeletedIndex = deletedIterator.next();
+
+        int deletedIndex = 0;
+
+        for (int i = 0; i < n; i++) {
+            if (i < nextDeletedIndex) {
+                newYSeries[i] = series.getY(i);
+            } else {
+                newYSeries[i] = deletedYSeries[deletedIndex++];
+                nextDeletedIndex = deletedIterator.hasNext() ? deletedIterator.next() : n;
+            }
+        }
 
         return new XYSeries(series.getXSeries(), newYSeries);
     }
