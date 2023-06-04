@@ -386,6 +386,7 @@ public class RectifyFunction extends SpectrumFunction {
         XYSeries currentSeries = context.series[index];
         Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeMode);
 
+        ComponentManager.getRightToolBar().disposeTabs();
         final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
                 "Parameters", "Parameter Calibration", ImageResource.RULER_LARGE);
 
