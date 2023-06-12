@@ -75,6 +75,7 @@ public class CompareFunction implements MultiFileFunction {
                 .mouseAndMouseMoveListener(DragMouseListener::new)
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .adjustRange()
+                .forceFocus()
                 .build(ComponentManager.clearAndGetScene());
 
         setTitle(chart, spectra);
