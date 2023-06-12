@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.util.utils;
 
+import cz.cuni.mff.respefo.util.collections.tuple.Tuple;
 import org.junit.Test;
 
 import static cz.cuni.mff.respefo.util.TestUtils.arrayOf;
@@ -152,5 +153,12 @@ public class ArrayUtilsTest {
     @Test(expected = IllegalArgumentException.class)
     public void testLinspaceNegativeSize() {
         linspace(0, 1, -1);
+    }
+
+    @Test
+    public void testFindMinMax() {
+        assertEquals(Tuple.of(1.0, 10.0), findMinMax(arrayOf(5, 9, 1, 2, 10, 8, 3, 4, 7, 6)));
+        assertEquals(Tuple.of(42.0, 42.0), findMinMax(arrayOf(42)));
+        assertEquals(Tuple.of(-123.456, 78_000.0), findMinMax(arrayOf(956, 123.1, -123.456, -100, 55555, 78_000, 7894)));
     }
 }

@@ -1,6 +1,8 @@
 package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.UtilityClass;
+import cz.cuni.mff.respefo.util.collections.tuple.Pair;
+import cz.cuni.mff.respefo.util.collections.tuple.Tuple;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -262,6 +264,34 @@ public class ArrayUtils extends UtilityClass {
             }
         }
         return true;
+    }
+
+    /**
+     * Returns the minimum and the maximum element in the array.
+     * This implementation is efficient in that it loops over the array only once to find both elements.
+     * @param array to search
+     * @return a tuple of the minimum and maximum elements respectively
+     */
+    public static Pair<Double, Double> findMinMax(double[] array) {
+        Objects.requireNonNull(array);
+
+        if (array.length == 0) {
+            throw new IllegalArgumentException("Array must not be empty.");
+        }
+
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
+
+        for (double value : array) {
+            if (value < min) {
+                min = value;
+            }
+            if (value > max) {
+                max = value;
+            }
+        }
+
+        return Tuple.of(min, max);
     }
 
     protected ArrayUtils() throws IllegalAccessException {

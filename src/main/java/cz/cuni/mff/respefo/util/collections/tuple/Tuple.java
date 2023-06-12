@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.util.collections.tuple;
 
+import java.util.Iterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,5 +28,32 @@ public abstract class Tuple {
         return values()
                 .map(String::valueOf)
                 .collect(Collectors.joining(", ", "(", ")"));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+
+        Iterator<Object> iterator = values().iterator();
+        Iterator<Object> otherIterator = ((Tuple) other).values().iterator();
+
+        while (iterator.hasNext() && otherIterator.hasNext()) {
+            if (!iterator.next().equals(otherIterator.next())) {
+                return false;
+            }
+        }
+
+        return !iterator.hasNext() && !otherIterator.hasNext();
+    }
+
+    @Override
+    public int hashCode() {
+        return values().collect(Collectors.toList()).hashCode();
     }
 }

@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.util.collections;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.PriorityQueue;
 
@@ -75,6 +76,14 @@ public class XYSeries {
         return xSeries[xSeries.length - 1];
     }
 
+    public double getMinX() {
+        return getX(0);
+    }
+
+    public double getMaxX() {
+        return getLastX();
+    }
+
     public double getY(int index) {
         if (index < 0 || index > ySeries.length - 1) {
             throw new IndexOutOfBoundsException("Trying to access ySeries at index " + index + " but length is " + ySeries.length);
@@ -89,6 +98,18 @@ public class XYSeries {
         }
 
         return ySeries[ySeries.length - 1];
+    }
+
+    public double getMinY() {
+        return Arrays.stream(ySeries)
+                .min()
+                .orElseThrow(() -> new IndexOutOfBoundsException("ySeries are empty"));
+    }
+
+    public double getMaxY() {
+        return Arrays.stream(ySeries)
+                .max()
+                .orElseThrow(() -> new IndexOutOfBoundsException("ySeries are empty"));
     }
 
     /**
