@@ -1,6 +1,8 @@
 package cz.cuni.mff.respefo.function.compare;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.ToolBar;
+import cz.cuni.mff.respefo.component.VerticalToggle;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
@@ -9,14 +11,21 @@ import cz.cuni.mff.respefo.function.common.DragMouseListener;
 import cz.cuni.mff.respefo.function.common.ZoomMouseWheelListener;
 import cz.cuni.mff.respefo.function.filter.SpefoFormatFileFilter;
 import cz.cuni.mff.respefo.function.rectify.RectifyFunction;
+import cz.cuni.mff.respefo.resources.ImageResource;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
 import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.utils.MathUtils;
 import cz.cuni.mff.respefo.util.widget.ChartBuilder;
+import cz.cuni.mff.respefo.util.widget.LabelBuilder;
+import cz.cuni.mff.respefo.util.widget.SpinnerBuilder;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Spinner;
 import org.swtchart.Chart;
 import org.swtchart.ISeries;
 import org.swtchart.Range;
@@ -29,6 +38,7 @@ import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.rangeWithMargin;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static java.lang.Math.max;
@@ -80,6 +90,31 @@ public class CompareToFunction implements SingleFileFunction {
             chart.redraw();
         };
 
+        ComponentManager.getRightToolBar().disposeTabs();
+        final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
+                "Parameters", "Parameters", ImageResource.RULER_LARGE);
+        tab.getWindow().setLayout(gridLayout().build());
+
+        LabelBuilder labelBuilder = LabelBuilder.newLabel(SWT.LEFT).gridLayoutData(GridData.FILL_HORIZONTAL).bold();
+
+        labelBuilder.text("X shift (km/s):").build(tab.getWindow());
+        final Spinner xShiftSpinner = SpinnerBuilder.newSpinner()
+                .gridLayoutData(GridData.FILL_HORIZONTAL)
+                .digits(2)
+                .bounds(-100_00, 100_00)
+                .increment(50, 200)
+                .selection(0)
+                .build(tab.getWindow());
+
+        labelBuilder.text("Y scale:").build(tab.getWindow());
+        final Spinner yScaleSpinner = SpinnerBuilder.newSpinner()
+                .gridLayoutData(GridData.FILL_HORIZONTAL)
+                .digits(2)
+                .bounds(1, 10_00)
+                .increment(1, 10)
+                .selection(100)
+                .build(tab.getWindow());
+
         Chart chart = ChartBuilder.newChart()
                 .series(lineSeries()
                         .name("a")
@@ -94,16 +129,16 @@ public class CompareToFunction implements SingleFileFunction {
                 .keyListener(ch -> KeyListener.keyPressedAdapter(event -> {
                     switch (event.keyCode) {
                         case 'k':
-                            updateYScale(ch, bSeries.getYSeries(), -0.05);
+                            updateYScale(ch, bSeries.getYSeries(), -0.05, yScaleSpinner);
                             break;
                         case 'i':
-                            updateYScale(ch, bSeries.getYSeries(), 0.05);
+                            updateYScale(ch, bSeries.getYSeries(), 0.05, yScaleSpinner);
                             break;
                         case 'j':
-                            updateXShift(ch, bSeries.getXSeries(), -1);
+                            updateXShift(ch, bSeries.getXSeries(), -1, xShiftSpinner);
                             break;
                         case 'l':
-                            updateXShift(ch, bSeries.getXSeries(), 1);
+                            updateXShift(ch, bSeries.getXSeries(), 1, xShiftSpinner);
                             break;
                     }
                 }))
@@ -112,27 +147,44 @@ public class CompareToFunction implements SingleFileFunction {
                 .mouseWheelListener(ZoomMouseWheelListener::new)
                 .accept(adjustRange)
                 .forceFocus()
-                .build(ComponentManager.clearAndGetScene());
+                .build(ComponentManager.clearAndGetScene(false));
 
         chart.getAxisSet().getYAxis(0).getTick().setForeground(getColor(GREEN));
         chart.getAxisSet().getYAxis(0).getTitle().setForeground(getColor(GREEN));
         chart.getAxisSet().getYAxis(1).getTick().setForeground(getColor(BLUE));
         chart.getAxisSet().getYAxis(1).getTitle().setForeground(getColor(BLUE));
+
+        xShiftSpinner.addModifyListener(event -> updateXShift(chart, bSeries.getXSeries(),
+                xShiftSpinner.getSelection() / 100.0 - (double) chart.getData("x shift"), xShiftSpinner));
+        yScaleSpinner.addModifyListener(event -> updateYScale(chart, bSeries.getYSeries(),
+                yScaleSpinner.getSelection() / 100.0 - (double) chart.getData("y scale"), yScaleSpinner));
     }
 
-    private void updateXShift(Chart chart, double[] xSeries, double diff) {
-        double newXShift = (double) chart.getData("x shift") + diff;
+    private void updateXShift(Chart chart, double[] xSeries, double diff, Spinner spinner) {
+        double oldXShift = (double) chart.getData("x shift");
+        double newXShift = MathUtils.clamp(oldXShift + diff, -100, 100);
+
+        if (oldXShift == newXShift) {
+            return;
+        }
+
         chart.getSeriesSet().getSeries("b")
                 .setXSeries(Arrays.stream(xSeries)
                         .map(value -> value + newXShift * (value / SPEED_OF_LIGHT))
                         .toArray());
         chart.setData("x shift", newXShift);
         chart.redraw();
+
+        spinner.setSelection(MathUtils.roundForSpinner(newXShift, spinner.getDigits()));
     }
 
-    private void updateYScale(Chart chart, double[] ySeries, double diff) {
+    private void updateYScale(Chart chart, double[] ySeries, double diff, Spinner spinner) {
         double oldYScale = (double) chart.getData("y scale");
-        double newYScale = oldYScale + diff;  // TODO: handle <= 0
+        double newYScale = MathUtils.clamp(oldYScale + diff, 0.01, 10);
+
+        if (oldYScale == newYScale) {
+            return;
+        }
 
         chart.getSeriesSet().getSeries("b")
                 .setYSeries(Arrays.stream(ySeries)
@@ -146,6 +198,8 @@ public class CompareToFunction implements SingleFileFunction {
 
         chart.setData("y scale", newYScale);
         chart.redraw();
+
+        spinner.setSelection(MathUtils.roundForSpinner(newYScale, spinner.getDigits()));
     }
 
     private void adjustXRange(Chart chart) {

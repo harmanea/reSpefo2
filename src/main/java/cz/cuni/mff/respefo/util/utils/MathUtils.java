@@ -2,6 +2,8 @@ package cz.cuni.mff.respefo.util.utils;
 
 import cz.cuni.mff.respefo.util.UtilityClass;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -383,6 +385,12 @@ public class MathUtils extends UtilityClass {
 
     public static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    public static int roundForSpinner(double value, int digits) {
+        return new BigDecimal(value * Math.pow(10, digits))
+                .setScale(0, RoundingMode.HALF_EVEN)
+                .intValue();
     }
 
     protected MathUtils() throws IllegalAccessException {

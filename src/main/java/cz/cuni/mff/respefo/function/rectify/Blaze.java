@@ -9,8 +9,6 @@ import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -174,8 +172,7 @@ public class Blaze {
     }
 
     public int getSpinnerAlpha(int digits) {
-        BigDecimal bd = new BigDecimal(alpha * Math.pow(10, digits)).setScale(0, RoundingMode.HALF_EVEN);
-        return bd.intValue();
+        return MathUtils.roundForSpinner(alpha, digits);
     }
 
     public void updateFromAsset(BlazeAsset asset) {
