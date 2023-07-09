@@ -279,7 +279,7 @@ public class CompareToFunction implements SingleFileFunction {
             }
 
         } catch (FileNotFoundException exception) {
-            throw new SpefoException("Cannot find file [" + fileName + "]", exception);
+            throw SpefoException.fromFileNotFoundException(exception, fileName);
         }
     }
 }

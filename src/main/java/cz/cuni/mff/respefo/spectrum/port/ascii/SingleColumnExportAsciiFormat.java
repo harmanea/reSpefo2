@@ -1,39 +1,23 @@
 package cz.cuni.mff.respefo.spectrum.port.ascii;
 
-import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.util.Message;
-import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 public class SingleColumnExportAsciiFormat extends ExportAsciiFormat {
     @Override
-    public void exportTo(Spectrum spectrum, String fileName) throws SpefoException {
-        XYSeries series = spectrum.getProcessedSeries();
-        double[] x = series.getXSeries();
-        double[] y = series.getYSeries();
-
+    protected void printData(Spectrum spectrum, String fileName, double[] x, double[] y, PrintWriter writer) {
         if (!ArrayUtils.valuesHaveSameDifference(x)) {
             Message.warning("Not all x values have the same step.\nThis might lead to unexpected results.");
         }
 
-        try (PrintWriter writer = new PrintWriter(fileName)) {
-            double xDiff = x[1] - x[0];
-            writer.println(String.format("%01.04f  %01.04f", x[0], xDiff));
+        double xDiff = x[1] - x[0];
+        writer.println(String.format("%01.04f  %01.04f", x[0], xDiff));
 
-            for (int i = 0; i < x.length; i++) {
-                writer.println(String.format("%01.04f", y[i]));
-            }
-
-            if (writer.checkError()) {
-                throw new SpefoException("Error while writing to file");
-            }
-
-        } catch (FileNotFoundException exception) {
-            throw new SpefoException("Cannot find file [" + fileName + "]", exception);
+        for (int i = 0; i < x.length; i++) {
+            writer.println(String.format("%01.04f", y[i]));
         }
     }
 

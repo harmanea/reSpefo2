@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.function.rv;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
@@ -427,9 +428,14 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
 
             printer.accept(writer);
 
-            Message.info("File created successfully");
-            Project.refresh();
-        } catch (FileNotFoundException exception) {
+            if (writer.checkError()) {
+                throw new SpefoException("The PrintWriter is in an error state");
+
+            } else {
+                Message.info("File created successfully");
+                FileExplorer.getDefault().refresh();
+            }
+        } catch (FileNotFoundException | SpefoException exception) {
             Message.error("Couldn't print to " + suffix + " file", exception);
         }
     }
