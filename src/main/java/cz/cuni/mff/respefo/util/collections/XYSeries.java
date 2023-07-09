@@ -1,5 +1,7 @@
 package cz.cuni.mff.respefo.util.collections;
 
+import org.swtchart.ISeries;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.PriorityQueue;
@@ -26,6 +28,10 @@ public class XYSeries {
 
         this.xSeries = xSeries;
         this.ySeries = ySeries;
+    }
+
+    public XYSeries(ISeries iSeries) {
+        this(Objects.requireNonNull(iSeries).getXSeries(), iSeries.getYSeries());
     }
 
     public int getLength() {

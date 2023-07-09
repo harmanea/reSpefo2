@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.function.compare;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.ToolBar;
 import cz.cuni.mff.respefo.component.VerticalToggle;
 import cz.cuni.mff.respefo.exception.SpefoException;
@@ -18,19 +19,21 @@ import cz.cuni.mff.respefo.util.FileDialogs;
 import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
-import cz.cuni.mff.respefo.util.widget.ChartBuilder;
-import cz.cuni.mff.respefo.util.widget.LabelBuilder;
-import cz.cuni.mff.respefo.util.widget.SpinnerBuilder;
+import cz.cuni.mff.respefo.util.widget.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Spinner;
 import org.swtchart.Chart;
 import org.swtchart.ISeries;
 import org.swtchart.Range;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
@@ -38,8 +41,10 @@ import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.BLUE;
 import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
+import static cz.cuni.mff.respefo.util.FileType.ASCII_FILES;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.rangeWithMargin;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -115,6 +120,12 @@ public class CompareToFunction implements SingleFileFunction {
                 .selection(100)
                 .build(tab.getWindow());
 
+        LabelBuilder.newLabel(SWT.SEPARATOR | SWT.HORIZONTAL).gridLayoutData(GridData.FILL_HORIZONTAL).build(tab.getWindow());
+        final Button button =  ButtonBuilder.newPushButton()
+                .text("Print difference spectrum")
+                .gridLayoutData(GridData.FILL_HORIZONTAL)
+                .build(tab.getWindow());
+
         Chart chart = ChartBuilder.newChart()
                 .series(lineSeries()
                         .name("a")
@@ -158,6 +169,7 @@ public class CompareToFunction implements SingleFileFunction {
                 xShiftSpinner.getSelection() / 100.0 - (double) chart.getData("x shift"), xShiftSpinner));
         yScaleSpinner.addModifyListener(event -> updateYScale(chart, bSeries.getYSeries(),
                 yScaleSpinner.getSelection() / 100.0 - (double) chart.getData("y scale"), yScaleSpinner));
+        button.addSelectionListener(new DefaultSelectionListener(event -> printDifferenceSpectrum(chart, a, b)));
     }
 
     private void updateXShift(Chart chart, double[] xSeries, double diff, Spinner spinner) {
@@ -225,5 +237,49 @@ public class CompareToFunction implements SingleFileFunction {
 
         chart.getAxisSet().getYAxis(0).setRange(aYRange);
         chart.getAxisSet().getYAxis(1).setRange(bYRange);
+    }
+
+    private void printDifferenceSpectrum(Chart chart, Spectrum a, Spectrum b) {
+        String aFileName = stripFileExtension(a.getFile().getName());
+        String bFileName = stripFileExtension(b.getFile().getName());
+
+        FileDialogs.saveFileDialog(ASCII_FILES, String.format("diff_%s_%s.txt", aFileName, bFileName))
+                .ifPresent(fileName -> {
+                    XYSeries aSeries = new XYSeries(chart.getSeriesSet().getSeries("a"));
+                    XYSeries bSeries = new XYSeries(chart.getSeriesSet().getSeries("b"));
+
+                    double[] newXSeries = aSeries.getXSeries();
+                    double[] newYSeries = ArrayUtils.subtractArrayValues(aSeries.getYSeries(),
+                            MathUtils.intep(bSeries.getXSeries(), bSeries.getYSeries(), newXSeries));
+
+                    try {
+                        printData(fileName, aFileName, bFileName, newXSeries, newYSeries);
+                        FileExplorer.getDefault().refresh();
+
+                    } catch (SpefoException exception) {
+                        Message.error("An error occurred while printing to file", exception);
+                    }
+                });
+    }
+
+    private void printData(String fileName, String a, String b, double[] x, double[] y) throws SpefoException {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.print("# ");
+            writer.print(a);
+            writer.print(" x ");
+            writer.println(b);
+
+            for (int i = 0; i < x.length; i++) {
+                String line = String.format("%01.04f  %01.04f", x[i], y[i]);
+                writer.println(line);
+            }
+
+            if (writer.checkError()) {
+                throw new SpefoException("The PrintWriter is in an error state");
+            }
+
+        } catch (FileNotFoundException exception) {
+            throw new SpefoException("Cannot find file [" + fileName + "]", exception);
+        }
     }
 }

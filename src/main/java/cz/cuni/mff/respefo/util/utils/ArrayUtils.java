@@ -106,10 +106,10 @@ public class ArrayUtils extends UtilityClass {
     }
 
     /**
-     * Divide all array entries by values in another array.
+     * Compute the quotient of the two arrays.
      * @param numerators array to be divided
-     * @param denominators array to divide with
-     * @return adjusted array
+     * @param denominators array to divide by
+     * @return array of quotients
      */
     public static double[] divideArrayValues(double[] numerators, double[] denominators) {
         Objects.requireNonNull(numerators);
@@ -123,15 +123,32 @@ public class ArrayUtils extends UtilityClass {
     }
 
     /**
-     * Divide all array entries by a given value.
+     * Compute the quotient of the array and a value.
      * @param numerators array to be divided
-     * @param denominator value to divide with
-     * @return adjusted array
+     * @param denominator value to divide by
+     * @return array of quotients
      */
     public static double[] divideArrayValues(double[] numerators, double denominator) {
         Objects.requireNonNull(numerators);
 
         return Arrays.stream(numerators).map(numerator -> numerator / denominator).toArray();
+    }
+
+    /**
+     * Compute the difference of the two arrays.
+     * @param minuends array to be subtracted from
+     * @param subtrahends array to subtract with
+     * @return array of differences
+     */
+    public static double[] subtractArrayValues(double[] minuends, double[] subtrahends) {
+        Objects.requireNonNull(minuends);
+        Objects.requireNonNull(subtrahends);
+
+        if (minuends.length != subtrahends.length) {
+            throw new IllegalArgumentException("Arrays must be of equal length");
+        }
+
+        return IntStream.range(0, minuends.length).mapToDouble(i -> minuends[i] - subtrahends[i]).toArray();
     }
 
     /**
