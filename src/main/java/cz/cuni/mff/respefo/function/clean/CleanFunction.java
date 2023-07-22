@@ -1,6 +1,7 @@
 package cz.cuni.mff.respefo.function.clean;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
+import cz.cuni.mff.respefo.component.SpectrumExplorer;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.Serialize;
 import cz.cuni.mff.respefo.function.SpectrumFunction;
@@ -98,6 +99,7 @@ public class CleanFunction extends SpectrumFunction {
 
                             try {
                                 spectrum.save();
+                                SpectrumExplorer.getDefault().refresh();
                                 OpenFunction.displaySpectrum(spectrum);
                                 Message.info("Cleaned spectrum saved successfully.");
 

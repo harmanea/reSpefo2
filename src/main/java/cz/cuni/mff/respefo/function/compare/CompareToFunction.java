@@ -43,6 +43,7 @@ import static cz.cuni.mff.respefo.resources.ColorResource.GREEN;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.FileType.ASCII_FILES;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.rangeWithMargin;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
@@ -106,7 +107,7 @@ public class CompareToFunction implements SingleFileFunction {
         final Spinner xShiftSpinner = SpinnerBuilder.newSpinner()
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
                 .digits(2)
-                .bounds(-100_00, 100_00)
+                .bounds(-1000_00, 1000_00)
                 .increment(50, 200)
                 .selection(0)
                 .build(tab.getWindow());
@@ -146,10 +147,10 @@ public class CompareToFunction implements SingleFileFunction {
                             updateYScale(ch, bSeries.getYSeries(), 0.05, yScaleSpinner);
                             break;
                         case 'j':
-                            updateXShift(ch, bSeries.getXSeries(), -1, xShiftSpinner);
+                            updateXShift(ch, bSeries.getXSeries(), -getRelativeHorizontalStep(ch) * 2, xShiftSpinner);
                             break;
                         case 'l':
-                            updateXShift(ch, bSeries.getXSeries(), 1, xShiftSpinner);
+                            updateXShift(ch, bSeries.getXSeries(), getRelativeHorizontalStep(ch) * 2, xShiftSpinner);
                             break;
                     }
                 }))
@@ -174,7 +175,7 @@ public class CompareToFunction implements SingleFileFunction {
 
     private void updateXShift(Chart chart, double[] xSeries, double diff, Spinner spinner) {
         double oldXShift = (double) chart.getData("x shift");
-        double newXShift = MathUtils.clamp(oldXShift + diff, -100, 100);
+        double newXShift = MathUtils.clamp(oldXShift + diff, -1000, 1000);
 
         if (oldXShift == newXShift) {
             return;
