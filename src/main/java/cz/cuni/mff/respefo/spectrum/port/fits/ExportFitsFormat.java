@@ -74,7 +74,7 @@ public class ExportFitsFormat extends FitsFormat implements ExportFileFormat {
     }
 
     private void addFitsOriginInfo(BasicHDU<?> hdu, FitsOrigin origin) throws HeaderCardException {
-        for (HeaderCard card : origin.getHeaderCards()) {
+        for (HeaderCard card : origin.getFilteredHeaderCards()) {
             try {
                 double value = Double.parseDouble(card.getValue());
                 if (Double.isFinite(value) && value == Math.rint(value)) {
