@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toList;
+
 public abstract class Tuple {
     public static <A, B> Pair<A, B> of(A a, B b) {
         return new Pair<>(a, b);
@@ -54,6 +56,6 @@ public abstract class Tuple {
 
     @Override
     public int hashCode() {
-        return values().collect(Collectors.toList()).hashCode();
+        return values().collect(toList()).hashCode();
     }
 }

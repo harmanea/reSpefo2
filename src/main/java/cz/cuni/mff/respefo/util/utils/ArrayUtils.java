@@ -269,7 +269,7 @@ public class ArrayUtils extends UtilityClass {
         Objects.requireNonNull(values);
 
         if (values.length < 2) {
-            throw new IllegalArgumentException("Array must not be empty.");
+            throw new IllegalArgumentException("Array must have at least two elements.");
         } else if (values.length == 2) {
             return true;
         }

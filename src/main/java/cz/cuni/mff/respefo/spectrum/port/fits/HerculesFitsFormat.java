@@ -32,7 +32,7 @@ public class HerculesFitsFormat extends ImportFitsFormat {
         try {
             return (double[][]) fits.getData();
         } catch (ClassCastException exception) {
-            throw new InvalidFileFormatException("The HDU kernel is not a 3-D array of type float");
+            throw new InvalidFileFormatException("The HDU kernel is not a 2-D array of type double");
         }
     }
 

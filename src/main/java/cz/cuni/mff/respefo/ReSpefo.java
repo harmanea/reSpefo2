@@ -8,6 +8,7 @@ import cz.cuni.mff.respefo.spectrum.origin.OriginManager;
 import cz.cuni.mff.respefo.spectrum.port.FormatManager;
 import cz.cuni.mff.respefo.util.Progress;
 import cz.cuni.mff.respefo.util.utils.FitsUtils;
+import cz.cuni.mff.respefo.util.utils.FormattingUtils;
 
 public class ReSpefo {
 
@@ -25,6 +26,7 @@ public class ReSpefo {
         ColorManager.init(ComponentManager.getDisplay());
         Progress.init(ComponentManager.getDisplay());
         FitsUtils.init();
+        FormattingUtils.init();
 
         ComponentManager.build();
 

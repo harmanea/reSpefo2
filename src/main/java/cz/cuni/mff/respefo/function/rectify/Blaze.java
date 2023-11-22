@@ -250,7 +250,7 @@ public class Blaze {
         return A * fraction * fraction;
     }
 
-    enum Mode {
+    public enum Mode {
         ALPHA, BETA, PARABOLA
     }
 }

@@ -27,7 +27,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Stream;
 
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
@@ -271,11 +270,11 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
     }
 
     private static String format(double value) {
-        return String.format(Locale.US, "%4.4f", value);
+        return String.format("%4.4f", value);
     }
 
     private static String formatLong(double value) {
-        return String.format(Locale.US, "%8.4f", value);
+        return String.format("%8.4f", value);
     }
 
     private static void printToFile(List<Spectrum> spectra) {

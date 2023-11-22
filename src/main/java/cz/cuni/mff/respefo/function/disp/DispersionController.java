@@ -20,7 +20,6 @@ import org.swtchart.IAxis;
 import org.swtchart.Range;
 
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.function.Consumer;
 
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
@@ -331,6 +330,6 @@ public class DispersionController {
     }
 
     private static String format(double value) {
-        return String.format(Locale.US, "%5.3f", value);
+        return String.format("%5.3f", value);
     }
 }

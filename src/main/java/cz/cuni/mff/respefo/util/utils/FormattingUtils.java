@@ -7,6 +7,11 @@ import java.util.Locale;
 import static cz.cuni.mff.respefo.util.utils.StringUtils.repeat;
 
 public class FormattingUtils extends UtilityClass {
+
+    public static void init() {
+        Locale.setDefault(Locale.US);
+    }
+
     /**
      * Formats a double to String and pads it with spaces from the left if necessary.
      * @param number to be formatted
@@ -64,7 +69,7 @@ public class FormattingUtils extends UtilityClass {
     }
 
     private static String formatNumber(Object number, String format, int targetLength) {
-        String formattedNumber = String.format(Locale.US, format, number);
+        String formattedNumber = String.format(format, number);
 
         return repeat(" ", Math.max(targetLength - formattedNumber.length(), 0)) + formattedNumber;
     }

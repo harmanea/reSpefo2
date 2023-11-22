@@ -32,7 +32,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -441,6 +440,6 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
     }
 
     private static String format(double value, int before, int after) {
-        return String.format(Locale.US, String.format("%%%d.%df", before, after), value);
+        return String.format(String.format("%%%d.%df", before, after), value);
     }
 }

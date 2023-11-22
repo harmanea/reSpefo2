@@ -24,6 +24,9 @@ public class CollectionUtils extends UtilityClass {
         return Collections.unmodifiableList(list);
     }
 
+    /**
+     * Creates a fixed-size unmodifiable list of the specified value pairs.
+     */
     @SafeVarargs
     public static <K, V> Map<K, V> mapOf(Pair<K, V>... entries) {
         Map<K, V> map = new HashMap<>();
