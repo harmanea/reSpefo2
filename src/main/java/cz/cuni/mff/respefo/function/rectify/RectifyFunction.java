@@ -46,7 +46,6 @@ import java.util.stream.IntStream;
 
 import static cz.cuni.mff.respefo.resources.ColorManager.getColor;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
-import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.FLUX;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.AxisLabel.WAVELENGTH;
 import static cz.cuni.mff.respefo.util.widget.ChartBuilder.LineSeriesBuilder.lineSeries;
@@ -58,6 +57,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.function.UnaryOperator.identity;
 import static org.eclipse.swt.SWT.*;
@@ -74,11 +74,14 @@ public class RectifyFunction extends SpectrumFunction {
     public static final String SELECTED_SERIES_NAME = "selected";
     public static final String CONTINUUM_SERIES_NAME = "continuum";
 
+    private static final List<BlazeParameters> BLAZE_PARAMETERS
+            = asList(new AlphaBlazeParameters(), new ParabolaBlazeParameters(), new BetaBlazeParameters());
+
     private static RectifyAsset previousAsset;
 
     private static Set<Integer> previousExcludedOrders;
     private static int previousPolyDegree;
-    private static Blaze.Mode previousBlazeMode = Blaze.Mode.ALPHA;
+    private static BlazeParameters previousBlazeParemeters = BLAZE_PARAMETERS.get(0);
 
     @Override
     public void execute(Spectrum spectrum) {
@@ -124,8 +127,13 @@ public class RectifyFunction extends SpectrumFunction {
                     context.blazeAsset.setYCoordinate(i, context.blazeAsset.getScale(order));
 
                 } else {
-                    double centralWavelength = Blaze.orderToCentralWavelength(order, context.blazeMode);
                     XYSeries series = context.series[i];
+
+                    double centralWavelength = context.blazeParameters.getCentralWavelength(order);
+                    if (centralWavelength < series.getX(0) || centralWavelength > series.getLastX()) {
+                        centralWavelength = (series.getX(0) + series.getLastX()) / 2;
+                    }
+
                     int index = ArrayUtils.indexOfFirstGreaterThan(series.getXSeries(), centralWavelength);
                     double scale = MathUtils.robustMean(copyOfRange(series.getYSeries(), max(0, index - 5), min(series.getLength(), index + 5)));
 
@@ -292,7 +300,7 @@ public class RectifyFunction extends SpectrumFunction {
                 .linesVisible(true)
                 .columns("No.", "From", "To")
                 .fixedAspectColumns(1, 2, 2)
-                .items(Arrays.asList(context.columnNames))
+                .items(asList(context.columnNames))
                 .decorate((i, item) -> item.setChecked(!context.blazeAsset.isExcluded(i)))
                 .onSelection(event -> {
                     if (event.detail == SWT.CHECK) {
@@ -370,7 +378,7 @@ public class RectifyFunction extends SpectrumFunction {
     private static void rectifyRemainingEchelleOrders(EchelleRectificationContext context, Runnable callback) {
         for (int index = 0; index < context.series.length; index++) {
             if (!context.rectifiedIndices.contains(index)) {
-                Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeMode);
+                Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeParameters);
                 if (!context.blazeAsset.hasParameters(blaze.getOrder())) {
                     context.rectifyAssets[index] = blaze.toRectifyAsset(context.series[index]);
                 }
@@ -384,7 +392,11 @@ public class RectifyFunction extends SpectrumFunction {
         context.rectifiedIndices.add(index);
 
         XYSeries currentSeries = context.series[index];
-        Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeMode);
+        Blaze blaze = new Blaze(index, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeParameters);
+
+        if (blaze.getCentralWavelength() < currentSeries.getX(0) || blaze.getCentralWavelength() > currentSeries.getLastX()) {
+            blaze.setCentralWavelength((currentSeries.getX(0) + currentSeries.getLastX()) / 2);
+        }
 
         ComponentManager.getRightToolBar().disposeTabs();
         final ToolBar.Tab tab = ComponentManager.getRightToolBar().addTab(parent -> new VerticalToggle(parent, SWT.DOWN),
@@ -409,15 +421,14 @@ public class RectifyFunction extends SpectrumFunction {
 
         labelBuilder.text("Mode:").build(composite);
 
-        final Group alphaGroup = new Group(composite, NONE);
-        alphaGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        alphaGroup.setLayout(gridLayout().margins(5).build());
-
-        final Button alphaButton = ButtonBuilder.newRadioButton()
+        final org.eclipse.swt.widgets.List modesList = ListBuilder
+                .newList(SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL)
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .text("Alpha")
-                .selection(blaze.getMode() == Blaze.Mode.ALPHA)
-                .build(alphaGroup);
+                .items(BLAZE_PARAMETERS.stream().map(BlazeParameters::label).toArray(String[]::new))
+                .selection(BLAZE_PARAMETERS.indexOf(context.blazeParameters))
+                .build(composite);
+
+        labelBuilder.text("Alpha:").build(composite);
 
         final int digits = 3;
         final Spinner alphaSpinner = SpinnerBuilder.newSpinner()
@@ -426,37 +437,22 @@ public class RectifyFunction extends SpectrumFunction {
                 .bounds(1, 2000)
                 .increment(1, 100)
                 .selection(blaze.getSpinnerAlpha(digits))
-                .enabled(blaze.getMode() == Blaze.Mode.ALPHA)
-                .build(alphaGroup);
+                .build(composite);
 
-        final Group parabolaGroup = new Group(composite, NONE);
-        parabolaGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        parabolaGroup.setLayout(gridLayout().margins(5).build());
+        labelBuilder.text("Order:").build(composite);
 
-        final Button parabolaButton = ButtonBuilder.newRadioButton()
+        final Spinner orderSpinner = SpinnerBuilder.newSpinner()
                 .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .text("Parabola")
-                .selection(blaze.getMode() == Blaze.Mode.PARABOLA)
-                .build(parabolaGroup);
-
-        final Group betaGroup = new Group(composite, NONE);
-        betaGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        betaGroup.setLayout(gridLayout().margins(5).build());
-
-        final Button betaButton = ButtonBuilder.newRadioButton()
-                .gridLayoutData(GridData.FILL_HORIZONTAL)
-                .text("Beta")
-                .selection(blaze.getMode() == Blaze.Mode.BETA)
-                .build(betaGroup);
+                .bounds(1, 999)
+                .increment(1, 10)
+                .selection(blaze.getOrder())
+                .build(composite);
 
         Consumer<Chart> update = ch -> {
             kText.setText(String.valueOf(blaze.getK()));
             wavelengthText.setText(String.valueOf(blaze.getCentralWavelength()));
             scaleText.setText(String.valueOf(blaze.getScale()));
-
-            if (alphaSpinner.isEnabled()){
-                alphaSpinner.setSelection(blaze.getSpinnerAlpha(digits));
-            }
+            alphaSpinner.setSelection(blaze.getSpinnerAlpha(digits));
 
             updateChart(ch, blaze);
         };
@@ -501,7 +497,7 @@ public class RectifyFunction extends SpectrumFunction {
                             if (context.rectifyAssets[i] != null) {
                                 asset = context.rectifyAssets[i];
                             } else {
-                                asset = new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeMode).toRectifyAsset(series);
+                                asset = new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeParameters).toRectifyAsset(series);
                             }
 
                             builder.series(lineSeries()
@@ -575,43 +571,27 @@ public class RectifyFunction extends SpectrumFunction {
                     + FormattingUtils.formatDouble(realValues.y, 7, 0) + " ]", 1, 1);
         });
 
-        alphaButton.addSelectionListener(new DefaultSelectionListener(event -> {
-            alphaSpinner.setEnabled(true);
-            betaButton.setSelection(false);
-            parabolaButton.setSelection(false);
-            blaze.setMode(Blaze.Mode.ALPHA);
-            blaze.setAlpha(alphaSpinner.getSelection() / Math.pow(10, digits));
+        modesList.addSelectionListener(new DefaultSelectionListener(event -> {
+            int selectionIndex = modesList.getSelectionIndex();
+            context.blazeParameters = BLAZE_PARAMETERS.get(selectionIndex);
+            blaze.update(context.blazeParameters);
             updateChart(chart, blaze);
-            context.blazeMode = Blaze.Mode.ALPHA;
-        }));
-
-        parabolaButton.addSelectionListener(new DefaultSelectionListener(event -> {
-            alphaSpinner.setEnabled(false);
-            alphaButton.setSelection(false);
-            betaButton.setSelection(false);
-            blaze.setMode(Blaze.Mode.PARABOLA);
-            updateChart(chart, blaze);
-            context.blazeMode = Blaze.Mode.PARABOLA;
-        }));
-
-        betaButton.addSelectionListener(new DefaultSelectionListener(event -> {
-            alphaSpinner.setEnabled(false);
-            alphaButton.setSelection(false);
-            parabolaButton.setSelection(false);
-            blaze.setMode(Blaze.Mode.BETA);
-            updateChart(chart, blaze);
-            context.blazeMode = Blaze.Mode.BETA;
         }));
 
         alphaSpinner.addModifyListener(event -> {
             blaze.setAlpha(alphaSpinner.getSelection() / Math.pow(10, digits));
             updateChart(chart, blaze);
         });
+
+        orderSpinner.addModifyListener(event -> {
+            blaze.setOrder(orderSpinner.getSelection());
+            updateChart(chart, blaze);
+        });
     }
 
     private static void printParametersToFile(Spectrum spectrum, Blaze blaze) {
         Path path = spectrum.getFile().toPath().resolveSibling(FileUtils.stripFileExtension(spectrum.getFile().getName()) + ".par");
-        String params = blaze.getOrder() + " " + blaze.getK() + " " + blaze.getAlpha() + System.lineSeparator();
+        String params = blaze.getIndex() + " " + blaze.getOrder() + " " + blaze.getK() + " " + blaze.getAlpha() + "\n";
         try {
             Files.write(path, params.getBytes(), APPEND, CREATE);
         } catch (Exception exception) {
@@ -670,7 +650,7 @@ public class RectifyFunction extends SpectrumFunction {
 
                             RectifyAsset rectifyAsset = context.rectifyAssets[i] != null
                                     ? context.rectifyAssets[i]
-                                    : new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeMode).toRectifyAsset(context.series[i]);
+                                    : new Blaze(i, context.scaleFunction(), context.spectrum.getRvCorrection(), context.blazeParameters).toRectifyAsset(context.series[i]);
 
                             builder.series(lineSeries()
                                     .color(YELLOW)
@@ -853,7 +833,7 @@ public class RectifyFunction extends SpectrumFunction {
         }
         previousPolyDegree = context.blazeAsset.getPolyDegree();
         previousExcludedOrders = context.blazeAsset.getExcludedOrders();
-        previousBlazeMode = context.blazeMode;
+        previousBlazeParemeters = context.blazeParameters;
 
         try {
             spectrum.save();
@@ -877,7 +857,7 @@ public class RectifyFunction extends SpectrumFunction {
 
         double[] polyCoeffs;
         boolean printParameters;
-        Blaze.Mode blazeMode;
+        BlazeParameters blazeParameters;
 
         EchelleRectificationContext(EchelleSpectrum spectrum) {
             this.spectrum = spectrum;
@@ -901,6 +881,8 @@ public class RectifyFunction extends SpectrumFunction {
                         return asset;
                     });
 
+            blazeParameters = previousBlazeParemeters;
+
             rectifyAssets = new RectifyAsset[series.length];
             for (int i = 0; i < series.length; i++) {
                 if (blazeAsset.hasParameters(Blaze.indexToOrder(i))) {
@@ -911,8 +893,6 @@ public class RectifyFunction extends SpectrumFunction {
             rectifiedIndices = new HashSet<>(series.length);
 
             printParameters = false;
-
-            blazeMode = previousBlazeMode;
         }
 
         public void recalculatePolyCoeffs() {
