@@ -28,7 +28,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static cz.cuni.mff.respefo.dialog.OverwriteDialog.*;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
@@ -43,17 +42,17 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
 
     @Override
     public void execute(Spectrum spectrum) {
-        Optional<String> fileName = FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrum.getFile().getPath()));
-        if (fileName.isPresent()) {
-            try {
-                if (exportTo(spectrum, fileName.get())) {
-                    Message.info("File exported successfully.");
-                    FileExplorer.getDefault().refresh();
-                }
-            } catch (SpefoException exception) {
-                Message.error("An error occurred while exporting file.", exception);
-            }
-        }
+        FileDialogs.saveFileDialog(COMPATIBLE_SPECTRUM_FILES, stripFileExtension(spectrum.getFile().getPath()))
+                .ifPresent(fileName -> {
+                    try {
+                        if (exportTo(spectrum, fileName)) {
+                            Message.info("File exported successfully.");
+                            FileExplorer.getDefault().refresh();
+                        }
+                    } catch (SpefoException exception) {
+                        Message.error("An error occurred while exporting file.", exception);
+                    }
+                });
     }
 
     private static boolean exportTo(Spectrum spectrum, String fileName) throws SpefoException {
@@ -177,7 +176,7 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
         }, failedFiles -> {
             FileExplorer.getDefault().refresh();
             if (!failedFiles.isEmpty()) {
-                Message.warning("Some files failed to import:\n\n" + filesListToString(failedFiles));
+                Message.warning("Some files failed to export:\n\n" + filesListToString(failedFiles));
             } else {
                 Message.info("All files exported successfully.");
             }

@@ -42,7 +42,7 @@ import static cz.cuni.mff.respefo.resources.ImageManager.getIconForFile;
 import static cz.cuni.mff.respefo.resources.ImageManager.getImage;
 import static cz.cuni.mff.respefo.resources.ImageResource.FOLDER;
 import static cz.cuni.mff.respefo.resources.ImageResource.OPENED_FOLDER;
-import static cz.cuni.mff.respefo.util.utils.FileUtils.filenamesListToString;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.fileNamesListToString;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.swt.SWT.*;
@@ -354,7 +354,7 @@ public class FileExplorer {
 
         List<String> failedFiles = FileCopy.copyTo(target.toPath(), fileNames);
         if (!failedFiles.isEmpty()) {
-            Message.warning("Some files failed to copy:\n\n" + filenamesListToString(failedFiles));
+            Message.warning("Some files failed to copy:\n\n" + fileNamesListToString(failedFiles));
         }
 
         refresh();

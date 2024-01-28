@@ -88,18 +88,18 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             return;
         }
 
-        Optional<String> fileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"));
-        if (fileName.isPresent()) {
-            try {
-                if (saveAs(spectrum, Paths.get(fileName.get()))) {
-                    Project.refresh();
-                    OpenFunction.displaySpectrum(spectrum);
-                    Message.info("File imported successfully.");
-                }
-            } catch (SpefoException exception) {
-                Message.error("An error occurred while saving file.", exception);
-            }
-        }
+        FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(file.getPath(), "spf"))
+                .ifPresent(fileName -> {
+                    try {
+                        if (saveAs(spectrum, Paths.get(fileName))) {
+                            Project.refresh();
+                            OpenFunction.displaySpectrum(spectrum);
+                            Message.info("File imported successfully.");
+                        }
+                    } catch (SpefoException exception) {
+                        Message.error("An error occurred while saving file.", exception);
+                    }
+                });
     }
 
     private boolean saveAs(Spectrum spectrum, Path path) throws SpefoException {

@@ -166,7 +166,7 @@ public class FileUtils extends UtilityClass {
      * @param fileNames list of filenames
      * @return formatted string
      */
-    public static String filenamesListToString(List<String> fileNames) {
+    public static String fileNamesListToString(List<String> fileNames) {
         Objects.requireNonNull(fileNames);
         return filesListToString(fileNames.stream().map(File::new).collect(toList()));
     }
@@ -180,7 +180,7 @@ public class FileUtils extends UtilityClass {
     public static String filesListToString(List<File> files) {
         Objects.requireNonNull(files);
         return (files.size() > 5 ? files.subList(0, 5)  : files)
-                .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining("\n"))
+                .stream().map(file -> FileUtils.getRelativePath(file).toString()).collect(Collectors.joining(System.lineSeparator()))
                 + (files.size() > 5 ? "\n\nand " + (files.size() - 5) + " more"  : "");
     }
 
