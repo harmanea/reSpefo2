@@ -6,7 +6,6 @@ import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
-import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.port.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
@@ -143,7 +142,6 @@ public class DispersionFunction implements SingleFileFunction {
     }
 
     private XYSeries readFitsFile(String fileName) throws SpefoException {
-        Spectrum spectrum = new ImportFitsFormat().importFrom(fileName); // TODO: Is there a more elegant way to do this?
-        return spectrum.getSeries();
+        return new ImportFitsFormat().importFrom(fileName).getSeries();  // TODO: Is there a more elegant way to do this?
     }
 }

@@ -19,7 +19,8 @@ import static cz.cuni.mff.respefo.util.utils.CollectionUtils.listOf;
 @Fun(name = "Repair", fileFilter = SpefoFormatFileFilter.class, group = "Debug")
 public class RepairFunction implements SingleFileFunction {
 
-    private static final List<Predicate<Spectrum>> FIX_OPERATIONS = listOf(RepairFunction::fixNullDateOfObservation, RepairFunction::fixNullHJD);
+    private static final List<Predicate<Spectrum>> FIX_OPERATIONS = listOf(RepairFunction::fixNullDateOfObservation,
+            RepairFunction::fixNullHJD, RepairFunction::fixNaNRvCorrection);
 
     @Override
     public void execute(File file) {
@@ -57,6 +58,15 @@ public class RepairFunction implements SingleFileFunction {
         if (spectrum.getHjd() == null) {
             spectrum.setHjd(new JulianDate());
             Log.info("Replaced null HJD");
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean fixNaNRvCorrection(Spectrum spectrum) {
+        if (Double.isNaN(spectrum.getRvCorrection())) {
+            spectrum.setRvCorrection(0);
+            Log.info("Replaced NaN rv correction");
             return true;
         }
         return false;

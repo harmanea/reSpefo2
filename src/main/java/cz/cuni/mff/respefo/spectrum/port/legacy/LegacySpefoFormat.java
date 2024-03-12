@@ -79,7 +79,7 @@ public class LegacySpefoFormat implements ImportFileFormat {
 
         double[] xSeries = new double[spefoFile.getYSeries().length];
         for (int i = 0; i < xSeries.length; i++) {
-            double[] coefficients = Arrays.copyOf(spefoFile.getDispCoef(), 6);
+            double[] coefficients = Arrays.copyOf(spefoFile.getDispCoef(), 6);  // TODO: do we need to do this in each step?
             xSeries[i] = MathUtils.polynomial(i, coefficients);
 
             if (spefoFile.getRvCorr() != 0) {
