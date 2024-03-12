@@ -15,6 +15,10 @@ public class EchelleSpectrum extends Spectrum {
     private XYSeries[] series;
     private RectifyAsset[] rectifyAssets;
 
+    // Provide defaults for backwards compatibility with older Chiron spectra
+    private int a = 125;
+    private int b = -1;
+
     private EchelleSpectrum() {
         super();  // default empty constructor
     }
@@ -38,6 +42,15 @@ public class EchelleSpectrum extends Spectrum {
 
     public void setRectifyAssets(RectifyAsset[] rectifyAssets) {
         this.rectifyAssets = rectifyAssets;
+    }
+
+    public void setAB(int a, int b) {
+        this.a = a;
+        this.b = b;
+    }
+
+    public int indexToOrder(int index) {
+        return a + b * index;
     }
 
     @Override

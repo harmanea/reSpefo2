@@ -10,7 +10,7 @@ import static java.lang.Math.sin;
 public class BetaBlazeParameters extends ParabolaBlazeParameters {
     @Override
     public BiFunction<Double, Double, Double> getValueFunction(Blaze blaze) {
-        Quintet<Double, Double, Double, Double, Double> params = PARAMETERS.get(blaze.getOrder());
+        Quintet<Double, Double, Double, Double, Double> params = getParams(blaze.getOrder());
         double delta = params.b;
         double epsilon = params.c;
         double theta = params.d;

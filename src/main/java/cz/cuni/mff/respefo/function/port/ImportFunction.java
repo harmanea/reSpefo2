@@ -12,6 +12,7 @@ import cz.cuni.mff.respefo.function.lst.LstFile;
 import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.logging.Log;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
+import cz.cuni.mff.respefo.spectrum.format.EchelleSpectrum;
 import cz.cuni.mff.respefo.spectrum.port.FormatManager;
 import cz.cuni.mff.respefo.spectrum.port.ImportFileFormat;
 import cz.cuni.mff.respefo.spectrum.port.UnknownFileFormatException;
@@ -81,6 +82,11 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
                     RVCorrectionDialog dialog = new RVCorrectionDialog();
                     spectrum.setRvCorrection(dialog.openIsOk() ? dialog.getRvCorr() : 0);
                 }
+            }
+
+            // Echelle index to order mapping
+            if (spectrum instanceof EchelleSpectrum) {
+                ((EchelleSpectrum) spectrum).setAB(options.a, options.b);
             }
 
         } catch (SpefoException exception) {
@@ -188,6 +194,11 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
                             spectrum.setRvCorrection(response == SWT.OK ? dialog.getRvCorr() : 0);
                         }
+                    }
+
+                    // Echelle index to order mapping
+                    if (spectrum instanceof EchelleSpectrum) {
+                        ((EchelleSpectrum) spectrum).setAB(options.a, options.b);
                     }
 
                     String fileName = FileUtils.replaceFileExtension(file.getPath(), "spf");

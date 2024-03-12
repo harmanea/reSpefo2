@@ -219,6 +219,45 @@ public class ImportDialog extends TitleAreaDialog {
             }
         });
 
+        final Group echelleIndexToOrderMappingGroup = new Group(expandComposite, SWT.NONE);
+        echelleIndexToOrderMappingGroup.setLayoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2).build());
+        echelleIndexToOrderMappingGroup.setLayout(gridLayout(4, false).marginHeight(10).marginWidth(20).build());
+        echelleIndexToOrderMappingGroup.setText("Index to echelle order mapping");
+
+        newLabel()
+                .gridLayoutData(GridData.VERTICAL_ALIGN_CENTER)
+                .text("order  = ")
+                .build(echelleIndexToOrderMappingGroup);
+
+        newText(SWT.SINGLE | SWT.BORDER)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text(String.valueOf(options.a))
+                .onModifiedValue(value -> {
+                    try {
+                        options.a = Integer.parseInt(value);
+                    } catch (NumberFormatException exception) {
+                        // Do not update value
+                    }
+                })
+                .build(echelleIndexToOrderMappingGroup);
+
+        newLabel()
+                .gridLayoutData(GridData.VERTICAL_ALIGN_CENTER)
+                .text(" +  index  × ")
+                .build(echelleIndexToOrderMappingGroup);
+
+        newText(SWT.SINGLE | SWT.BORDER)
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text(String.valueOf(options.b))
+                .onModifiedValue(value -> {
+                    try {
+                        options.b = Integer.parseInt(value);
+                    } catch (NumberFormatException exception) {
+                        // Do not update value
+                    }
+                })
+                .build(echelleIndexToOrderMappingGroup);
+
         ExpandItem expandItem = new ExpandItem(bar, SWT.NONE);
         expandItem.setText("Advanced options");
         expandItem.setHeight(expandComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
@@ -255,6 +294,8 @@ public class ImportDialog extends TitleAreaDialog {
         public Optional<Double> defaultRvCorrection;
         public Optional<String> lstFile;
         public boolean applyLstFileRvCorrection;
+        public int a;
+        public int b;
 
         public Options() {
             format = fileFormats.stream()
@@ -265,6 +306,8 @@ public class ImportDialog extends TitleAreaDialog {
             defaultRvCorrection = Optional.of(0.0);
             lstFile = getFile(".lst");
             applyLstFileRvCorrection = true;
+            a = 125;
+            b = -1;
         }
     }
 }

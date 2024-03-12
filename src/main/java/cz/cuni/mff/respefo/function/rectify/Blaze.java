@@ -13,21 +13,15 @@ import static cz.cuni.mff.respefo.util.utils.MathUtils.doublesEqual;
 import static java.util.Arrays.stream;
 
 public class Blaze {
-    private final int index;
-    private int order;
+    private final int order;
     private double alpha;
     private double lambdaC;
     private double A;
     private final double rvCorrection;
     private BiFunction<Double, Double, Double> valueFunction;
 
-    public static int indexToOrder(int index) {
-        return 125 - index;
-    }
-
-    public Blaze(int index, DoubleUnaryOperator scaleFunction, double rvCorrection, BlazeParameters parameters) {
-        this.index = index;
-        order = indexToOrder(index);
+    public Blaze(int order, DoubleUnaryOperator scaleFunction, double rvCorrection, BlazeParameters parameters) {
+        this.order = order;
         alpha = parameters.getAlpha(order);
         lambdaC = parameters.getCentralWavelength(order);
         A = scaleFunction.applyAsDouble(lambdaC);
@@ -37,20 +31,13 @@ public class Blaze {
         lambdaC += rvCorrection * (lambdaC / SPEED_OF_LIGHT);
     }
 
+    // TODO: Probably should remember the alpha for each model
     public void update(BlazeParameters parameters) {
         this.valueFunction = parameters.getValueFunction(this);
     }
 
-    public int getIndex() {
-        return index;
-    }
-
     public int getOrder() {
         return order;
-    }
-
-    public void setOrder(int value) {
-        order = value;
     }
 
     public double getScale() {
@@ -89,13 +76,12 @@ public class Blaze {
         alpha = value;
     }
 
-
     public void updateFromAsset(BlazeAsset asset) {
         lambdaC = asset.getCentralWavelength(order);
         A = asset.getScale(order);
     }
 
-    public void saveToAsset(BlazeAsset asset) {
+    public void saveToAsset(BlazeAsset asset, int index) {
         asset.setXCoordinate(index, lambdaC);
         asset.setYCoordinate(index, A);
         asset.setParameters(order, lambdaC, A);
@@ -113,7 +99,6 @@ public class Blaze {
 
         return new RectifyAsset(new DoubleArrayList(xs), new DoubleArrayList(ys));
     }
-
 
     public double[] ySeries(double[] xSeries) {
         double correctedLambdaC = lambdaC - rvCorrection * (lambdaC / SPEED_OF_LIGHT);

@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.function.rectify;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import cz.cuni.mff.respefo.spectrum.asset.FunctionAsset;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
@@ -7,15 +8,15 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 public class BlazeAsset implements FunctionAsset {
-    private final Map<Integer, double[]> parameters;
-    private final Set<Integer> excludedOrders;
+    private final Map<Integer, double[]> parameters;  // Maps orders (not indices!) to [central wavelength, scale] pairs
+    @JsonAlias("excludedOrders") private final Set<Integer> excludedIndices;
     private int polyDegree;  // a value <= 0 means use intep
     private double[] xCoordinates;
     private double[] yCoordinates;
 
     public BlazeAsset() {
         parameters = new HashMap<>();
-        excludedOrders = new HashSet<>();
+        excludedIndices = new HashSet<>();
         polyDegree = 9;
     }
 
@@ -35,32 +36,28 @@ public class BlazeAsset implements FunctionAsset {
         return parameters.get(order)[1];
     }
 
-    public void removeIfPresent(int order) {
-        parameters.remove(order);
-    }
-
     public boolean isEmpty() {
         return parameters.isEmpty();
     }
 
-    public Set<Integer> getExcludedOrders() {
-        return excludedOrders;
+    public Set<Integer> getExcludedIndices() {
+        return excludedIndices;
     }
 
-    public void addExcludedOrders(Set<Integer> orders) {
-        excludedOrders.addAll(orders);
+    public void addExcludedIndices(Set<Integer> orders) {
+        excludedIndices.addAll(orders);
     }
 
-    public void addExcludedOrder(int order) {
-        excludedOrders.add(order);
+    public void addExcludedIndex(int index) {
+        excludedIndices.add(index);
     }
 
-    public void removeExcludedOrder(int order) {
-        excludedOrders.remove(order);
+    public void removeExcludedIndex(int index) {
+        excludedIndices.remove(index);
     }
 
-    public boolean isExcluded(int order) {
-        return excludedOrders.contains(order);
+    public boolean isNotExcluded(int index) {
+        return !excludedIndices.contains(index);
     }
 
     public int getPolyDegree() {
@@ -105,14 +102,14 @@ public class BlazeAsset implements FunctionAsset {
 
     public double[] pointXSeries() {
         return IntStream.range(0, xCoordinates.length)
-                .filter(index -> !isExcluded(index))
+                .filter(this::isNotExcluded)
                 .mapToDouble(index -> xCoordinates[index])
                 .toArray();
     }
 
     public double[] pointYSeries() {
         return IntStream.range(0, yCoordinates.length)
-                .filter(index -> !isExcluded(index))
+                .filter(this::isNotExcluded)
                 .mapToDouble(index -> yCoordinates[index])
                 .toArray();
     }

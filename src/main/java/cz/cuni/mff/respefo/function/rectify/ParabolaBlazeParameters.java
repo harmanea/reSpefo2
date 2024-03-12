@@ -36,7 +36,7 @@ public class ParabolaBlazeParameters implements BlazeParameters {
                 double theta = Double.parseDouble(tokens[4]);
                 double lambdaC = Double.parseDouble(tokens[5]);
 
-                PARAMETERS.put(Blaze.indexToOrder(index), Tuple.of(alpha, delta, epsilon, theta, lambdaC));
+                PARAMETERS.put(125 - index, Tuple.of(alpha, delta, epsilon, theta, lambdaC));
             }
 
         } catch (Exception exception) {
@@ -46,17 +46,17 @@ public class ParabolaBlazeParameters implements BlazeParameters {
 
     @Override
     public double getCentralWavelength(int order) {
-        return PARAMETERS.get(order).e;
+        return getParams(order).e;
     }
 
     @Override
     public double getAlpha(int order) {
-        return PARAMETERS.get(order).a;
+        return getParams(order).a;
     }
 
     @Override
     public BiFunction<Double, Double, Double> getValueFunction(Blaze blaze) {
-        Quintet<Double, Double, Double, Double, Double> params = PARAMETERS.get(blaze.getOrder());
+        Quintet<Double, Double, Double, Double, Double> params = getParams(blaze.getOrder());
         double delta = params.b;
         double epsilon = params.c;
 
@@ -70,6 +70,14 @@ public class ParabolaBlazeParameters implements BlazeParameters {
 
             return fraction * fraction;
         };
+    }
+
+    protected static Quintet<Double, Double, Double, Double, Double> getParams(int order) {
+        if (PARAMETERS.containsKey(order)) {
+            return PARAMETERS.get(order);
+        } else {
+            throw new IllegalStateException("There are no blaze parameters for this echelle order, use a different mode");
+        }
     }
 
     @Override
