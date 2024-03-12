@@ -23,7 +23,6 @@ eclipseMavenCentral {
 
 repositories {
     mavenCentral()
-    maven { url 'https://buchen.github.io/maven-repo' } // for swtchart
 }
 
 configurations.configureEach {
@@ -36,8 +35,8 @@ configurations.configureEach {
 
 dependencies {
     implementation 'junit:junit:4.13.2'
-    implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.16.1'
-    implementation 'org.swtchart:org.swtchart:0.10.0'
+    implementation 'gov.nasa.gsfc.heasarc:nom-tam-fits:1.19.0'
+    implementation files('build/libs/org.swtchart_0.10.0.v20160212.jar')  // TODO: download this automatically from https://sourceforge.net/projects/swt-chart/files/SWTChart/0.10.0/org.swtchart_0.10.0.zip/download
     implementation 'com.fasterxml.jackson.core:jackson-core:2.14.0'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.14.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'

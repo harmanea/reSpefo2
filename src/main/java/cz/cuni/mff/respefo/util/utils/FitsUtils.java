@@ -106,7 +106,7 @@ public class FitsUtils extends UtilityClass {
     public static double getExpTime(Header header) {
         for (String alias : EXP_TIME_ALIASES) {
             if (header.containsKey(alias)) {
-                return header.getBigDecimalValue(alias).doubleValue();
+                return header.getDoubleValue(alias);
             }
         }
 

@@ -58,7 +58,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return new SimpleSpectrum(series);
     }
 
-    private XYSeries parseData(FitsFile fits) throws SpefoException {
+    protected XYSeries parseData(FitsFile fits) throws SpefoException {
         Object data = fits.getData();
         if (data == null || !data.getClass().isArray()) {
             throw new InvalidFileFormatException("The HDU does not contain array data");
@@ -66,7 +66,7 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
 
         int nDims = ArrayUtils.nDims(data);
         if (nDims == 1) {
-            double[] ySeries = getSeriesFromData(data, fits.getBitPix());
+            double[] ySeries = getSeriesFromData(data, fits.getBitpix());
             double[] xSeries = getSeriesFromCData(fits.getHeader(), ySeries.length);
 
             return new XYSeries(xSeries, ySeries);
@@ -76,28 +76,28 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
                 throw new InvalidFileFormatException("The 2-D data array is too long in the first dimension");
             }
 
-            return getBothSeriesFromData(data, fits.getBitPix());
+            return getBothSeriesFromData(data, fits.getBitpix());
         } else {
             throw new InvalidFileFormatException("The data array is " + nDims + "-dimensional");
         }
     }
 
-    private double[] getSeriesFromData(Object data, int bitPix) throws SpefoException {
-        switch (bitPix) {
-            case Bitpix.VALUE_FOR_DOUBLE:
+    protected double[] getSeriesFromData(Object data, Bitpix bitpix) throws SpefoException {
+        switch (bitpix) {
+            case DOUBLE:
                 return (double[]) data;
-            case Bitpix.VALUE_FOR_FLOAT:
-            case Bitpix.VALUE_FOR_INT:
-            case Bitpix.VALUE_FOR_SHORT:
-            case Bitpix.VALUE_FOR_LONG:
-            case Bitpix.VALUE_FOR_BYTE:
+            case FLOAT:
+            case INTEGER:
+            case SHORT:
+            case LONG:
+            case BYTE:
                 return IntStream.range(0, Array.getLength(data)).mapToDouble(j ->  Array.getDouble(data, j)).toArray();
             default:
                 throw new InvalidFileFormatException("Data is not of a valid value type");
         }
     }
 
-    private double[] getSeriesFromCData(Header header, int size) {
+    protected double[] getSeriesFromCData(Header header, int size) {
         double crpix = header.getDoubleValue(Standard.CRPIXn.n(1), 1);
         double cdelt = header.getDoubleValue(Standard.CDELTn.n(1), 1);
         double crval = header.getDoubleValue(Standard.CRVALn.n(1), 0);
@@ -105,9 +105,9 @@ public class ImportFitsFormat extends FitsFormat implements ImportFileFormat {
         return ArrayUtils.fillArray(size, (1 - crpix) * cdelt + crval, cdelt);
     }
 
-    private XYSeries getBothSeriesFromData(Object data, int bitPix) throws SpefoException {
-        double[] xSeries = getSeriesFromData(Array.get(data, 0), bitPix);
-        double[] ySeries = getSeriesFromData(Array.get(data, 1), bitPix);
+    protected XYSeries getBothSeriesFromData(Object data, Bitpix bitpix) throws SpefoException {
+        double[] xSeries = getSeriesFromData(Array.get(data, 0), bitpix);
+        double[] ySeries = getSeriesFromData(Array.get(data, 1), bitpix);
 
         return new XYSeries(xSeries, ySeries);
     }

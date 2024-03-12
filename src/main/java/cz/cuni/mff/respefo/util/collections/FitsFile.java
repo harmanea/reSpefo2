@@ -4,6 +4,7 @@ import cz.cuni.mff.respefo.exception.InvalidFileFormatException;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.logging.Log;
 import nom.tam.fits.*;
+import nom.tam.fits.header.Bitpix;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +14,7 @@ public class FitsFile {
     private final File file;
     private final Header header;
     private final Object data;
-    private final int bitPix;
+    private final Bitpix bitpix;
 
     public FitsFile(File file) throws SpefoException {
         this(file, true, true);
@@ -39,7 +40,7 @@ public class FitsFile {
             header = loadHeader ? imageHdu.getHeader() : null;
 
             data = loadData ? imageHdu.getKernel() : null;
-            bitPix = loadData ? imageHdu.getBitPix() : 0;
+            bitpix = loadData ? imageHdu.getBitpix() : null;
 
         } catch (IOException | FitsException exception) {
             throw new SpefoException("Error while reading file", exception);
@@ -58,7 +59,7 @@ public class FitsFile {
         return data;
     }
 
-    public int getBitPix() {
-        return bitPix;
+    public Bitpix getBitpix() {
+        return bitpix;
     }
 }

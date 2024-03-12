@@ -1,34 +1,33 @@
 package cz.cuni.mff.respefo.function.disp;
 
+import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
 import cz.cuni.mff.respefo.function.filter.FitsFileFilter;
-import cz.cuni.mff.respefo.function.open.OpenFunction;
 import cz.cuni.mff.respefo.spectrum.Spectrum;
 import cz.cuni.mff.respefo.spectrum.port.fits.ImportFitsFormat;
-import cz.cuni.mff.respefo.util.FileDialogs;
-import cz.cuni.mff.respefo.util.FileType;
 import cz.cuni.mff.respefo.util.Message;
+import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
-import cz.cuni.mff.respefo.util.utils.MathUtils;
+import nom.tam.fits.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
 
-import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
-import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
+import static java.lang.String.format;
 
 @Fun(name = "Derive Dispersion", fileFilter = FitsFileFilter.class, group = "FITS")
 public class DispersionFunction implements SingleFileFunction {
+
+    private static final String[] INVALID_KEYS = new String[] {"UT", "INSTRUME"};
 
     @Override
     public void execute(File file) {
@@ -45,7 +44,7 @@ public class DispersionFunction implements SingleFileFunction {
             // TODO: Use the new Async methods instead
             new DispersionController(cmpValues, seriesA, seriesB)
                     .start(results -> printToCmfFile(dialog.getCmpFileName(), dialog.getLabFileNameA(), dialog.getLabFileNameB(), results),
-                            coefficients -> saveSpectrum(file, coefficients));
+                            coefficients -> saveToFITSHeader(file, coefficients));
 
         } catch (SpefoException e) {
             Message.error("An error occurred while reading files", e);
@@ -82,7 +81,7 @@ public class DispersionFunction implements SingleFileFunction {
 
             double[] coefficients = results.getCoefficients();
             for (int i = 0; i < coefficients.length; i++) {
-                writer.println("   order  " + i + "    " + String.format("%1.8e", coefficients[i]));
+                writer.println("   order  " + i + "    " + format("%1.8e", coefficients[i]));
             }
 
             if (writer.checkError()) {
@@ -95,32 +94,37 @@ public class DispersionFunction implements SingleFileFunction {
         }
     }
 
-    private void saveSpectrum(File originalFile, double[] coefficients) {
-        try {
-            Spectrum spectrum = new ImportFitsFormat().importFrom(originalFile.getPath());
+    private void saveToFITSHeader(File originalFile, double[] coefficients) {
+        try (Fits fits = new Fits()) {
+            FitsFile fitsFile = new FitsFile(originalFile);
+            Header oldHeader = fitsFile.getHeader();
 
-            double[] xSeries = spectrum.getSeries().getXSeries();
-            for (int i = 0; i < xSeries.length; i++) {
-                xSeries[i] = MathUtils.polynomial(i, coefficients);
+            ImageHDU newHDU = ImageData.from(fitsFile.getData()).toHDU();
 
-                if (isNotNaN(spectrum.getRvCorrection())) {
-                    xSeries[i] += spectrum.getRvCorrection() * (xSeries[i] / SPEED_OF_LIGHT);
-                }
-            }
-            spectrum.getSeries().updateXSeries(xSeries);
+            Header newHeader = newHDU.getHeader();
+            newHeader.updateLines(oldHeader);
 
-            Optional<String> newFileName = FileDialogs.saveFileDialog(FileType.SPECTRUM, FileUtils.replaceFileExtension(originalFile.getPath(), "spf"));
-            if (!newFileName.isPresent()) {
-                return;
+            for (int i = 0; i < coefficients.length; i++) {
+                newHeader.addValue(format("DCOEF%d", i + 1), coefficients[i], "Dispersion coefficient");
             }
 
-            spectrum.saveAs(new File(newFileName.get()));
-            Project.refresh();
-            OpenFunction.displaySpectrum(spectrum);
-            Message.info("File imported successfully.");
+            // Fix incorrect FITS header string entries in some files
+            for (String key: INVALID_KEYS) {
+                HeaderCard oldCard = oldHeader.getCard(key);
+                HeaderCard newCard = newHeader.getCard(key);
 
-        } catch (SpefoException exception) {
-            Message.error("Spectrum file couldn't be saved.", exception);
+                newCard.setValue(oldCard.getValue());
+                newCard.setComment(oldCard.getComment());
+            }
+
+            fits.addHDU(newHDU);
+            fits.write(originalFile);
+
+            ComponentManager.clearScene(true);
+            Message.info("Dispersion coefficients saved to FITS header successfully.");
+
+        } catch (SpefoException | IOException exception) {
+            Message.error("Dispersion coefficients couldn't be saved.", exception);
         }
     }
 
@@ -139,7 +143,7 @@ public class DispersionFunction implements SingleFileFunction {
     }
 
     private XYSeries readFitsFile(String fileName) throws SpefoException {
-        Spectrum spectrum = new ImportFitsFormat().importFrom(fileName); // Is there a more elegant way to do this?
+        Spectrum spectrum = new ImportFitsFormat().importFrom(fileName); // TODO: Is there a more elegant way to do this?
         return spectrum.getSeries();
     }
 }

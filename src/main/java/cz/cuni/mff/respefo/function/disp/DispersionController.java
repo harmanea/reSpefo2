@@ -244,7 +244,7 @@ public class DispersionController {
                 .series(scatterSeries()
                         .name("deleted")
                         .series(results.getUnusedResidualSeries())
-                        .color(ORANGE)
+                        .color(BLUE)
                         .symbolSize(3)
                 )
                 .series(lineSeries()
