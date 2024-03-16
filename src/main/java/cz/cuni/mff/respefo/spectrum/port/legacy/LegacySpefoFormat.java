@@ -77,9 +77,10 @@ public class LegacySpefoFormat implements ImportFileFormat {
                 throw new IllegalStateException("Unexpected file extension encountered");
         }
 
+        double[] coefficients = Arrays.copyOf(spefoFile.getDispCoef(), 6);
+
         double[] xSeries = new double[spefoFile.getYSeries().length];
         for (int i = 0; i < xSeries.length; i++) {
-            double[] coefficients = Arrays.copyOf(spefoFile.getDispCoef(), 6);  // TODO: do we need to do this in each step?
             xSeries[i] = MathUtils.polynomial(i, coefficients);
 
             if (spefoFile.getRvCorr() != 0) {
@@ -109,15 +110,15 @@ public class LegacySpefoFormat implements ImportFileFormat {
             try (BufferedReader br = new BufferedReader(new FileReader(rvFileName))) {
                 MeasureRVResults results = new MeasureRVResults();
 
-                double[] coefficients = new double[6];
+                double[] rvCoefficients = new double[6];
                 for (int i = 0; i < 6; i++) {
-                    coefficients[i] = Double.parseDouble(br.readLine());
+                    rvCoefficients[i] = Double.parseDouble(br.readLine());
                 }
                 double deltaRV = Double.parseDouble(br.readLine());
 
                 br.lines().forEach(line -> {
                     try {
-                        results.add(parseRvLine(line, coefficients, deltaRV));
+                        results.add(parseRvLine(line, rvCoefficients, deltaRV));
                     } catch (NumberFormatException | IndexOutOfBoundsException parsingException) {
                         Log.error("Couldn't load measurement", parsingException);
                     }

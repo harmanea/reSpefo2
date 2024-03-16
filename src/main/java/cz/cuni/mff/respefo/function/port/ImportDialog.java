@@ -27,6 +27,7 @@ import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.*;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
+import static java.util.Comparator.comparing;
 
 public class ImportDialog extends TitleAreaDialog {
     private final List<ImportFileFormat> fileFormats;
@@ -39,7 +40,9 @@ public class ImportDialog extends TitleAreaDialog {
     protected ImportDialog(List<ImportFileFormat> fileFormats) {
         super("Import");
 
+        fileFormats.sort(comparing(ImportFileFormat::name));
         this.fileFormats = fileFormats;
+
         options = new Options();
     }
 

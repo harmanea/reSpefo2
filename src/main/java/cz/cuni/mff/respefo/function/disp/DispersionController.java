@@ -306,7 +306,7 @@ public class DispersionController {
         buttonBuilder
                 .text("Poly degree")
                 .onSelection(event -> {
-                    NumberDialog dialog = new NumberDialog(5, "Select poly degree", "Poly number:");
+                    NumberDialog dialog = new NumberDialog(9, "Select poly degree", "Poly number:");
                     if (dialog.openIsOk()) {
                         results.setPolyDegree(dialog.getNumber());
                         results.calculateCoefficients();

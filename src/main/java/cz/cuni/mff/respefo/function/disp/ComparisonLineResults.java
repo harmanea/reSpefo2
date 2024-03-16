@@ -83,7 +83,7 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
     }
 
     public double meanRms() {
-        // TODO: This is just average, not root mean square
+        // TODO: This is mean absolute error, not root mean square
         return Arrays.stream(residuals).map(Math::abs).average().orElseThrow(IllegalStateException::new);
     }
 

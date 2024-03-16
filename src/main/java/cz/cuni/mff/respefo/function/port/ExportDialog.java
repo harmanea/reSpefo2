@@ -23,6 +23,7 @@ import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newCheckButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
+import static java.util.Comparator.comparing;
 
 public class ExportDialog extends TitleAreaDialog {
     private final List<ExportFileFormat> fileFormats;
@@ -35,7 +36,9 @@ public class ExportDialog extends TitleAreaDialog {
     protected ExportDialog(List<ExportFileFormat> fileFormats) {
         super("Export");
 
+        fileFormats.sort(comparing(ExportFileFormat::name));
         this.fileFormats = fileFormats;
+
         options = new Options();
     }
 
