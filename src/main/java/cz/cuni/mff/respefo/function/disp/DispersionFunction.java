@@ -2,6 +2,7 @@ package cz.cuni.mff.respefo.function.disp;
 
 import cz.cuni.mff.respefo.component.ComponentManager;
 import cz.cuni.mff.respefo.component.Project;
+import cz.cuni.mff.respefo.exception.InvalidFileFormatException;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.Fun;
 import cz.cuni.mff.respefo.function.SingleFileFunction;
@@ -42,7 +43,7 @@ public class DispersionFunction implements SingleFileFunction {
 
             // TODO: Use the new Async methods instead
             new DispersionController(cmpValues, seriesA, seriesB)
-                    .start(results -> printToCmfFile(dialog.getCmpFileName(), dialog.getLabFileNameA(), dialog.getLabFileNameB(), results),
+                    .start(results -> printToCmfFile(file.getPath(), dialog.getLabFileNameA(), dialog.getLabFileNameB(), results),
                             coefficients -> saveToFITSHeader(file, coefficients));
 
         } catch (SpefoException e) {
@@ -50,8 +51,8 @@ public class DispersionFunction implements SingleFileFunction {
         }
     }
 
-    private void printToCmfFile(String cmpFileName, String labFileNameA, String labFileNameB, ComparisonLineResults results) {
-        File cmfFile = new File(FileUtils.replaceFileExtension(cmpFileName, "cmf"));
+    private void printToCmfFile(String spectrumFileName, String labFileNameA, String labFileNameB, ComparisonLineResults results) {
+        File cmfFile = new File(FileUtils.replaceFileExtension(spectrumFileName, "cmf"));
         try (PrintWriter writer = new PrintWriter(cmfFile)) {
             writer.println("Comparison lines measured from files " + labFileNameA + " & " + labFileNameB);
             writer.println("  ----------------------------------------------------------------\n");
@@ -96,11 +97,11 @@ public class DispersionFunction implements SingleFileFunction {
     private void saveToFITSHeader(File originalFile, double[] coefficients) {
         try (Fits fits = new Fits()) {
             FitsFile fitsFile = new FitsFile(originalFile);
-            Header oldHeader = fitsFile.getHeader();
 
             ImageHDU newHDU = ImageData.from(fitsFile.getData()).toHDU();
-
             Header newHeader = newHDU.getHeader();
+
+            Header oldHeader = fitsFile.getHeader();
             newHeader.updateLines(oldHeader);
 
             for (int i = 0; i < coefficients.length; i++) {
@@ -109,11 +110,13 @@ public class DispersionFunction implements SingleFileFunction {
 
             // Fix incorrect FITS header string entries in some files
             for (String key: INVALID_KEYS) {
-                HeaderCard oldCard = oldHeader.getCard(key);
-                HeaderCard newCard = newHeader.getCard(key);
+                if (oldHeader.containsKey(key)) {
+                    HeaderCard oldCard = oldHeader.getCard(key);
+                    HeaderCard newCard = newHeader.getCard(key);
 
-                newCard.setValue(oldCard.getValue());
-                newCard.setComment(oldCard.getComment());
+                    newCard.setValue(oldCard.getValue());
+                    newCard.setComment(oldCard.getComment());
+                }
             }
 
             fits.addHDU(newHDU);
@@ -137,7 +140,7 @@ public class DispersionFunction implements SingleFileFunction {
         } catch (IOException exception) {
             throw new SpefoException("Couldn't read .cmp file", exception);
         } catch (NumberFormatException exception) {
-            throw new SpefoException("Cmp file is invalid", exception);
+            throw new InvalidFileFormatException("Cmp file is invalid", exception);
         }
     }
 
