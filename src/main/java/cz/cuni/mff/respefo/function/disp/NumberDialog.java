@@ -9,12 +9,13 @@ import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.SpinnerBuilder.newSpinner;
 
+// TODO: Add an option to specify initial value
 public class NumberDialog extends SpefoDialog {
 
     private final int maximum;
     private final String labelText;
 
-    private int number;
+    private int number = 1;
 
     public NumberDialog(int maximum, String title, String labelText) {
         super(title);
@@ -37,7 +38,7 @@ public class NumberDialog extends SpefoDialog {
         newLabel().text(labelText).gridLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING).build(composite);
         newSpinner()
                 .gridLayoutData(GridData.FILL_BOTH)
-                .selection(1)
+                .selection(number)
                 .bounds(1, maximum)
                 .digits(0)
                 .increment(1, 1)

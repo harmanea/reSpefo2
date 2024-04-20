@@ -5,12 +5,14 @@ import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
 
 public class ComparisonLineResults implements Iterable<ComparisonLineResults.ComparisonLineResult> {
+    public static final int MAX_POLY_DEGREE = 9;
+
     private final int n;
 
     private final double[] xUp;
@@ -84,7 +86,12 @@ public class ComparisonLineResults implements Iterable<ComparisonLineResults.Com
 
     public double meanRms() {
         // TODO: This is mean absolute error, not root mean square
-        return Arrays.stream(residuals).map(Math::abs).average().orElseThrow(IllegalStateException::new);
+        return IntStream.range(0, residuals.length)
+                .filter(i -> used[i])
+                .mapToDouble(i -> residuals[i])
+                .map(Math::abs)
+                .average()
+                .orElseThrow(IllegalStateException::new);
     }
 
     public double[] getX() {

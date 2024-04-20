@@ -11,6 +11,7 @@ import cz.cuni.mff.respefo.spectrum.port.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import nom.tam.fits.*;
 
@@ -20,6 +21,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static cz.cuni.mff.respefo.function.disp.ComparisonLineResults.MAX_POLY_DEGREE;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static java.lang.String.format;
@@ -108,6 +110,11 @@ public class DispersionFunction implements SingleFileFunction {
                 newHeader.addValue(format("DCOEF%d", i + 1), coefficients[i], "Dispersion coefficient");
             }
 
+            // Clear potential previously saved coefficients
+            for (int i = coefficients.length; i <= MAX_POLY_DEGREE; i++) {
+                newHeader.deleteKey(format("DCOEF%d", i + 1));
+            }
+
             // Fix incorrect FITS header string entries in some files
             for (String key: INVALID_KEYS) {
                 if (oldHeader.containsKey(key)) {
@@ -115,7 +122,7 @@ public class DispersionFunction implements SingleFileFunction {
                     HeaderCard newCard = newHeader.getCard(key);
 
                     newCard.setValue(oldCard.getValue());
-                    newCard.setComment(oldCard.getComment());
+                    newCard.setComment((oldCard.getComment() == null) ? "" : oldCard.getComment());
                 }
             }
 
@@ -145,6 +152,9 @@ public class DispersionFunction implements SingleFileFunction {
     }
 
     private XYSeries readFitsFile(String fileName) throws SpefoException {
-        return new ImportFitsFormat().importFrom(fileName).getSeries();  // TODO: Is there a more elegant way to do this?
+        // TODO: Is there a more elegant way to do this?
+        XYSeries series = new ImportFitsFormat().importFrom(fileName).getSeries();
+        series.updateXSeries(ArrayUtils.addValueToArrayElements(series.getXSeries(), -1)); // Correct 1-based indexing
+        return series;
     }
 }

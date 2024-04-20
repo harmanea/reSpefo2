@@ -22,6 +22,7 @@ import org.swtchart.Range;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+import static cz.cuni.mff.respefo.function.disp.ComparisonLineResults.MAX_POLY_DEGREE;
 import static cz.cuni.mff.respefo.resources.ColorResource.*;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.utils.ChartUtils.getRelativeHorizontalStep;
@@ -306,7 +307,7 @@ public class DispersionController {
         buttonBuilder
                 .text("Poly degree")
                 .onSelection(event -> {
-                    NumberDialog dialog = new NumberDialog(9, "Select poly degree", "Poly number:");
+                    NumberDialog dialog = new NumberDialog(MAX_POLY_DEGREE, "Select poly degree", "Poly number:");
                     if (dialog.openIsOk()) {
                         results.setPolyDegree(dialog.getNumber());
                         results.calculateCoefficients();
