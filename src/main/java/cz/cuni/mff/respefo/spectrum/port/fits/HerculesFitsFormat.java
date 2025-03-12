@@ -38,7 +38,7 @@ public class HerculesFitsFormat extends ImportFitsFormat {
 
     @Override
     public JulianDate getHJD(Header header) {
-        return JulianDate.fromRJD(header.getBigDecimalValue("JD").doubleValue());
+        return JulianDate.fromRJD(header.getDoubleValue("JD"));
     }
 
     @Override
@@ -53,12 +53,12 @@ public class HerculesFitsFormat extends ImportFitsFormat {
 
     @Override
     public double getRVCorrection(Header header) {
-        return header.getBigDecimalValue("BCORR").doubleValue();
+        return header.getDoubleValue("BCORR");
     }
 
     @Override
     public double getExpTime(Header header) {
-        return header.getBigDecimalValue("START").doubleValue();
+        return header.getDoubleValue("START");
     }
 
     @Override
