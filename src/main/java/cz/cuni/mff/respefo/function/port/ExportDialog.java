@@ -11,16 +11,14 @@ import org.eclipse.swt.events.ExpandEvent;
 import org.eclipse.swt.events.ExpandListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.ExpandBar;
-import org.eclipse.swt.widgets.ExpandItem;
+import org.eclipse.swt.widgets.*;
 
 import java.util.List;
 
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newCheckButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newRadioButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static java.util.Comparator.comparing;
@@ -104,7 +102,7 @@ public class ExportDialog extends TitleAreaDialog {
         });
 
         final Composite expandComposite = newComposite()
-                .layout(gridLayout().margins(10))
+                .layout(gridLayout().margins(10).verticalSpacing(15))
                 .build(bar);
 
         newCheckButton()
@@ -113,6 +111,24 @@ public class ExportDialog extends TitleAreaDialog {
                 .text("Apply zero point RV correction from measured RV of telluric lines")
                 .onSelectedValue(value -> options.applyZeroPointRvCorrection = value)
                 .build(expandComposite);
+
+        final Group fitsPrecisionGroup = new Group(expandComposite, SWT.NONE);
+        fitsPrecisionGroup.setLayoutData(gridData(GridData.FILL_BOTH).build());
+        fitsPrecisionGroup.setLayout(gridLayout().marginHeight(10).marginWidth(10).build());
+        fitsPrecisionGroup.setText("FITS Export precision");
+
+        newRadioButton()
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text("Double (BITPIX -64)")
+                .selection(true)
+                .onSelection(event -> options.useLowerPrecision = false)
+                .build(fitsPrecisionGroup);
+
+        newRadioButton()
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text("Single (BITPIX -32)")
+                .onSelection(event -> options.useLowerPrecision = true)
+                .build(fitsPrecisionGroup);
 
         ExpandItem expandItem = new ExpandItem(bar, SWT.NONE);
         expandItem.setText("Advanced options");
@@ -126,6 +142,7 @@ public class ExportDialog extends TitleAreaDialog {
     public class Options {
         public ExportFileFormat format;
         public boolean applyZeroPointRvCorrection;
+        public boolean useLowerPrecision;
 
         public Options() {
             format = fileFormats.stream()
@@ -133,6 +150,7 @@ public class ExportDialog extends TitleAreaDialog {
                     .findFirst()
                     .orElse(fileFormats.get(0));
             applyZeroPointRvCorrection = true;
+            useLowerPrecision = false;
         }
     }
 }

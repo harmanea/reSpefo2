@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static cz.cuni.mff.respefo.dialog.OverwriteDialog.*;
+import static cz.cuni.mff.respefo.spectrum.port.fits.ExportFitsFormat.LOWER_PRECISION_ASSET_KEY;
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.FileType.COMPATIBLE_SPECTRUM_FILES;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
@@ -74,40 +75,14 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
             if (options.applyZeroPointRvCorrection) {
                 applyZeroPointRvCorrection(spectrum);
             }
+            if (options.useLowerPrecision) {
+                addFitsExportLowerPrecisionAsset(spectrum);
+            }
             options.format.exportTo(spectrum, fileName);
             return true;
         }
 
         return false;
-    }
-
-    private static void applyZeroPointRvCorrection(Spectrum spectrum) {
-        spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class)
-                .ifPresent(results -> {
-                    double measuredRvCorrection = results.getRvOfCategory("corr");
-                    if (isNotNaN(measuredRvCorrection)) {
-                        addZeroPointCorrectionAsset(spectrum, measuredRvCorrection);
-                    }
-                });
-    }
-
-    private static void addZeroPointCorrectionAsset(Spectrum spectrum, double measuredRvCorrection) {
-        double headerRvCorrection = spectrum.getRvCorrection();
-        double diff = headerRvCorrection - measuredRvCorrection;
-
-        spectrum.setRvCorrection(headerRvCorrection + diff);
-
-        spectrum.putFunctionAsset("", new FunctionAsset() {  // No need for a key as it never gets saved
-            @Override
-            public XYSeries process(XYSeries series) {
-                double[] updatedXSeries = Arrays.stream(series.getXSeries())
-                        .map(value -> value + diff * (value / SPEED_OF_LIGHT))
-                        .toArray();
-                series.updateXSeries(updatedXSeries);
-
-                return series;
-            }
-        });
     }
 
     @Override
@@ -142,6 +117,9 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
                     Spectrum spectrum = Spectrum.open(spectrumFile);
                     if (options.applyZeroPointRvCorrection) {
                         applyZeroPointRvCorrection(spectrum);
+                    }
+                    if (options.useLowerPrecision) {
+                        addFitsExportLowerPrecisionAsset(spectrum);
                     }
                     spectra.add(spectrum);
                 } catch (SpefoException exception) {
@@ -217,5 +195,38 @@ public class ExportFunction extends SpectrumFunction implements MultiFileFunctio
         }
 
         return applyToAllAction;
+    }
+
+    private static void applyZeroPointRvCorrection(Spectrum spectrum) {
+        spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class)
+                .ifPresent(results -> {
+                    double measuredRvCorrection = results.getRvOfCategory("corr");
+                    if (isNotNaN(measuredRvCorrection)) {
+                        addZeroPointCorrectionAsset(spectrum, measuredRvCorrection);
+                    }
+                });
+    }
+
+    private static void addZeroPointCorrectionAsset(Spectrum spectrum, double measuredRvCorrection) {
+        double headerRvCorrection = spectrum.getRvCorrection();
+        double diff = headerRvCorrection - measuredRvCorrection;
+
+        spectrum.setRvCorrection(headerRvCorrection + diff);
+
+        spectrum.putFunctionAsset("zero point correction", new FunctionAsset() {  // Key is irrelevant as it never gets saved
+            @Override
+            public XYSeries process(XYSeries series) {
+                double[] updatedXSeries = Arrays.stream(series.getXSeries())
+                        .map(value -> value + diff * (value / SPEED_OF_LIGHT))
+                        .toArray();
+                series.updateXSeries(updatedXSeries);
+
+                return series;
+            }
+        });
+    }
+
+    private static void addFitsExportLowerPrecisionAsset(Spectrum spectrum) {
+        spectrum.putFunctionAsset(LOWER_PRECISION_ASSET_KEY, new FunctionAsset() {});  // This asset serves only as a marker
     }
 }

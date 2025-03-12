@@ -8,7 +8,10 @@ import cz.cuni.mff.respefo.spectrum.port.legacy.LegacySpefoOrigin;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
 import cz.cuni.mff.respefo.util.info.VersionInfo;
 import cz.cuni.mff.respefo.util.utils.ArrayUtils;
-import nom.tam.fits.*;
+import nom.tam.fits.BasicHDU;
+import nom.tam.fits.Fits;
+import nom.tam.fits.FitsException;
+import nom.tam.fits.HeaderCardException;
 import nom.tam.fits.header.DataDescription;
 import nom.tam.fits.header.ObservationDurationDescription;
 import nom.tam.fits.header.Standard;
@@ -18,25 +21,20 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.castToFloat;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 
 public class ExportFitsFormat extends FitsFormat implements ExportFileFormat {
+
+    public static final String LOWER_PRECISION_ASSET_KEY = "lower precision";
 
     @Override
     public void exportTo(Spectrum spectrum, String fileName) throws SpefoException {
         try (Fits fits = new Fits()) {
             XYSeries series = spectrum.getProcessedSeries();
 
-            BasicHDU<?> hdu;
-            if (ArrayUtils.valuesHaveSameDifference(series.getXSeries())) {
-                hdu = FitsFactory.hduFactory(series.getYSeries());
-
-                hdu.addValue(Standard.CRPIXn.n(1), 1);
-                hdu.addValue(Standard.CRVALn.n(1), series.getX(0));
-                hdu.addValue(Standard.CDELTn.n(1), series.getX(1) - series.getX(0));
-            } else {
-                hdu = FitsFactory.hduFactory(new double[][] { series.getXSeries(), series.getYSeries() });
-            }
+            boolean useLowerPrecision = spectrum.containsFunctionAsset(LOWER_PRECISION_ASSET_KEY);
+            BasicHDU<?> hdu = createHdu(series, useLowerPrecision);
 
             Object origin = spectrum.getOrigin();
             if (origin instanceof FitsOrigin) {
@@ -70,6 +68,25 @@ public class ExportFitsFormat extends FitsFormat implements ExportFileFormat {
             fits.write(new File(fileName));
         } catch (IOException | FitsException exception) {
             throw new SpefoException("Error while writing to file", exception);
+        }
+    }
+
+    private BasicHDU<?> createHdu(XYSeries series, boolean useLowerPrecision) {
+        if (ArrayUtils.valuesHaveSameDifference(series.getXSeries())) {
+            BasicHDU<?> hdu = Fits.makeHDU(useLowerPrecision ? castToFloat(series.getYSeries()) : series.getYSeries());
+
+            hdu.addValue(Standard.CRPIXn.n(1), 1);
+            hdu.addValue(Standard.CRVALn.n(1), series.getX(0));
+            hdu.addValue(Standard.CDELTn.n(1), series.getX(1) - series.getX(0));
+
+            return hdu;
+
+        } else {
+            if (useLowerPrecision) {
+                return Fits.makeHDU(new float[][]{castToFloat(series.getXSeries()), castToFloat(series.getYSeries())});
+            } else {
+                return Fits.makeHDU(new double[][]{series.getXSeries(), series.getYSeries()});
+            }
         }
     }
 

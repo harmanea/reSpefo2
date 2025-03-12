@@ -311,6 +311,23 @@ public class ArrayUtils extends UtilityClass {
         return Tuple.of(min, max);
     }
 
+    /**
+     * Cast a double[] array to float[]
+     * @param array to cast
+     * @return converted array
+     */
+    public static float[] castToFloat(double[] array) {
+        Objects.requireNonNull(array);
+
+        float[] newArray = new float[array.length];
+
+        for (int i = 0; i < array.length; i++) {
+            newArray[i] = (float) array[i];
+        }
+
+        return newArray;
+    }
+
     protected ArrayUtils() throws IllegalAccessException {
         super();
     }
