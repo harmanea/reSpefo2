@@ -54,7 +54,7 @@ public class AddToProjectFunction extends PrepareProjectFunction {
         List<FitsFile> fitsFiles = files.stream()
                 .filter(new FitsFileFilter()::accept)
                 .filter(AddToProjectFunction.fileToAdd(prefix))
-                .map(AddToProjectFunction::openFile)
+                .map(AddToProjectFunction::openFitsFile)
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(f -> format.getDateOfObservation(f.getHeader())))
                 .collect(toList());

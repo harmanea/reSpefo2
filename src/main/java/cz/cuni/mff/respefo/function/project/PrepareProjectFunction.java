@@ -54,7 +54,7 @@ public class PrepareProjectFunction implements ProjectFunction {
 
         List<FitsFile> fitsFiles = files.stream()
                 .filter(new FitsFileFilter()::accept)
-                .map(PrepareProjectFunction::openFile)
+                .map(PrepareProjectFunction::openFitsFile)
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(f -> format.getDateOfObservation(f.getHeader())))
                 .collect(toList());
@@ -125,7 +125,7 @@ public class PrepareProjectFunction implements ProjectFunction {
         Message.info("Project prepared successfully");
     }
 
-    protected static FitsFile openFile(File file) {
+    protected static FitsFile openFitsFile(File file) {
         try {
             return new FitsFile(file, true, false);
 
@@ -140,11 +140,7 @@ public class PrepareProjectFunction implements ProjectFunction {
         boolean suggestedUseLst = !lstFiles.isEmpty();
         String lstFileName = suggestedUseLst ? lstFiles.get(0).getPath() : "";
 
-        if (prepare) {
-            return ProjectDialog.prepare(suggestedPrefix, suggestedUseLst, lstFileName);
-        } else {
-            return ProjectDialog.add(suggestedPrefix, suggestedUseLst, lstFileName);
-        }
+        return new ProjectDialog(prepare, suggestedPrefix, suggestedUseLst, lstFileName);
     }
 
     protected static ImportFitsFormat importFormat() {
