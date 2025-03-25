@@ -62,7 +62,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
     public static void displayResults(Spectrum spectrum) {
         MeasureRVResults results = spectrum.getFunctionAsset(MeasureRVFunction.SERIALIZE_KEY, MeasureRVResults.class).get();
 
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL | SWT.H_SCROLL);
         scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         scrolledComposite.setLayout(new GridLayout());
 
@@ -230,7 +230,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
     }
 
     private static void displayResults(List<Spectrum> spectra) {
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL | SWT.H_SCROLL);
         scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         scrolledComposite.setLayout(new GridLayout());
 
@@ -245,7 +245,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
 
         labelBuilder.text("Summary of radial velocities").build(composite);
 
-        Table table = newTable(SWT.BORDER)
+        Table table = newTable(SWT.BORDER | SWT.H_SCROLL)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .linesVisible(true)
                 .headerVisible(true)

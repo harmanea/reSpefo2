@@ -57,7 +57,7 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
         MeasureEWResults results = spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get();
         XYSeries series = spectrum.getProcessedSeries();
 
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL | SWT.H_SCROLL);
         scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         scrolledComposite.setLayout(new GridLayout());
 
@@ -174,7 +174,7 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
     }
 
     private static void displayResults(List<Spectrum> spectra) {
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL);
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL | SWT.H_SCROLL);
         scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         scrolledComposite.setLayout(new GridLayout());
 
