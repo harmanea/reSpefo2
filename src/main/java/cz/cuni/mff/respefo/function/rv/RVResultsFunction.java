@@ -230,22 +230,18 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
     }
 
     private static void displayResults(List<Spectrum> spectra) {
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL | SWT.H_SCROLL);
-        scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-        scrolledComposite.setLayout(new GridLayout());
-
         final Composite composite = newComposite()
                 .gridLayoutData(GridData.FILL_BOTH)
                 .layout(gridLayout().margins(10).spacings(10))
                 .background(ComponentManager.getDisplay().getSystemColor(COLOR_WIDGET_BACKGROUND))
-                .build(scrolledComposite);
+                .build(ComponentManager.clearAndGetScene());
 
         LabelBuilder labelBuilder = newLabel(SWT.LEFT)
                 .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
 
         labelBuilder.text("Summary of radial velocities").build(composite);
 
-        Table table = newTable(SWT.BORDER | SWT.H_SCROLL)
+        Table table = newTable(SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL)
                 .gridLayoutData(GridData.FILL_BOTH)
                 .linesVisible(true)
                 .headerVisible(true)
@@ -306,13 +302,7 @@ public class RVResultsFunction extends SpectrumFunction implements MultiFileFunc
         buttonBuilder.text("Print to .cor file").onSelection(event -> printToCorFile(spectra, includeErrorsButton.getSelection())).build(buttonsComposite);
         buttonBuilder.text("Print to .ac file").onSelection(event -> printToAcFile(spectra)).build(buttonsComposite);
 
-        scrolledComposite.setContent(composite);
-        scrolledComposite.setExpandHorizontal(true);
-        scrolledComposite.setExpandVertical(true);
-        scrolledComposite.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-
         ComponentManager.getScene().layout();
-        scrolledComposite.redraw();
     }
 
     private static void printToRvsFile(List<Spectrum> spectra, boolean includeErrors) {
