@@ -42,7 +42,7 @@ public class MeasureEWDialog extends TitleAreaDialog {
 
         newLabel()
                 .gridLayoutData(SWT.FILL, SWT.TOP, true, false, 2, 1)
-                .text("Select .lst files with measurements:")
+                .text("Select .stl files with measurements:")
                 .build(topComposite);
 
         final List list = ListBuilder.newList(SWT.BORDER | SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL)

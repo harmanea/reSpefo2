@@ -62,7 +62,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
 
         Consumer<String[]> measurementsItemsConsumer = items -> measurementFileNames = items;
 
-        labelBuilder.text("Select .lst files with measurements:").build(topComposite);
+        labelBuilder.text("Select .stl files with measurements:").build(topComposite);
 
         final List measurementsList = listBuilder.listener(SWT.KeyDown, e -> {
             if (e.keyCode == SWT.DEL) {
@@ -85,7 +85,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
 
         Consumer<String[]> correctionsItemsConsumer = items -> correctionFileNames = items;
 
-        labelBuilder.text("Select .lst files with correction measurements:").build(topComposite);
+        labelBuilder.text("Select .stl files with correction measurements:").build(topComposite);
 
         final List correctionsList = listBuilder.listener(SWT.KeyDown, e -> {
             if (e.keyCode == SWT.DEL) {
