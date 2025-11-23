@@ -50,7 +50,7 @@ public class MeasureEWDialog extends TitleAreaDialog {
                 .listener(SWT.KeyDown, e -> {
                     if (e.keyCode == SWT.DEL) {
                         removeStlFile((List) e.widget);
-                    } else if (e.keyCode == SWT.INSERT) {
+                    } else if (e.keyCode == SWT.INSERT || e.keyCode == SWT.HELP || (e.keyCode == 'i' && e.stateMask == SWT.COMMAND)) {
                         addStlFile((List) e.widget);
                     }
                 })

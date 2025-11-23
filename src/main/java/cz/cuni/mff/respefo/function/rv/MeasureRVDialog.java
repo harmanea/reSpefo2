@@ -67,7 +67,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
         final List measurementsList = listBuilder.listener(SWT.KeyDown, e -> {
             if (e.keyCode == SWT.DEL) {
                 removeStlFile((List) e.widget, measurementsItemsConsumer);
-            } else if (e.keyCode == SWT.INSERT) {
+            } else if (e.keyCode == SWT.INSERT || e.keyCode == SWT.HELP  || (e.keyCode == 'i' && e.stateMask == SWT.COMMAND)) {
                 addStlFile((List) e.widget, measurementsItemsConsumer);
             }
         }).build(topComposite);
@@ -90,7 +90,7 @@ public class MeasureRVDialog extends TitleAreaDialog {
         final List correctionsList = listBuilder.listener(SWT.KeyDown, e -> {
             if (e.keyCode == SWT.DEL) {
                 removeStlFile((List) e.widget, correctionsItemsConsumer);
-            } else if (e.keyCode == SWT.INSERT) {
+            } else if (e.keyCode == SWT.INSERT || e.keyCode == SWT.HELP || (e.keyCode == 'i' && e.stateMask == SWT.COMMAND)) {
                 addStlFile((List) e.widget, correctionsItemsConsumer);
             }
         }).build(topComposite);

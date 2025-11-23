@@ -130,7 +130,10 @@ public class MeasureEWController {
                             }
                             break;
 
+                        case 'i':
+                            if (e.stateMask != SWT.COMMAND) break;
                         case SWT.CR:
+                        case SWT.HELP:
                         case SWT.INSERT:
                             MeasureEWCategoryDialog dialog = new MeasureEWCategoryDialog();
                             if (dialog.openIsOk()) {

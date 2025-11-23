@@ -28,6 +28,25 @@ public class RectifyKeyListener extends KeyAdapter {
     @Override
     public void keyPressed(KeyEvent e) {
         switch (e.keyCode) {
+            case 'j':
+                asset.moveActivePoint(-ChartUtils.getRelativeHorizontalStep(chart), 0);
+                updateAllSeries.run();
+                break;
+            case 'k':
+                asset.moveActivePoint(0, -ChartUtils.getRelativeVerticalStep(chart));
+                updateAllSeries.run();
+                break;
+            case 'l':
+                asset.moveActivePoint(ChartUtils.getRelativeHorizontalStep(chart), 0);
+                updateAllSeries.run();
+                break;
+            case 'i':
+                if (e.stateMask != SWT.COMMAND) {
+                    asset.moveActivePoint(0, ChartUtils.getRelativeVerticalStep(chart));
+                    updateAllSeries.run();
+                    break;
+                } // else fall through to insert
+            case SWT.HELP:
             case SWT.INSERT:
                 Range xRange = chart.getAxisSet().getXAxis(0).getRange();
                 Range yRange = chart.getAxisSet().getYAxis(0).getRange();
@@ -50,22 +69,6 @@ public class RectifyKeyListener extends KeyAdapter {
                 if (asset.getActiveIndex() < asset.getCount() - 1) {
                     updateActivePoint.accept(asset.getActiveIndex() + 1);
                 }
-                break;
-            case 'i':
-                asset.moveActivePoint(0, ChartUtils.getRelativeVerticalStep(chart));
-                updateAllSeries.run();
-                break;
-            case 'j':
-                asset.moveActivePoint(-ChartUtils.getRelativeHorizontalStep(chart), 0);
-                updateAllSeries.run();
-                break;
-            case 'k':
-                asset.moveActivePoint(0, -ChartUtils.getRelativeVerticalStep(chart));
-                updateAllSeries.run();
-                break;
-            case 'l':
-                asset.moveActivePoint(ChartUtils.getRelativeHorizontalStep(chart), 0);
-                updateAllSeries.run();
                 break;
             case 'p':
                 // TODO: Figure out a better way to do this

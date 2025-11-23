@@ -251,7 +251,10 @@ public class MeasureRVController {
                         () -> applyShift(ch, rvStep)))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {
+                        case 'i':
+                            if (e.stateMask != SWT.COMMAND) break;
                         case SWT.CR:
+                        case SWT.HELP:
                         case SWT.INSERT:
                             MeasurementInputDialog dialog = new MeasurementInputDialog(measurement.isCorrection());
                             if (dialog.openIsOk()) {

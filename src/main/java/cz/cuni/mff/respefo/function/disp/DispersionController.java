@@ -88,6 +88,9 @@ public class DispersionController {
                 .keyListener(ch -> new ChartKeyListener.CustomAction(ch, this::stackAbove))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {
+                        case 'i':
+                            if (e.stateMask != SWT.COMMAND) break;
+                        case SWT.HELP:
                         case SWT.INSERT:
                             if (Double.isNaN(newPoint)) {
                                 Range range = ch.getAxisSet().getXAxis(0).getRange();

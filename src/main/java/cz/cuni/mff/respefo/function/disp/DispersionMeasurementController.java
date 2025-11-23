@@ -65,7 +65,10 @@ public class DispersionMeasurementController {
                         () -> applyShift(ch, getRelativeHorizontalStep(ch))))
                 .keyListener(ch -> KeyListener.keyPressedAdapter(e -> {
                     switch (e.keyCode) {
+                        case 'i':
+                            if (e.stateMask != SWT.COMMAND) break;
                         case SWT.CR:
+                        case SWT.HELP:
                         case SWT.INSERT:
                             callback.accept(value);
                             break;

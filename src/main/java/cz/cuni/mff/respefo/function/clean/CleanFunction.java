@@ -68,6 +68,9 @@ public class CleanFunction extends SpectrumFunction {
                             updateSeries(ch, data, asset);
                             updateActivePoint(ch, asset, asset.getActiveIndex() + (asset.getActiveIndex() < data.getLength() ? 1 : 0));
                             break;
+                        case 'i':
+                            if (e.stateMask != SWT.COMMAND) break;
+                        case SWT.HELP:
                         case SWT.INSERT:
                             asset.removeActiveIndex();
                             updateSeries(ch, data, asset);
