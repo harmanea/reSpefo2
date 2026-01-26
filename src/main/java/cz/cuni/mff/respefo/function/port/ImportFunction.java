@@ -288,7 +288,7 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
 
     private static void updateSpectrumUsingLstFileRow(Spectrum spectrum, LstFile.Row row, boolean applyRvCorrection) {
         JulianDate hjd = row.getHjd();
-        if (isNaN(spectrum.getHjd().getJD()) && isNotNaN(hjd.getJD())) {
+        if (isNotNaN(hjd.getJD())) {
             if (hjd.getJD() < 100_000) {
                 // Convert reduced julian date to full date
                 hjd = JulianDate.fromRJD(hjd.getJD());
