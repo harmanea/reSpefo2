@@ -9,6 +9,8 @@ import java.io.*;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.SignStyle;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -18,10 +20,15 @@ import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
+import static java.time.temporal.ChronoField.YEAR;
 import static java.util.Collections.nCopies;
 
 public class LstFile implements Iterable<LstFile.Row> {
-    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy MM dd HH mm ss");
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+            .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
+            .appendPattern(" MM dd HH mm ss")
+            .toFormatter();
+
     public static final String TABLE_HEADER =
             "==============================================================================\n" +
             "   N.  Date & UT start       exp[s]      Filename       J.D.hel.  RVcorr\n" +

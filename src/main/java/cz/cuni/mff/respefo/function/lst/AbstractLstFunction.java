@@ -1,5 +1,6 @@
 package cz.cuni.mff.respefo.function.lst;
 
+import cz.cuni.mff.respefo.component.FileExplorer;
 import cz.cuni.mff.respefo.component.Project;
 import cz.cuni.mff.respefo.exception.SpefoException;
 import cz.cuni.mff.respefo.function.MultiFileFunction;
@@ -46,6 +47,7 @@ public abstract class AbstractLstFunction<T> implements MultiFileFunction {
             }
             try {
                 lstFile.saveAs(new File(fileName));
+                FileExplorer.getDefault().refresh();
             } catch (SpefoException exception) {
                 Message.error("Couldn't generate .lst file", exception);
             }
