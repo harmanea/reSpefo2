@@ -17,23 +17,31 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
+import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 
 public class DAOFitsFormat extends ImportFitsFormat {
-    private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder()
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss.SS");
+
+    private static final DateTimeFormatter DATE_VALUE_FORMATTER = new DateTimeFormatterBuilder()
             .appendValueReduced(ChronoField.YEAR, 2, 2, 1900)
             .appendPattern("/MM/dd")
             .toFormatter();
 
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss.SS");
-
-    private static final DateTimeFormatter OTHER_DATE_FORMATTER = new DateTimeFormatterBuilder()
+    private static final DateTimeFormatter DATE_VALUE_AND_COMMENT_FORMATTER_1 = new DateTimeFormatterBuilder()
             .appendPattern("MM/")
             .appendValueReduced(ChronoField.YEAR, 2, 2, 1900)
             .appendPattern(" /dd")
+            .toFormatter();
+
+    private static final DateTimeFormatter DATE_VALUE_AND_COMMENT_FORMATTER_2 = new DateTimeFormatterBuilder()
+            .appendPattern("MM/dd /")
+            .appendValueReduced(ChronoField.YEAR, 2, 2, 1900)
             .toFormatter();
 
     @Override
@@ -72,45 +80,43 @@ public class DAOFitsFormat extends ImportFitsFormat {
     @Override
     public LocalDateTime getDateOfObservation(Header header) {
         HeaderCard dateCard = header.getCard(Standard.DATE_OBS);
+        if (dateCard == null) return super.getDateOfObservation(header);
 
         String dateValue = dateCard.getValue();
-        String timeValue = header.getStringValue("UT");
-        LocalDateTime dateTime = parseDateAndTime(dateValue, timeValue);
-        if (dateTime != null) {
-            return dateTime;
-        }
-
         String dateComment = dateCard.getComment();
-        dateTime = parseDateCommentAndTime(dateValue, dateComment, timeValue);
-        if (dateTime != null) {
-            return dateTime;
-        }
+        String timeValue = header.getStringValue("UT");
 
-        return super.getDateOfObservation(header);
+        return firstSuccessful(
+                () -> parseDateAndTime(dateValue, timeValue),
+                () -> parseDateCommentAndTime(dateValue, dateComment, timeValue, DATE_VALUE_AND_COMMENT_FORMATTER_1),
+                () -> parseDateCommentAndTime(dateValue, dateComment, timeValue, DATE_VALUE_AND_COMMENT_FORMATTER_2)
+        ).orElseGet(() -> super.getDateOfObservation(header));
     }
 
-    private static LocalDateTime parseDateAndTime(String dateValue, String timeValue) {
-        try {
-            LocalDate localDate = LocalDate.parse(dateValue, DATE_FORMATTER);
-            LocalTime localTime = LocalTime.parse(timeValue.trim(), TIME_FORMATTER);
-
-            return localDate.atTime(localTime);
-
-        } catch (Exception exception) {
-            return null;
+    @SafeVarargs
+    private static Optional<LocalDateTime> firstSuccessful(Supplier<LocalDateTime>... attempts) {
+        for (Supplier<LocalDateTime> attempt : attempts) {
+            try {
+                return Optional.of(attempt.get());
+            } catch (DateTimeParseException | NullPointerException ignored) {
+            }
         }
+        return Optional.empty();
     }
 
-    private static LocalDateTime parseDateCommentAndTime(String dateValue, String dateComment, String timeValue) {
-        try {
-            LocalDate localDate = LocalDate.parse(dateComment + dateValue, OTHER_DATE_FORMATTER);
-            LocalTime localTime = LocalTime.parse(timeValue);
+    private static LocalDateTime parseDateAndTime(String dateValue, String timeValue) throws DateTimeParseException {
+        LocalDate localDate = LocalDate.parse(dateValue, DATE_VALUE_FORMATTER);
+        LocalTime localTime = LocalTime.parse(timeValue.trim(), TIME_FORMATTER);
 
-            return localDate.atTime(localTime);
+        return localDate.atTime(localTime);
+    }
 
-        } catch (Exception exception) {
-            return null;
-        }
+    private static LocalDateTime parseDateCommentAndTime(String dateValue, String dateComment, String timeValue,
+                                                         DateTimeFormatter formatter) throws DateTimeParseException {
+        LocalDate localDate = LocalDate.parse(dateComment + dateValue, formatter);
+        LocalTime localTime = LocalTime.parse(timeValue);
+
+        return localDate.atTime(localTime);
     }
 
     @Override
