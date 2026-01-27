@@ -84,7 +84,7 @@ public class DAOFitsFormat extends ImportFitsFormat {
 
         String dateValue = dateCard.getValue();
         String dateComment = dateCard.getComment();
-        String timeValue = header.getStringValue("UT");
+        String timeValue = header.getCard("UT").getValue();
 
         return firstSuccessful(
                 () -> parseDateAndTime(dateValue, timeValue),
