@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.isSortedDescending;
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.reverseArray;
 import static java.lang.String.format;
 
 public class DAOFitsFormat extends ImportFitsFormat {
@@ -60,6 +62,11 @@ public class DAOFitsFormat extends ImportFitsFormat {
         double[] xSeries = IntStream.range(0, ySeries.length)
                 .mapToDouble(i -> MathUtils.polynomial(i, coefficients))
                 .toArray();
+
+        if (isSortedDescending(xSeries)) {
+            xSeries = reverseArray(xSeries);
+            ySeries = reverseArray(ySeries);
+        }
 
         XYSeries series = new XYSeries(xSeries, ySeries);
         return new SimpleSpectrum(series);

@@ -328,6 +328,40 @@ public class ArrayUtils extends UtilityClass {
         return newArray;
     }
 
+    /**
+     * Evaluate whether the given array values are sorted in ascending order
+     * @param array to test
+     * @return true if values are ascending, false otherwise
+     */
+    public static boolean isSortedAscending(double[] array) {
+        Objects.requireNonNull(array);
+
+        for (int i = 0; i < array.length - 1; i++) {
+            if (array[i] > array[i + 1]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Evaluate whether the given array values are sorted in descending order
+     * @param array to test
+     * @return true if values are descending, false otherwise
+     */
+    public static boolean isSortedDescending(double[] array) {
+        Objects.requireNonNull(array);
+
+        for (int i = 0; i < array.length - 1; i++) {
+            if (array[i] < array[i + 1]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     protected ArrayUtils() throws IllegalAccessException {
         super();
     }
