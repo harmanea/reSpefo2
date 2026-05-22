@@ -26,10 +26,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
+import static cz.cuni.mff.respefo.util.utils.FileUtils.fileNamesListToString;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
 import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newPushButton;
@@ -174,11 +177,15 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
     }
 
     private static void displayResults(List<Spectrum> spectra) {
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(ComponentManager.clearAndGetScene(), SWT.V_SCROLL | SWT.H_SCROLL);
+        scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        scrolledComposite.setLayout(new GridLayout());
+
         final Composite composite = newComposite()
                 .gridLayoutData(GridData.FILL_BOTH)
                 .layout(gridLayout().margins(10).spacings(10))
                 .background(ComponentManager.getDisplay().getSystemColor(COLOR_WIDGET_BACKGROUND))
-                .build(ComponentManager.clearAndGetScene());
+                .build(scrolledComposite);
 
         LabelBuilder labelBuilder = newLabel(SWT.LEFT)
                 .gridLayoutData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_BEGINNING);
@@ -252,11 +259,17 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
 
         newPushButton()
                 .gridLayoutData(GridData.FILL_BOTH)
-                .text("Print to file")
-                .onSelection(event -> printToFile(spectra))
+                .text("Print to file(s)")
+                .onSelection(event -> printToFiles(spectra))
                 .build(buttonComposite);
 
+        scrolledComposite.setContent(composite);
+        scrolledComposite.setExpandHorizontal(true);
+        scrolledComposite.setExpandVertical(true);
+        scrolledComposite.setMinSize(composite.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
         ComponentManager.getScene().layout();
+        scrolledComposite.redraw();
     }
 
     private static String format(double value) {
@@ -267,23 +280,23 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
         return String.format("%8.4f", value);
     }
 
-    private static void printToFile(List<Spectrum> spectra) {
-        String fileName = Project.getRootFileName(".eqw");
+    private static void printToFiles(List<Spectrum> spectra) {
+        String[] names = spectra.stream()
+                .map(spectrum -> spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get())
+                .map(MeasureEWResults::getMeasurementNames)
+                .flatMap(Stream::of)
+                .distinct()
+                .sorted()
+                .toArray(String[]::new);
 
-        try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.println("Summary of equivalent widths etc.\n");
+        Set<String> failedFiles = new HashSet<>(names.length);
 
-            String[] names = spectra.stream()
-                    .map(spectrum -> spectrum.getFunctionAsset(MeasureEWFunction.SERIALIZE_KEY, MeasureEWResults.class).get())
-                    .map(MeasureEWResults::getMeasurementNames)
-                    .flatMap(Stream::of)
-                    .distinct()
-                    .sorted()
-                    .toArray(String[]::new);
+        for (String name : names) {
+            String resultsFileName = name.toLowerCase().replaceAll("\\s+", "") + ".eqw";
+            String resultsPath = Project.getRootDirectory() + File.separator + resultsFileName;
 
-            for (String name : names) {
-                writer.println();
-                writer.println(name);
+            try (PrintWriter writer = new PrintWriter(resultsPath)) {
+                writer.println("Summary of equivalent widths etc.\n");
                 writer.println(" Jul. date " + " " + "    EW    " + " " + "   FWHM   " + " " + "     V    " + " " + "     R    " + " " + "    Ic    " + " " + "    V/R   " + " " + "  (V+R)/2 ");
 
                 for (Spectrum spectrum : spectra) {
@@ -321,18 +334,22 @@ public class EWResultsFunction extends SpectrumFunction implements MultiFileFunc
                         writer.println();
                     }
                 }
-            }
 
-            if (writer.checkError()) {
-                throw new SpefoException("The PrintWriter is in an error state");
+                if (writer.checkError()) {
+                    throw new SpefoException("The PrintWriter is in an error state");
+                }
 
-            } else {
-                Message.info("File created successfully");
-                FileExplorer.getDefault().refresh();
+            } catch (FileNotFoundException | SpefoException exception) {
+                Log.error("Couldn't print to %s file", exception, resultsFileName);
+                failedFiles.add(name);
             }
-        } catch (FileNotFoundException | SpefoException exception) {
-            Message.error("Couldn't print to .cor file", exception);
         }
-    }
 
+        if (failedFiles.isEmpty()) {
+            Message.info("File(s) created successfully");
+        } else {
+            Message.warning("Some file(s) failed to be created:\n\n" + fileNamesListToString(new ArrayList<>(failedFiles)));
+        }
+        FileExplorer.getDefault().refresh();
+    }
 }
