@@ -261,6 +261,25 @@ public class ImportDialog extends TitleAreaDialog {
                 })
                 .build(echelleIndexToOrderMappingGroup);
 
+        newLabel()
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .text("Input wavelength units:")
+                .build(expandComposite);
+
+        newRadioButton()
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text("Angstrom (Å)")
+                .selection(true)
+                .onSelection(event -> options.inputUnit = WavelengthUnit.ANGSTROM)
+                .build(expandComposite);
+
+        newRadioButton()
+                .gridLayoutData(GridData.FILL_BOTH)
+                .text("Nanometer (nm)")
+                .selection(false)
+                .onSelection(event -> options.inputUnit = WavelengthUnit.NANOMETER)
+                .build(expandComposite);
+
         ExpandItem expandItem = new ExpandItem(bar, SWT.NONE);
         expandItem.setText("Advanced options");
         expandItem.setHeight(expandComposite.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
@@ -299,6 +318,7 @@ public class ImportDialog extends TitleAreaDialog {
         public boolean applyLstFileRvCorrection;
         public int a;
         public int b;
+        public WavelengthUnit inputUnit;
 
         public Options() {
             format = fileFormats.stream()
@@ -311,6 +331,12 @@ public class ImportDialog extends TitleAreaDialog {
             applyLstFileRvCorrection = true;
             a = 125;
             b = -1;
+            inputUnit = WavelengthUnit.ANGSTROM;
         }
+    }
+
+    public enum WavelengthUnit {
+        ANGSTROM,
+        NANOMETER
     }
 }

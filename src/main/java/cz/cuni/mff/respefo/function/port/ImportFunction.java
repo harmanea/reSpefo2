@@ -32,6 +32,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static cz.cuni.mff.respefo.dialog.OverwriteDialog.*;
+import static cz.cuni.mff.respefo.function.port.ImportDialog.WavelengthUnit.NANOMETER;
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.createArray;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.filesListToString;
 import static cz.cuni.mff.respefo.util.utils.FileUtils.stripFileExtension;
 import static cz.cuni.mff.respefo.util.utils.MathUtils.isNotNaN;
@@ -87,6 +89,13 @@ public class ImportFunction implements SingleFileFunction, MultiFileFunction {
             // Echelle index to order mapping
             if (spectrum instanceof EchelleSpectrum) {
                 ((EchelleSpectrum) spectrum).setAB(options.a, options.b);
+            }
+
+            // Handle nanometer wavelength units
+            if (options.inputUnit == NANOMETER) {
+                double[] seriesInNm = spectrum.getSeries().getXSeries();
+                double[] seriesInAngstrom = createArray(seriesInNm.length, i -> seriesInNm[i] * 10);
+                spectrum.getSeries().updateXSeries(seriesInAngstrom);
             }
 
         } catch (SpefoException exception) {
