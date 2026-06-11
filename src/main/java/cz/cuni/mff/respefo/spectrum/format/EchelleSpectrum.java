@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import static cz.cuni.mff.respefo.util.Constants.SPEED_OF_LIGHT;
 import static cz.cuni.mff.respefo.util.utils.ArrayUtils.divideArrayValues;
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.isSortedAscending;
 
 public class EchelleSpectrum extends Spectrum {
     public static final int FORMAT = 2;
@@ -25,6 +26,13 @@ public class EchelleSpectrum extends Spectrum {
 
     public EchelleSpectrum(XYSeries[] series) {
         super(FORMAT);
+
+        for (XYSeries xySeries : series) {
+            if (!isSortedAscending(xySeries.getXSeries())) {
+                throw new IllegalArgumentException("All individual X-axis values must be ascending");
+            }
+        }
+
         this.series = series;
     }
 

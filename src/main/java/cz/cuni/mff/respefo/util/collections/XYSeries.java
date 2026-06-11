@@ -6,11 +6,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.PriorityQueue;
 
-import static cz.cuni.mff.respefo.util.utils.ArrayUtils.isSortedAscending;
-
 /**
  * A collection for storing a 2-D sequence of real numbers. The underlying arrays cannot be null and are guaranteed
- * to have the same size. X-Series are guaranteed to be ascending. It is intended to store spectrum data points.
+ * to have the same size. It is intended to store spectrum data points.
  */
 public class XYSeries {
     private double[] xSeries;
@@ -26,8 +24,6 @@ public class XYSeries {
 
         if (xSeries.length != ySeries.length) {
             throw new IllegalArgumentException("Both series must have equal length");
-        } else if (!isSortedAscending(xSeries)) {
-            throw new IllegalArgumentException("xSeries values must be ascending");
         }
 
         this.xSeries = xSeries;
@@ -51,8 +47,6 @@ public class XYSeries {
 
         if (xSeries.length != this.xSeries.length) {
             throw new IllegalArgumentException("New series must have the same length");
-        } else if (!isSortedAscending(xSeries)) {
-            throw new IllegalArgumentException("New xSeries values must be ascending");
         }
 
         this.xSeries = xSeries;
