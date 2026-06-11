@@ -7,6 +7,7 @@ import cz.cuni.mff.respefo.spectrum.format.SimpleSpectrum;
 import cz.cuni.mff.respefo.util.collections.DoubleArrayList;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
+import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.MathUtils;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
+import static cz.cuni.mff.respefo.function.disp.DispersionFunction.INVERTED_X_AXIS_HEADER_KEY;
 import static cz.cuni.mff.respefo.util.utils.ArrayUtils.isSortedDescending;
 import static cz.cuni.mff.respefo.util.utils.ArrayUtils.reverseArray;
 import static java.lang.String.format;
@@ -57,6 +59,10 @@ public class DAOFitsFormat extends ImportFitsFormat {
         double[] coefficients = getCoefficients(fits.getHeader());
         if (coefficients.length == 0) {
             throw new InvalidFileFormatException("The FITS header does not contain any dispersion coefficients.");
+        }
+
+        if (fits.getHeader().containsKey(INVERTED_X_AXIS_HEADER_KEY)) {
+            ySeries = ArrayUtils.reverseArray(ySeries);
         }
 
         double[] xSeries = IntStream.range(0, ySeries.length)

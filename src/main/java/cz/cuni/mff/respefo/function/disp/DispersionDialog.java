@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Text;
 import static cz.cuni.mff.respefo.util.layout.GridDataBuilder.gridData;
 import static cz.cuni.mff.respefo.util.layout.GridLayoutBuilder.gridLayout;
 import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newBrowseButton;
+import static cz.cuni.mff.respefo.util.widget.ButtonBuilder.newCheckButton;
 import static cz.cuni.mff.respefo.util.widget.CompositeBuilder.newComposite;
 import static cz.cuni.mff.respefo.util.widget.LabelBuilder.newLabel;
 import static cz.cuni.mff.respefo.util.widget.TextBuilder.newText;
@@ -22,6 +23,7 @@ public class DispersionDialog extends SpefoDialog {
     private String labFileNameA;
     private String labFileNameB;
     private String cmpFileName;
+    private boolean invertXAxis;
 
     public DispersionDialog() {
         super("Derive dispersion");
@@ -37,6 +39,10 @@ public class DispersionDialog extends SpefoDialog {
 
     public String getCmpFileName() {
         return cmpFileName;
+    }
+
+    public boolean isInvertXAxis() {
+        return invertXAxis;
     }
 
     @Override
@@ -68,6 +74,16 @@ public class DispersionDialog extends SpefoDialog {
         final Text cText = textBuilder.onModifiedValue(value -> cmpFileName = value).build(composite);
         newBrowseButton(FileType.CMP, cText::setText)
                 .gridLayoutData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER)
+                .build(composite);
+
+        newLabel(SWT.SEPARATOR | SWT.HORIZONTAL)
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2).heightHint(15))
+                .build(composite);
+
+        newCheckButton()
+                .layoutData(gridData(GridData.FILL_BOTH).horizontalSpan(2))
+                .text("Invert FITS files X Axes")
+                .onSelectedValue(selected -> invertXAxis = selected)
                 .build(composite);
     }
 }

@@ -11,7 +11,6 @@ import cz.cuni.mff.respefo.spectrum.port.fits.ImportFitsFormat;
 import cz.cuni.mff.respefo.util.Message;
 import cz.cuni.mff.respefo.util.collections.FitsFile;
 import cz.cuni.mff.respefo.util.collections.XYSeries;
-import cz.cuni.mff.respefo.util.utils.ArrayUtils;
 import cz.cuni.mff.respefo.util.utils.FileUtils;
 import nom.tam.fits.*;
 
@@ -22,6 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static cz.cuni.mff.respefo.function.disp.ComparisonLineResults.MAX_POLY_DEGREE;
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.addValueToArrayElements;
+import static cz.cuni.mff.respefo.util.utils.ArrayUtils.reverseArray;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatDouble;
 import static cz.cuni.mff.respefo.util.utils.FormattingUtils.formatInteger;
 import static java.lang.String.format;
@@ -30,6 +31,7 @@ import static java.lang.String.format;
 public class DispersionFunction implements SingleFileFunction {
 
     private static final String[] INVALID_KEYS = new String[] {"UT", "INSTRUME"};
+    public static final String INVERTED_X_AXIS_HEADER_KEY = "DISPINV";
 
     @Override
     public void execute(File file) {
@@ -43,10 +45,15 @@ public class DispersionFunction implements SingleFileFunction {
             XYSeries seriesA = readFitsFile(dialog.getLabFileNameA());
             XYSeries seriesB = readFitsFile(dialog.getLabFileNameB());
 
+            if (dialog.isInvertXAxis()) {
+                seriesA.updateYSeries(reverseArray(seriesA.getYSeries()));
+                seriesB.updateYSeries(reverseArray(seriesB.getYSeries()));
+            }
+
             // TODO: Use the new Async methods instead
             new DispersionController(cmpValues, seriesA, seriesB)
                     .start(results -> printToCmfFile(file.getPath(), dialog.getLabFileNameA(), dialog.getLabFileNameB(), results),
-                            coefficients -> saveToFITSHeader(file, coefficients));
+                            coefficients -> saveToFITSHeader(file, coefficients, dialog.isInvertXAxis()));
 
         } catch (SpefoException e) {
             Message.error("An error occurred while reading files", e);
@@ -96,7 +103,7 @@ public class DispersionFunction implements SingleFileFunction {
         }
     }
 
-    private void saveToFITSHeader(File originalFile, double[] coefficients) {
+    private void saveToFITSHeader(File originalFile, double[] coefficients, boolean invertedXAxis) {
         try (Fits fits = new Fits()) {
             FitsFile fitsFile = new FitsFile(originalFile);
 
@@ -113,6 +120,12 @@ public class DispersionFunction implements SingleFileFunction {
             // Clear potential previously saved coefficients
             for (int i = coefficients.length; i <= MAX_POLY_DEGREE; i++) {
                 newHeader.deleteKey(format("DCOEF%d", i + 1));
+            }
+
+            if (invertedXAxis) {
+                newHeader.addValue(INVERTED_X_AXIS_HEADER_KEY, "", "Dispersion derivation used inverted X-Axes");
+            } else {
+                newHeader.deleteKey(INVERTED_X_AXIS_HEADER_KEY);
             }
 
             // Fix incorrect FITS header string entries in some files
@@ -154,7 +167,7 @@ public class DispersionFunction implements SingleFileFunction {
     private XYSeries readFitsFile(String fileName) throws SpefoException {
         // TODO: Is there a more elegant way to do this?
         XYSeries series = new ImportFitsFormat().importFrom(fileName).getSeries();
-        series.updateXSeries(ArrayUtils.addValueToArrayElements(series.getXSeries(), -1)); // Correct 1-based indexing
+        series.updateXSeries(addValueToArrayElements(series.getXSeries(), -1)); // Correct 1-based indexing
         return series;
     }
 }
